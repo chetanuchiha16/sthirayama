@@ -3,13 +3,16 @@ pub struct SkipListNode<K, V> {
     pub level: usize,
     pub key: K,
     pub value: V,
-    pub next_nodes: Vec<Option<Box<SkipListNode<K, V>>>>,
+    pub next_nodes: Vec<Option<usize>>,
 }
 
-impl<K, V> SkipListNode<K, V> {
-    pub fn new(level: usize, key: K, value: V) -> Self {
+impl<K, V> SkipListNode<K, V>
+where
+    K: Clone,
+{
+    pub fn new(level: usize, key: &K, value: V) -> Self {
         Self {
-            key,
+            key: key.to_owned(),
             value,
             next_nodes: (0..level).map(|_| None).collect(),
             level,
@@ -18,16 +21,20 @@ impl<K, V> SkipListNode<K, V> {
 }
 
 #[derive(Debug)]
-pub struct SkipList<K, V> {
+pub struct SkipList {
     pub max_level: usize,
-    pub head: Vec<Option<Box<SkipListNode<K, V>>>>,
+    pub head: Vec<Option<usize>>,
 }
 
-impl<K, V> SkipList<K, V> {
+impl SkipList {
     pub fn new(max_level: usize) -> Self {
         Self {
-            max_level: max_level,
+            max_level,
             head: (0..max_level).map(|_| None).collect(),
         }
+    }
+
+    fn random_level(&self) -> usize {
+        fastrand::usize(0..self.max_level)
     }
 }
