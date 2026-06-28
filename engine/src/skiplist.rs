@@ -42,7 +42,7 @@ where
         }
     }
 
-    fn random_level(&self) -> usize {
+    pub fn random_level(&self) -> usize {
         fastrand::usize(0..self.max_level)
     }
 }
