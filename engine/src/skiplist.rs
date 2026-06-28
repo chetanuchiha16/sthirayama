@@ -1,9 +1,11 @@
+use std::ptr::NonNull;
+
 #[derive(Debug)]
 pub struct SkipListNode<K, V> {
     pub level: usize,
     pub key: K,
     pub value: V,
-    pub next_nodes: Vec<Option<usize>>,
+    pub forward: Vec<Option<NonNull<SkipListNode<K, V>>>>,
 }
 
 impl<K, V> SkipListNode<K, V>
@@ -14,26 +16,31 @@ where
         Self {
             key: key.to_owned(),
             value,
-            next_nodes: (0..level).map(|_| None).collect(),
+            forward: (0..level).map(|_| None).collect(),
             level,
         }
     }
 }
 
 #[derive(Debug)]
-pub struct SkipList {
+pub struct SkipList<K, V> {
     pub max_level: usize,
-    pub head: Vec<Option<usize>>,
+    pub head: Option<NonNull<SkipListNode<K, V>>>,
 }
 
-impl SkipList {
-    pub fn new(max_level: usize) -> Self {
+impl<K, V> SkipList<K, V>
+where
+    K: Clone,
+{
+    pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
+        let head = Box::new(SkipListNode::new(max_level, &dummy_k, dummy_v));
+        let head_ptr: *mut SkipListNode<K, V> = Box::into_raw(head);
+
         Self {
             max_level,
-            head: (0..max_level).map(|_| None).collect(),
+            head: Some(unsafe { NonNull::new_unchecked(head_ptr) }),
         }
     }
-
     fn random_level(&self) -> usize {
         fastrand::usize(0..self.max_level)
     }
