@@ -41,6 +41,7 @@ where
             head: Some(unsafe { NonNull::new_unchecked(head_ptr) }),
         }
     }
+
     fn random_level(&self) -> usize {
         fastrand::usize(0..self.max_level)
     }

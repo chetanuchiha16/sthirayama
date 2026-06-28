@@ -6,5 +6,6 @@ fn main() {
     let skip_list_node: SkipListNode<i32, i32> = SkipListNode::new(5, &5, 5);
     println!("{:?}", skip_list);
     println!("{:?}", skip_list_node);
-    println!("{:?}", unsafe {skip_list.head.unwrap().as_ref() });
+    println!("{:?}", unsafe { skip_list.head.unwrap().as_ref() });
+    println!("{:?}", unsafe { &skip_list.head.unwrap().as_ref().forward });
 }
