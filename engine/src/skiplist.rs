@@ -32,6 +32,7 @@ impl<K, V> SkipList<K, V>
 where
     K: Clone,
 {
+    /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
         let head = Box::new(SkipListNode::new(max_level, &dummy_k, dummy_v));
         let head_ptr: *mut SkipListNode<K, V> = Box::into_raw(head);
