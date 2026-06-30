@@ -53,7 +53,7 @@ where
         let mut current = self.head?; //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = unsafe { current.as_ref().forward[level] }
-                && unsafe { &node.as_ref().key } < &key
+                && unsafe { &node.as_ref().key } <= &key
             {
                 current = node;
             }

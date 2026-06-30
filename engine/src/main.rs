@@ -1,3 +1,5 @@
+use std::ptr::NonNull;
+
 use crate::skiplist::{SkipList, SkipListNode};
 
 mod skiplist;
@@ -8,10 +10,12 @@ fn main() {
     println!("{:?}", skip_list.random_level());
     println!("{:?}", skip_list.max_level);
     println!("{:?}", skip_list_node);
-    let head = unsafe { &skip_list.head.unwrap().as_ref() };
+    let head = unsafe {  skip_list.head.unwrap().as_mut() };
     println!("{:?}", head);
     println!("{:?}", head.forward);
     println!("{:?}", head.key);
     println!("{:?}", head.value);
     println!("{:?}", head.level);
+    head.forward[0] = unsafe {Some(NonNull::new_unchecked( Box::into_raw(Box::new(SkipListNode::new(3, &5, 6)))))};
+    println!("{:?}", skip_list.search(5));
 }
