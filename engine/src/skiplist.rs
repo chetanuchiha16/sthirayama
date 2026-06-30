@@ -10,7 +10,8 @@ pub struct SkipListNode<K, V> {
 
 impl<K, V> SkipListNode<K, V>
 where
-    K: Clone,
+    K: Clone + PartialOrd,
+    V: Clone,
 {
     pub fn new(level: usize, key: &K, value: V) -> Self {
         Self {
@@ -30,7 +31,8 @@ pub struct SkipList<K, V> {
 
 impl<K, V> SkipList<K, V>
 where
-    K: Clone,
+    K: Clone + PartialOrd,
+    V: Clone,
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
@@ -45,5 +47,17 @@ where
 
     pub fn random_level(&self) -> usize {
         fastrand::usize(0..self.max_level)
+    }
+
+    pub fn search(&self, key: K) -> Option<V> {
+        let mut current = self.head?; //caused having reference to temp
+        for level in (0..self.max_level).rev() {
+            while let Some(node) = unsafe { current.as_ref().forward[level] }
+                && unsafe { &node.as_ref().key } < &key
+            {
+                current = node;
+            }
+        }
+        Some(unsafe { current.as_ref().value.to_owned() })
     }
 }
