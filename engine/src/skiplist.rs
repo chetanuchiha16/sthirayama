@@ -44,7 +44,7 @@ where
             head: Some(unsafe { NonNull::new_unchecked(head_ptr) }),
         }
     }
-
+    /// generate a random level for the node to be inserted with
     pub fn random_level(&self) -> usize {
         fastrand::usize(0..self.max_level)
     }
