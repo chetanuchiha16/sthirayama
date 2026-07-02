@@ -24,6 +24,24 @@ where
         };
         Some(node)
     }
+
+    pub fn get_key(node: &NonNull<Self>) -> &K {
+        unsafe { &node.as_ref().key }
+    }
+
+    pub fn get_value(node: &NonNull<Self>) -> &V {
+        unsafe { &node.as_ref().value }
+    }
+
+    pub fn get_forward(node: &NonNull<Self>) -> &Vec<Option<NonNull<SkipListNode<K, V>>>> {
+        unsafe { &node.as_ref().forward }
+    }
+
+    pub fn get_forward_mut(
+        node: &mut NonNull<Self>,
+    ) -> &mut Vec<Option<NonNull<SkipListNode<K, V>>>> {
+        unsafe { &mut node.as_mut().forward }
+    }
 }
 
 #[derive(Debug)]
@@ -48,16 +66,16 @@ where
     }
 
     pub fn search(&self, key: K) -> Option<V> {
-        let mut current = self.head?; //caused having reference to temp
+        let mut current: NonNull<SkipListNode<K, V>> = self.head?; //caused having reference to temp
         for level in (0..self.max_level).rev() {
-            while let Some(node) = unsafe { current.as_ref().forward[level] }
-                && unsafe { &node.as_ref().key } <= &key
+            while let Some(node) = SkipListNode::get_forward(&current)[level]
+                && SkipListNode::get_key(&node) <= &key
             {
                 current = node;
             }
         }
-        let cur_k = unsafe { current.as_ref().key.to_owned() };
-        let cur_v = unsafe { current.as_ref().value.to_owned() };
+        let cur_k = SkipListNode::get_key(&current).to_owned();
+        let cur_v = SkipListNode::get_value(&current).to_owned();
         if cur_k == key { Some(cur_v) } else { None }
     }
 
@@ -66,12 +84,12 @@ where
         let new_node = SkipListNode::new(new_node_level, key.clone(), value);
         let mut current = self.head.unwrap(); //caused having reference to temp
         for level in (0..self.max_level).rev() {
-            while let Some(node) = unsafe { current.as_ref().forward[level] }
-                && unsafe { &node.as_ref().key } < &key
+            while let Some(node) = SkipListNode::get_forward(&current)[level]
+                && SkipListNode::get_key(&node) < &key
             {
                 current = node;
             }
         }
-        unsafe { current.as_mut().forward[new_node_level] = new_node };
+        SkipListNode::get_forward_mut(&mut current)[new_node_level] = new_node;
     }
 }
