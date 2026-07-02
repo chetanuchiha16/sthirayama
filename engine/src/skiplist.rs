@@ -13,13 +13,16 @@ where
     K: Clone + PartialOrd,
     V: Clone,
 {
-    pub fn new(level: usize, key: &K, value: V) -> Self {
-        Self {
+    pub fn new(level: usize, key: &K, value: V) -> Option<NonNull<Self>> {
+        let node = unsafe {
+            NonNull::new_unchecked(Box::into_raw(Box::new(Self {
             key: key.to_owned(),
             value,
             forward: (0..level).map(|_| None).collect(),
             level,
-        }
+            })))
+        };
+        Some(node)
     }
 }
 
@@ -36,13 +39,8 @@ where
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
-        let head = Box::new(SkipListNode::new(max_level, &dummy_k, dummy_v));
-        let head_ptr: *mut SkipListNode<K, V> = Box::into_raw(head);
-
-        Self {
-            max_level,
-            head: Some(unsafe { NonNull::new_unchecked(head_ptr) }),
-        }
+        let head = SkipListNode::new(max_level, &dummy_k, dummy_v);
+        Self { max_level, head }
     }
     /// generate a random level for the node to be inserted with
     pub fn random_level(&self) -> usize {
