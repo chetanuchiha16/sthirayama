@@ -3,6 +3,7 @@ use crate::skiplist::{SkipList, SkipListNode};
 mod skiplist;
 fn main() {
     let skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
+    skip_list.insert(6, 6);
     let skip_list_node = unsafe { SkipListNode::new(5, &5, 5).unwrap().as_ref() };
     println!("{:?}", skip_list);
     println!("{:?}", skip_list.random_level());
@@ -15,6 +16,5 @@ fn main() {
     println!("{:?}", head.value);
     println!("{:?}", head.level);
     // head.forward[0] = SkipListNode::new(2, &5, 6);
-    skip_list.insert(5, 6);
-    println!("{:?}", skip_list.search(5));
+    println!("{:?}", skip_list.search(6));
 }

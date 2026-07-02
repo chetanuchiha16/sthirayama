@@ -56,7 +56,9 @@ where
                 current = node;
             }
         }
-        Some(unsafe { current.as_ref().value.to_owned() })
+        let cur_k = unsafe { current.as_ref().key.to_owned() };
+        let cur_v = unsafe { current.as_ref().value.to_owned() };
+        if cur_k == key { Some(cur_v) } else { None }
     }
 
     pub fn insert(&self, key: K, value: V) {
