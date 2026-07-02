@@ -14,7 +14,7 @@ fn main() {
     println!("{:?}", head.key);
     println!("{:?}", head.value);
     println!("{:?}", head.level);
-    head.forward[0] = SkipListNode::new(2, &5, 6);
-    // skip_list.insert(5, 6);
+    // head.forward[0] = SkipListNode::new(2, &5, 6);
+    skip_list.insert(5, 6);
     println!("{:?}", skip_list.search(5));
 }
