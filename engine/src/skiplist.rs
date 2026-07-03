@@ -13,7 +13,7 @@ where
     K: PartialOrd,
     V: Clone,
 {
-    pub fn new(level: usize, key: K, value: V) -> Option<NonNull<Self>> {
+    pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
         let node = unsafe {
             NonNull::new_unchecked(Box::into_raw(Box::new(Self {
                 key: key,
@@ -22,7 +22,7 @@ where
                 level,
             })))
         };
-        Some(node)
+        node
     }
 
     pub fn get_key(node: &NonNull<Self>) -> &K {
@@ -58,7 +58,10 @@ where
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
         let head = SkipListNode::new(max_level, dummy_k, dummy_v);
-        Self { max_level, head }
+        Self {
+            max_level,
+            head: Some(head),
+        }
     }
     /// generate a random level for the node to be inserted with
     pub fn random_level(&self) -> usize {
@@ -79,9 +82,10 @@ where
         if cur_k == key { Some(cur_v) } else { None }
     }
 
-    pub fn insert(&self, key: K, value: V) {
+    pub fn insert(&mut self, key: K, value: V) {
+        let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];
         let new_node_level = self.random_level();
-        let new_node = SkipListNode::new(new_node_level, key.clone(), value);
+        let mut new_node = SkipListNode::new(new_node_level, key.clone(), value);
         let mut current = self.head.unwrap(); //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = SkipListNode::get_forward(&current)[level]
@@ -89,7 +93,13 @@ where
             {
                 current = node;
             }
+            update[level] = current;
         }
-        SkipListNode::get_forward_mut(&mut current)[new_node_level] = new_node;
+
+        for level in (0..new_node_level).rev() {
+            SkipListNode::get_forward_mut(&mut new_node)[level] =
+                SkipListNode::get_forward_mut(&mut update[level])[level];
+            SkipListNode::get_forward_mut(&mut update[level])[level] = Some(new_node);
+        }
     }
 }
