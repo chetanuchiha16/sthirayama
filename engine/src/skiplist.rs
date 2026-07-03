@@ -1,4 +1,5 @@
-use std::{fmt::Display, ptr::NonNull};
+use std::fmt::{Display, Formatter, Result};
+use std::ptr::NonNull;
 
 #[derive(Debug)]
 pub struct SkipListNode<K, V> {
@@ -105,13 +106,53 @@ where
 }
 
 impl<K: Display + PartialOrd, V: Clone> Display for SkipList<K, V> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[ ")?;
-        let mut current = self.head.unwrap();
-        while let Some(cur_node) = SkipListNode::get_forward(&current)[0] {
-            write!(f, "{} ", SkipListNode::get_key(&cur_node))?;
-            current = cur_node;
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
+
+        // --- Step 1: Collect all keys in order from Level 0 to build our columns ---
+        let mut columns = Vec::new();
+        let mut current = self.head;
+
+        while let Some(cur_node) = current {
+            if let Some(next_node) = SkipListNode::get_forward(&cur_node)[0] {
+                let key_str = format!("{}", SkipListNode::get_key(&next_node));
+                columns.push((next_node.clone(), key_str));
+                current = Some(next_node);
+            } else {
+                break;
+            }
         }
-        write!(f, "]")
+
+        // --- Step 2: Print level by level from top to bottom ---
+        for level in (0..self.max_level).rev() {
+            write!(f, "Level {:2}: Head", level)?;
+
+            // Start traversal tracking for the current level
+            let mut current_node_ptr = self.head;
+
+            // Inside your level loop...
+            for (node, key_str) in &columns {
+                let next_at_level = current_node_ptr
+                    .as_ref()
+                    .and_then(|n| SkipListNode::get_forward(n)[level].clone());
+
+                if let Some(ref target) = next_at_level {
+                    if SkipListNode::get_key(target) == SkipListNode::get_key(node) {
+                        write!(f, " -> [{}]", key_str)?;
+                        current_node_ptr = next_at_level;
+                        continue;
+                    }
+                }
+
+                // FIX: Format the structural gap as an empty slot " -> [---]"
+                // instead of appending loose hyphens to the previous arrow.
+                let dashes = "-".repeat(key_str.len());
+                write!(f, " -> [{}]", dashes)?;
+            }
+
+            writeln!(f, " -> Nil")?;
+        }
+
+        write!(f, "-----------------------------")
     }
 }

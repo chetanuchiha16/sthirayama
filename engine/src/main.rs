@@ -23,12 +23,12 @@ fn main() {
     skip_list.insert(20, 200);
     skip_list.insert(5, 50);
     skip_list.insert(15, 150);
+    println!("{}", skip_list);
 
     println!("{:?}", skip_list.search(5)); // Some(50)
     println!("{:?}", skip_list.search(10)); // Some(100)
     println!("{:?}", skip_list.search(15)); // Some(150)
     println!("{:?}", skip_list.search(20)); // Some(200)
     // println!("{:?}", skip_list);
-    println!("{}", skip_list);
     println!("{:?}", skip_list.search(99)); // None
 }
