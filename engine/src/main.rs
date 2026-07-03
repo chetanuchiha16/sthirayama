@@ -28,5 +28,7 @@ fn main() {
     println!("{:?}", skip_list.search(10)); // Some(100)
     println!("{:?}", skip_list.search(15)); // Some(150)
     println!("{:?}", skip_list.search(20)); // Some(200)
+    // println!("{:?}", skip_list);
+    println!("{}", skip_list);
     println!("{:?}", skip_list.search(99)); // None
 }

@@ -1,4 +1,4 @@
-use std::ptr::NonNull;
+use std::{fmt::Display, ptr::NonNull};
 
 #[derive(Debug)]
 pub struct SkipListNode<K, V> {
@@ -10,7 +10,7 @@ pub struct SkipListNode<K, V> {
 
 impl<K, V> SkipListNode<K, V>
 where
-    K: PartialOrd,
+    K: PartialOrd + Display,
     V: Clone,
 {
     pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
@@ -52,7 +52,7 @@ pub struct SkipList<K, V> {
 
 impl<K, V> SkipList<K, V>
 where
-    K: PartialOrd + Clone,
+    K: PartialOrd + Clone + Display,
     V: Clone,
 {
     /// create a new skiplist with a sentinel head
@@ -101,5 +101,17 @@ where
                 SkipListNode::get_forward_mut(&mut update[level])[level];
             SkipListNode::get_forward_mut(&mut update[level])[level] = Some(new_node);
         }
+    }
+}
+
+impl<K: Display + PartialOrd, V: Clone> Display for SkipList<K, V> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[ ")?;
+        let mut current = self.head.unwrap();
+        while let Some(cur_node) = SkipListNode::get_forward(&current)[0] {
+            write!(f, "{} ", SkipListNode::get_key(&cur_node))?;
+            current = cur_node;
+        }
+        write!(f, "]")
     }
 }
