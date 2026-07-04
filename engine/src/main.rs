@@ -1,6 +1,9 @@
-use crate::skiplist::{SkipList, SkipListNode};
+use crate::{
+    skiplist::{SkipList, SkipListNode}, wal::Wal,
+};
 
 mod skiplist;
+mod wal;
 fn main() {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
     skip_list.insert(6, 6);
@@ -31,4 +34,7 @@ fn main() {
     println!("{:?}", skip_list.search(20)); // Some(200)
     // println!("{:?}", skip_list);
     println!("{:?}", skip_list.search(99)); // None
+
+    let mut wal = Wal::new().unwrap();
+    wal.append(5, 6).unwrap();
 }
