@@ -1,5 +1,7 @@
 use std::{
-    fmt::Display, fs::{File, OpenOptions}, io::{Error, Write},
+    fmt::Display,
+    fs::{File, OpenOptions},
+    io::{Error, Write},
 };
 
 #[derive(Debug)]
@@ -13,9 +15,8 @@ impl Wal {
             .append(true)
             .create(true)
             .open("../wal/file.wal")?;
-        
-        Ok(Self {file})
 
+        Ok(Self { file })
     }
     pub fn append<K: Display, V: Display>(&mut self, key: K, value: V) -> std::io::Result<()> {
         writeln!(self.file, "{} {}", key, value)?;

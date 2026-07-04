@@ -1,5 +1,8 @@
-use std::fmt::{Display, Formatter, Result};
+use std::fmt::{Display, Formatter};
+use std::io::Error;
 use std::ptr::NonNull;
+
+use crate::wal::Wal;
 
 #[derive(Debug)]
 pub struct SkipListNode<K, V> {
@@ -49,6 +52,7 @@ where
 pub struct SkipList<K, V> {
     pub max_level: usize,
     pub head: Option<NonNull<SkipListNode<K, V>>>,
+    pub wal: Wal,
 }
 
 impl<K, V> SkipList<K, V>
@@ -57,12 +61,14 @@ where
     V: Clone,
 {
     /// create a new skiplist with a sentinel head
-    pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
+    pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Result<Self, Error> {
         let head = SkipListNode::new(max_level, dummy_k, dummy_v);
-        Self {
+        let wal = Wal::new()?;
+        Ok(Self {
             max_level,
             head: Some(head),
-        }
+            wal,
+        })
     }
     /// generate a random level for the node to be inserted with
     pub fn random_level(&self) -> usize {
@@ -106,7 +112,7 @@ where
 }
 
 impl<K: Display + PartialOrd, V: Clone> Display for SkipList<K, V> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
 
         // --- Step 1: Collect all keys in order from Level 0 to build our columns ---
