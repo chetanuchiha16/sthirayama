@@ -12,7 +12,7 @@ impl Wal {
         let file = OpenOptions::new()
             .append(true)
             .create(true)
-            .open("file.wal")?;
+            .open("../wal/file.wal")?;
         
         Ok(Self {file})
 
