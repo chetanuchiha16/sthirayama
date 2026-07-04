@@ -15,7 +15,7 @@ pub struct SkipListNode<K, V> {
 impl<K, V> SkipListNode<K, V>
 where
     K: PartialOrd + Display,
-    V: Clone,
+    V: Clone + Display,
 {
     pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
         let node = unsafe {
@@ -58,7 +58,7 @@ pub struct SkipList<K, V> {
 impl<K, V> SkipList<K, V>
 where
     K: PartialOrd + Clone + Display,
-    V: Clone,
+    V: Clone + Display,
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Result<Self, Error> {
@@ -89,7 +89,8 @@ where
         if cur_k == key { Some(cur_v) } else { None }
     }
 
-    pub fn insert(&mut self, key: K, value: V) {
+    pub fn insert(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
+        self.wal.append(&key, &value)?;
         let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(new_node_level, key.clone(), value);
@@ -108,10 +109,11 @@ where
                 SkipListNode::get_forward_mut(&mut update[level])[level];
             SkipListNode::get_forward_mut(&mut update[level])[level] = Some(new_node);
         }
+        Ok(())
     }
 }
 
-impl<K: Display + PartialOrd, V: Clone> Display for SkipList<K, V> {
+impl<K: Display + PartialOrd, V: Clone + Display> Display for SkipList<K, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
 

@@ -9,7 +9,7 @@ mod skiplist;
 mod wal;
 fn main() -> Result<(), Box<dyn Error>> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1)?;
-    skip_list.insert(6, 6);
+    skip_list.insert(6, 6)?;
     let skip_list_node = unsafe { SkipListNode::new(5, &5, 5).as_ref() };
     println!("{:?}", skip_list);
     println!("{:?}", skip_list.random_level());
@@ -25,10 +25,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("{:?}", skip_list.search(6));
 
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
-    skip_list.insert(10, 100);
-    skip_list.insert(20, 200);
-    skip_list.insert(5, 50);
-    skip_list.insert(15, 150);
+    skip_list.insert(10, 100)?;
+    skip_list.insert(20, 200)?;
+    skip_list.insert(5, 50)?;
+    skip_list.insert(15, 150)?;
     println!("{}", skip_list);
 
     println!("{:?}", skip_list.search(5)); // Some(50)
