@@ -52,7 +52,7 @@ where
 pub struct SkipList<K, V> {
     pub max_level: usize,
     pub head: Option<NonNull<SkipListNode<K, V>>>,
-    pub wal: Wal,
+    pub wal: Wal<K, V>,
 }
 
 impl<K, V> SkipList<K, V>
@@ -62,7 +62,7 @@ where
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Result<Self, Error> {
-        let head = SkipListNode::new(max_level, dummy_k, dummy_v);
+        let head = SkipListNode::new(max_level, dummy_k.clone(), dummy_v.clone());
         let wal = Wal::new()?;
         Ok(Self {
             max_level,
@@ -90,7 +90,7 @@ where
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
-        self.wal.append(&key, &value)?;
+        self.wal.append(key.clone(), value.clone())?;
         let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(new_node_level, key.clone(), value);
