@@ -18,6 +18,7 @@ pub struct Wal<K, V> {
 }
 
 impl<K: Display + Encode, V: Display + Encode> Wal<K, V> {
+
     pub fn new() -> Result<Self, Error> {
         let file = OpenOptions::new()
             .append(true)
@@ -31,6 +32,7 @@ impl<K: Display + Encode, V: Display + Encode> Wal<K, V> {
             _marker: PhantomData,
         })
     }
+
     pub fn append(&mut self, key: K, value: V) -> std::io::Result<()> {
         // let key_len_bytes = size_of::<K>().to_le_bytes();
         // let value_len_bytes = size_of::<V>().to_le_bytes();
@@ -51,5 +53,9 @@ impl<K: Display + Encode, V: Display + Encode> Wal<K, V> {
 
         self.file.flush()?;
         Ok(())
+    }
+
+    pub fn recover(&self) {
+        todo!()
     }
 }
