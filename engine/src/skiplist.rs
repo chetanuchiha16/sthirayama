@@ -2,6 +2,8 @@ use std::fmt::{Display, Formatter};
 use std::io::Error;
 use std::ptr::NonNull;
 
+use bitcode::Encode;
+
 use crate::wal::Wal;
 
 #[derive(Debug)]
@@ -14,8 +16,8 @@ pub struct SkipListNode<K, V> {
 
 impl<K, V> SkipListNode<K, V>
 where
-    K: PartialOrd + Display,
-    V: Clone + Display,
+    K: PartialOrd + Display + Encode,
+    V: Clone + Display + Encode,
 {
     pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
         let node = unsafe {
@@ -57,8 +59,8 @@ pub struct SkipList<K, V> {
 
 impl<K, V> SkipList<K, V>
 where
-    K: PartialOrd + Clone + Display,
-    V: Clone + Display,
+    K: PartialOrd + Clone + Display + Encode,
+    V: Clone + Display + Encode,
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Result<Self, Error> {
@@ -113,7 +115,7 @@ where
     }
 }
 
-impl<K: Display + PartialOrd, V: Clone + Display> Display for SkipList<K, V> {
+impl<K: Display + PartialOrd + Encode, V: Clone + Display + Encode> Display for SkipList<K, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
 

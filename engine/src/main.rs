@@ -10,7 +10,7 @@ mod wal;
 fn main() -> Result<(), Box<dyn Error>> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1)?;
     skip_list.insert(6, 6)?;
-    let skip_list_node = unsafe { SkipListNode::new(5, &5, 5).as_ref() };
+    let skip_list_node = unsafe { SkipListNode::new(5, 5, 5).as_ref() };
     println!("{:?}", skip_list);
     println!("{:?}", skip_list.random_level());
     println!("{:?}", skip_list.max_level);
