@@ -1,8 +1,5 @@
 use std::{
-    fmt::Display,
-    fs::{File, OpenOptions},
-    io::{Error, Write},
-    marker::PhantomData,
+    fmt::Display, fs::{File, OpenOptions}, io::{Error, Read, Seek, SeekFrom, Write}, marker::PhantomData,
 };
 
 use bitcode::Encode;
@@ -18,9 +15,9 @@ pub struct Wal<K, V> {
 }
 
 impl<K: Display + Encode, V: Display + Encode> Wal<K, V> {
-
     pub fn new() -> Result<Self, Error> {
         let file = OpenOptions::new()
+            .read(true)
             .append(true)
             .create(true)
             .open("../wal/file.wal")?;
@@ -55,7 +52,20 @@ impl<K: Display + Encode, V: Display + Encode> Wal<K, V> {
         Ok(())
     }
 
-    pub fn recover(&self) {
-        todo!()
+    pub fn recover(&mut self) -> Result<(), std::io::Error> {
+        self.file.seek(SeekFrom::Start(0))?;
+        let mut buf = [0u8; 8];
+        self.file.read_exact(&mut buf)?;
+        println!("{:?} is the buf", buf);
+        let mut buf = [0u8; 8];
+        self.file.read_exact(&mut buf)?;
+        println!("{:?} is the buf", buf);
+        let mut buf = [0u8; 8];
+        self.file.read_exact(&mut buf)?;
+        println!("{:?} is the buf", buf);
+        let mut buf = [0u8; 8];
+        self.file.read_exact(&mut buf)?;
+        println!("{:?} is the buf", buf);
+        Ok(())
     }
 }

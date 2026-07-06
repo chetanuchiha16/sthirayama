@@ -40,5 +40,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut wal = Wal::new().unwrap();
     wal.append(5, 6).unwrap();
+    wal.recover()?;
     Ok(())
 }
