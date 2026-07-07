@@ -52,6 +52,7 @@ impl<K: Display + Encode, V: Display + Encode> Wal<K, V> {
         Ok(())
     }
 
+    ///recover the skip list from the wal file if crashed
     pub fn recover(&mut self) -> Result<(), std::io::Error> {
         self.file.seek(SeekFrom::Start(0))?;
         let mut buf = [0u8; 8];
