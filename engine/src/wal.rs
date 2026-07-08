@@ -42,20 +42,24 @@ impl Wal {
         // let key_len_bytes = size_of::<K>().to_le_bytes();
         // let value_len_bytes = size_of::<V>().to_le_bytes();
         let data = SkipListKV::new(key, value);
-        let key_bytes = bitcode::encode(&data.key);
-        let value_bytes = bitcode::encode(&data.value);
-        let key_len_bytes = key_bytes.len().to_le_bytes();
-        let value_len_bytes = value_bytes.len().to_le_bytes();
-        // writeln!(
-        //     self.file,
-        //     "{:?}{:?}{:?}{:?}",
-        //     key_len_bytes, key_bytes, value_len_bytes, value_bytes
-        // )?;
+        let data_bytes = bitcode::encode(&data);
+        let data_len_bytes = data_bytes.len().to_le_bytes();
+        self.file.write_all(&data_len_bytes)?;
+        self.file.write_all(&data_bytes)?;
+        // let key_bytes = bitcode::encode(&data.key);
+        // let value_bytes = bitcode::encode(&data.value);
+        // let key_len_bytes = key_bytes.len().to_le_bytes();
+        // let value_len_bytes = value_bytes.len().to_le_bytes();
+        // // writeln!(
+        // //     self.file,
+        // //     "{:?}{:?}{:?}{:?}",
+        // //     key_len_bytes, key_bytes, value_len_bytes, value_bytes
+        // // )?;
 
-        self.file.write_all(&key_len_bytes)?;
-        self.file.write_all(&key_bytes)?;
-        self.file.write_all(&value_len_bytes)?;
-        self.file.write_all(&value_bytes)?;
+        // self.file.write_all(&key_len_bytes)?;
+        // self.file.write_all(&key_bytes)?;
+        // self.file.write_all(&value_len_bytes)?;
+        // self.file.write_all(&value_bytes)?;
 
         self.file.flush()?;
         Ok(())
@@ -69,34 +73,43 @@ impl Wal {
 
         let mut buf = [0u8; 8];
         self.file.read_exact(&mut buf)?;
-        let key_len = usize::from_le_bytes(buf);
-        // println!("{}", &key_len);
-        let mut buf = vec![0u8; key_len];
-        self.file.read_exact(&mut buf)?;
-        let key: K = bitcode::decode(&buf).unwrap();
-        // println!("{:?}", key);
+        let data_len = usize::from_le_bytes(buf);
 
-        let mut buf = [0u8; 8];
+        let mut buf = vec![0u8; data_len];
         self.file.read_exact(&mut buf)?;
-        let value_len = usize::from_le_bytes(buf);
-        // println!("{}", &value_len);
-        let mut buf = vec![0u8; value_len];
-        self.file.read_exact(&mut buf)?;
-        let value: V = bitcode::decode(&buf).unwrap();
-        println!("{:?}: {:?}",key, value);
-        // let item: usize = bitcode::decode(&buf).unwrap();
-        // println!("{:?}", item);
+        let data: SkipListKV<K, V> = bitcode::decode(&buf).unwrap();
 
-        // println!("{:?} is the buf", buf);
+        print!("{:?}\n", data);
         // let mut buf = [0u8; 8];
         // self.file.read_exact(&mut buf)?;
-        // println!("{:?} is the buf", buf);
+        // let key_len = usize::from_le_bytes(buf);
+        // // println!("{}", &key_len);
+        // let mut buf = vec![0u8; key_len];
+        // self.file.read_exact(&mut buf)?;
+        // let key: K = bitcode::decode(&buf).unwrap();
+        // // println!("{:?}", key);
+
         // let mut buf = [0u8; 8];
         // self.file.read_exact(&mut buf)?;
-        // println!("{:?} is the buf", buf);
-        // let mut buf = [0u8; 8];
+        // let value_len = usize::from_le_bytes(buf);
+        // // println!("{}", &value_len);
+        // let mut buf = vec![0u8; value_len];
         // self.file.read_exact(&mut buf)?;
-        // println!("{:?} is the buf", buf);
+        // let value: V = bitcode::decode(&buf).unwrap();
+        // println!("{:?}: {:?}",key, value);
+        // // let item: usize = bitcode::decode(&buf).unwrap();
+        // // println!("{:?}", item);
+
+        // // println!("{:?} is the buf", buf);
+        // // let mut buf = [0u8; 8];
+        // // self.file.read_exact(&mut buf)?;
+        // // println!("{:?} is the buf", buf);
+        // // let mut buf = [0u8; 8];
+        // // self.file.read_exact(&mut buf)?;
+        // // println!("{:?} is the buf", buf);
+        // // let mut buf = [0u8; 8];
+        // // self.file.read_exact(&mut buf)?;
+        // // println!("{:?} is the buf", buf);
         Ok(())
     }
 }
