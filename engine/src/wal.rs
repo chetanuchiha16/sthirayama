@@ -82,7 +82,7 @@ impl Wal {
         // println!("{}", &value_len);
         let mut buf = vec![0u8; value_len];
         self.file.read_exact(&mut buf)?;
-        let value: K = bitcode::decode(&buf).unwrap();
+        let value: V = bitcode::decode(&buf).unwrap();
         println!("{:?}: {:?}",key, value);
         // let item: usize = bitcode::decode(&buf).unwrap();
         // println!("{:?}", item);
