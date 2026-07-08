@@ -2,28 +2,38 @@ use std::fmt::{Display, Formatter};
 use std::io::Error;
 use std::ptr::NonNull;
 
-use bitcode::Encode;
+use bitcode::{Decode, Encode};
 
 use crate::wal::Wal;
+
+#[derive(Debug, Encode, Decode, Clone)]
+pub struct SkipListKV<K, V> {
+    pub key: K,
+    pub value: V,
+}
+
+impl<K: Clone, V: Clone> SkipListKV<K, V> {
+    pub fn new(key: K, value: V) -> Self {
+        Self { key, value }
+    }
+}
 
 #[derive(Debug)]
 pub struct SkipListNode<K, V> {
     pub level: usize,
-    pub key: K,
-    pub value: V,
+    pub data: SkipListKV<K, V>,
     pub forward: Vec<Option<NonNull<SkipListNode<K, V>>>>,
 }
 
 impl<K, V> SkipListNode<K, V>
 where
-    K: PartialOrd + Display + Encode,
-    V: Clone + Display + Encode,
+    K: PartialOrd + Display + Clone,
+    V: Clone + Display,
 {
     pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
         let node = unsafe {
             NonNull::new_unchecked(Box::into_raw(Box::new(Self {
-                key: key,
-                value,
+                data: SkipListKV::new(key, value),
                 forward: (0..=level).map(|_| None).collect(),
                 level,
             })))
@@ -32,11 +42,11 @@ where
     }
 
     pub fn get_key(node: &NonNull<Self>) -> &K {
-        unsafe { &node.as_ref().key }
+        unsafe { &node.as_ref().data.key }
     }
 
     pub fn get_value(node: &NonNull<Self>) -> &V {
-        unsafe { &node.as_ref().value }
+        unsafe { &node.as_ref().data.value }
     }
 
     pub fn get_forward(node: &NonNull<Self>) -> &Vec<Option<NonNull<SkipListNode<K, V>>>> {
@@ -54,7 +64,7 @@ where
 pub struct SkipList<K, V> {
     pub max_level: usize,
     pub head: Option<NonNull<SkipListNode<K, V>>>,
-    pub wal: Wal<K, V>,
+    pub wal: Wal,
 }
 
 impl<K, V> SkipList<K, V>
@@ -92,14 +102,15 @@ where
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
-        self.wal.append(key.clone(), value.clone())?;
+        let data = SkipListKV::new(key, value);
+        self.wal.append(data.key.clone(), data.value.clone())?;
         let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];
         let new_node_level = self.random_level();
-        let mut new_node = SkipListNode::new(new_node_level, key.clone(), value);
+        let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value);
         let mut current = self.head.unwrap(); //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = SkipListNode::get_forward(&current)[level]
-                && SkipListNode::get_key(&node) < &key
+                && SkipListNode::get_key(&node) < &data.key
             {
                 current = node;
             }
@@ -115,7 +126,7 @@ where
     }
 }
 
-impl<K: Display + PartialOrd + Encode, V: Clone + Display + Encode> Display for SkipList<K, V> {
+impl<K: Display + PartialOrd + Clone, V: Clone + Display> Display for SkipList<K, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
 
