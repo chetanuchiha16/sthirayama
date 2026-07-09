@@ -104,9 +104,9 @@ where
     pub fn insert(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
         let data = SkipListKV::new(key, value);
         self.wal.append(data.key.clone(), data.value.clone())?;
-        let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value);
+        let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];
         let mut current = self.head.unwrap(); //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = SkipListNode::get_forward(&current)[level]

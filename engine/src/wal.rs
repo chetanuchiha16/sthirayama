@@ -1,12 +1,12 @@
 use std::{
-    fmt::Debug,
+    fmt::{Debug, Display},
     fs::{File, OpenOptions},
     io::{Error, Read, Seek, SeekFrom, Write},
 };
 
 use bitcode::{DecodeOwned, Encode};
 
-use crate::skiplist::SkipListKV;
+use crate::skiplist::{SkipList, SkipListKV};
 
 #[derive(Debug)]
 pub struct Wal {
@@ -66,20 +66,28 @@ impl Wal {
     }
 
     ///recover the skip list from the wal file if crashed
-    pub fn recover<K: DecodeOwned + Clone + Debug, V: DecodeOwned + Clone + Debug>(
+    pub fn recover<
+        K: DecodeOwned + Clone + Debug + Encode + PartialOrd + Display,
+        V: DecodeOwned + Clone + Debug + Encode + Display,
+    >(
         &mut self,
+        skiplist: &mut SkipList<K, V>,
     ) -> Result<(), std::io::Error> {
+        // let skiplist = SkipList::new(5, -1, -1).unwrap();
+
         self.file.seek(SeekFrom::Start(0))?;
 
-        let mut buf = [0u8; 8];
-        self.file.read_exact(&mut buf)?;
-        let data_len = usize::from_le_bytes(buf);
+        let mut data_len_bytes = [0u8; 8];
+        self.file.read_exact(&mut data_len_bytes)?;
+        let data_len = usize::from_le_bytes(data_len_bytes);
 
-        let mut buf = vec![0u8; data_len];
-        self.file.read_exact(&mut buf)?;
-        let data: SkipListKV<K, V> = bitcode::decode(&buf).unwrap();
-
+        let mut data_bytes = vec![0u8; data_len];
+        self.file.read_exact(&mut data_bytes)?;
+        let data: SkipListKV<K, V> = bitcode::decode(&data_bytes).unwrap();
+        skiplist.insert(data.key.clone(), data.value.clone())?;
         print!("{:?}\n", data);
+        print!("{:?}\n", skiplist);
+
         // let mut buf = [0u8; 8];
         // self.file.read_exact(&mut buf)?;
         // let key_len = usize::from_le_bytes(buf);

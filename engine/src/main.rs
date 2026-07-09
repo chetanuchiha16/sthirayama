@@ -37,9 +37,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // println!("{:?}", skip_list.search(20)); // Some(200)
     // // println!("{:?}", skip_list);
     // println!("{:?}", skip_list.search(99)); // None
-
+    let mut skiplist = SkipList::new(5, -1, -1)?;
     let mut wal = Wal::new().unwrap();
     wal.append(5, 6).unwrap();
-    wal.recover::<i32, i32>()?;
+    wal.recover::<i32, i32>(&mut skiplist)?;
     Ok(())
 }
