@@ -101,9 +101,14 @@ where
         if cur_k == key { Some(cur_v) } else { None }
     }
 
+    pub fn insert_with_wal(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
+        self.wal.append(key.clone(), value.clone())?;
+        self.insert(key, value)?;
+        Ok(())
+    }
+
     pub fn insert(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
         let data = SkipListKV::new(key, value);
-        self.wal.append(data.key.clone(), data.value.clone())?;
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value);
         let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];

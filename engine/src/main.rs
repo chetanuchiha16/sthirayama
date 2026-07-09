@@ -24,11 +24,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     // // head.forward[0] = SkipListNode::new(2, &5, 6);
     // println!("{:?}", skip_list.search(6));
 
-    // let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
-    // skip_list.insert(10, 100)?;
-    // skip_list.insert(20, 200)?;
-    // skip_list.insert(5, 50)?;
-    // skip_list.insert(15, 150)?;
+    // println!("creating new skiplist...");
+    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
+    // skip_list.insert_with_wal(10, 100)?;
+    // skip_list.insert_with_wal(20, 200)?;
+    // skip_list.insert_with_wal(5, 50)?;
+    // skip_list.insert_with_wal(15, 150)?;
     // println!("{}", skip_list);
 
     // println!("{:?}", skip_list.search(5)); // Some(50)
@@ -37,9 +38,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     // println!("{:?}", skip_list.search(20)); // Some(200)
     // // println!("{:?}", skip_list);
     // println!("{:?}", skip_list.search(99)); // None
-    let mut skiplist = SkipList::new(5, -1, -1)?;
+    // let mut skiplist = SkipList::new(5, -1, -1)?;
+
+    println!("----before recovering the skiplist----");
+    println!("{}", skip_list);
+    println!("recovering......");
     let mut wal = Wal::new().unwrap();
-    wal.append(5, 6).unwrap();
-    wal.recover::<i32, i32>(&mut skiplist)?;
+    // wal.append(5, 6).unwrap();
+    wal.recover::<i32, i32>(&mut skip_list)?;
+    println!("----after recovering the skiplist----");
+    println!("{}", skip_list);
     Ok(())
 }

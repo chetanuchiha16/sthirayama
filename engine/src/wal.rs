@@ -1,7 +1,7 @@
 use std::{
     fmt::{Debug, Display},
     fs::{File, OpenOptions},
-    io::{Error, Read, Seek, SeekFrom, Write},
+    io::{Error, ErrorKind, Read, Seek, SeekFrom, Write},
 };
 
 use bitcode::{DecodeOwned, Encode};
@@ -77,17 +77,37 @@ impl Wal {
 
         self.file.seek(SeekFrom::Start(0))?;
 
-        let mut data_len_bytes = [0u8; 8];
-        self.file.read_exact(&mut data_len_bytes)?;
-        let data_len = usize::from_le_bytes(data_len_bytes);
+        // let mut data_len_bytes = [0u8; 8];
+        // self.file.read_exact(&mut data_len_bytes)?;
+        // let data_len = usize::from_le_bytes(data_len_bytes);
 
-        let mut data_bytes = vec![0u8; data_len];
-        self.file.read_exact(&mut data_bytes)?;
-        let data: SkipListKV<K, V> = bitcode::decode(&data_bytes).unwrap();
-        skiplist.insert(data.key.clone(), data.value.clone())?;
-        print!("{:?}\n", data);
-        print!("{:?}\n", skiplist);
+        // let mut data_bytes = vec![0u8; data_len];
+        // self.file.read_exact(&mut data_bytes)?;
+        // let data: SkipListKV<K, V> = bitcode::decode(&data_bytes).unwrap();
+        // skiplist.insert(data.key.clone(), data.value.clone())?;
+        // print!("{:?}\n", data);
+        // print!("{:?}\n", skiplist);
 
+        loop {
+            let mut len_buffer = [0u8; 8];
+            match self.file.read_exact(&mut len_buffer) {
+                Ok(_) => {}
+                Err(e) => {
+                    if e.kind() == ErrorKind::UnexpectedEof {
+                        break;
+                    }
+                }
+                Err(e) => return Err(e),
+            }
+            let data_len = usize::from_le_bytes(len_buffer);
+
+            let mut data_buffer = vec![0u8; data_len];
+            self.file.read_exact(&mut data_buffer)?;
+            let data: SkipListKV<K, V> = bitcode::decode(&data_buffer).unwrap();
+            println!("{} : {}", data.key, data.value);
+            skiplist.insert(data.key, data.value)?;
+        }
+        // println!("{}", skiplist);
         // let mut buf = [0u8; 8];
         // self.file.read_exact(&mut buf)?;
         // let key_len = usize::from_le_bytes(buf);
