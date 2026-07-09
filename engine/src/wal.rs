@@ -92,11 +92,8 @@ impl Wal {
             let mut len_buffer = [0u8; 8];
             match self.file.read_exact(&mut len_buffer) {
                 Ok(_) => {}
-                Err(e) => {
-                    if e.kind() == ErrorKind::UnexpectedEof {
-                        break;
-                    }
-                }
+                Err(e) if e.kind() == ErrorKind::UnexpectedEof => break,
+
                 Err(e) => return Err(e),
             }
             let data_len = usize::from_le_bytes(len_buffer);

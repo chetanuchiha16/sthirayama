@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, time::Instant};
 
 use crate::{
     skiplist::{SkipList, SkipListNode},
@@ -40,6 +40,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // println!("{:?}", skip_list.search(99)); // None
     // let mut skiplist = SkipList::new(5, -1, -1)?;
 
+    let start = Instant::now();
+
+    // Call the function you are testing
     println!("----before recovering the skiplist----");
     println!("{}", skip_list);
     println!("recovering......");
@@ -48,5 +51,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     wal.recover::<i32, i32>(&mut skip_list)?;
     println!("----after recovering the skiplist----");
     println!("{}", skip_list);
+
+    // Calculate elapsed time
+    let duration = start.elapsed();
+
+    println!("recovering took: {:?}", duration);
     Ok(())
 }
