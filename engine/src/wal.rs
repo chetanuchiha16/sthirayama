@@ -33,7 +33,7 @@ impl Wal {
             // _marker: PhantomData,
         })
     }
-
+    /// append the entry to the wal file after every insert to the skiplist
     pub fn append<K: Encode + Clone, V: Encode + Clone>(
         &mut self,
         key: K,
