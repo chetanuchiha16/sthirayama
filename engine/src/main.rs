@@ -8,39 +8,26 @@ mod skiplist;
 #[cfg(test)]
 mod test_skiplist;
 mod wal;
-fn main() -> Result<(), Box<dyn Error>> {
-    // let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1)?;
-    // skip_list.insert(6, 6)?;
-    // let skip_list_node = unsafe { SkipListNode::new(5, 5, 5).as_ref() };
-    // println!("{:?}", skip_list);
-    // println!("{:?}", skip_list.random_level());
-    // println!("{:?}", skip_list.max_level);
-    // println!("{:?}", skip_list_node);
-    // let head = unsafe { skip_list.head.unwrap().as_mut() };
-    // println!("{:?}", head);
-    // println!("{:?}", head.forward);
-    // println!("{:?}", head.data.key);
-    // println!("{:?}", head.data.value);
-    // println!("{:?}", head.level);
-    // // head.forward[0] = SkipListNode::new(2, &5, 6);
-    // println!("{:?}", skip_list.search(6));
 
-    // println!("creating new skiplist...");
+fn try_new_skiplist() -> Result<(), Box<dyn Error>> {
+    println!("creating new skiplist...");
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
-    // skip_list.insert_with_wal(10, 100)?;
-    // skip_list.insert_with_wal(20, 200)?;
-    // skip_list.insert_with_wal(5, 50)?;
-    // skip_list.insert_with_wal(15, 150)?;
-    // println!("{}", skip_list);
+    skip_list.insert_with_wal(10, 100)?;
+    skip_list.insert_with_wal(20, 200)?;
+    skip_list.insert_with_wal(5, 50)?;
+    skip_list.insert_with_wal(15, 150)?;
+    println!("{}", skip_list);
 
-    // println!("{:?}", skip_list.search(5)); // Some(50)
-    // println!("{:?}", skip_list.search(10)); // Some(100)
-    // println!("{:?}", skip_list.search(15)); // Some(150)
-    // println!("{:?}", skip_list.search(20)); // Some(200)
-    // // println!("{:?}", skip_list);
-    // println!("{:?}", skip_list.search(99)); // None
-    // let mut skiplist = SkipList::new(5, -1, -1)?;
+    println!("{:?}", skip_list.search(5)); // Some(50)
+    println!("{:?}", skip_list.search(10)); // Some(100)
+    println!("{:?}", skip_list.search(15)); // Some(150)
+    println!("{:?}", skip_list.search(20)); // Some(200)
+    println!("{:?}", skip_list.search(99)); // None
+    Ok(())
+}
 
+fn try_wal() -> Result<(), Box<dyn Error>> {
+    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
     let start = Instant::now();
 
     // Call the function you are testing
@@ -57,5 +44,30 @@ fn main() -> Result<(), Box<dyn Error>> {
     let duration = start.elapsed();
 
     println!("recovering took: {:?}", duration);
+    Ok(())
+}
+
+fn pring_skiplist_details() -> Result<(), Box<dyn Error>> {
+    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1)?;
+    skip_list.insert(6, 6)?;
+    let skip_list_node = unsafe { SkipListNode::new(5, 5, 5).as_ref() };
+    println!("{:?}", skip_list);
+    println!("{:?}", skip_list.random_level());
+    println!("{:?}", skip_list.max_level);
+    println!("{:?}", skip_list_node);
+    let head = unsafe { skip_list.head.unwrap().as_mut() };
+    println!("{:?}", head);
+    println!("{:?}", head.forward);
+    println!("{:?}", head.data.key);
+    println!("{:?}", head.data.value);
+    println!("{:?}", head.level);
+    // head.forward[0] = SkipListNode::new(2, &5, 6);
+    println!("{:?}", skip_list.search(6));
+    Ok(())
+}
+fn main() -> Result<(), Box<dyn Error>> {
+    pring_skiplist_details()?;
+    try_new_skiplist()?;
+    try_wal()?;
     Ok(())
 }
