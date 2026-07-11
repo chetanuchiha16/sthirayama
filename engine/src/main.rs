@@ -4,7 +4,8 @@ use crate::{
     skiplist::{SkipList, SkipListNode},
     wal::Wal,
 };
-
+#[cfg(test)]
+mod test_skiplist;
 mod skiplist;
 mod wal;
 fn main() -> Result<(), Box<dyn Error>> {
