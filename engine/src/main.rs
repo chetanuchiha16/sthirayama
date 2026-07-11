@@ -4,9 +4,9 @@ use crate::{
     skiplist::{SkipList, SkipListNode},
     wal::Wal,
 };
+mod skiplist;
 #[cfg(test)]
 mod test_skiplist;
-mod skiplist;
 mod wal;
 fn main() -> Result<(), Box<dyn Error>> {
     // let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1)?;
