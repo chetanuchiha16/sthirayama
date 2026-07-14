@@ -1,4 +1,9 @@
-use std::{error::Error, time::Instant};
+#![allow(unused)]
+use std::{
+    error::{self, Error},
+    io::{Write, stdin, stdout},
+    time::Instant,
+};
 
 use crate::{
     skiplist::{SkipList, SkipListNode},
@@ -65,9 +70,49 @@ fn pring_skiplist_details() -> Result<(), Box<dyn Error>> {
     println!("{:?}", skip_list.search(6));
     Ok(())
 }
+
 fn main() -> Result<(), Box<dyn Error>> {
-    pring_skiplist_details()?;
-    try_new_skiplist()?;
-    try_wal()?;
+    // pring_skiplist_details()?;
+    // try_new_skiplist()?;
+    // try_wal()?;
+    let mut skiplist = SkipList::new(5, -1, -1)?;
+
+    loop {
+        print!("sthirayama> ");
+        stdout().flush()?;
+        let mut input = String::new();
+        stdin().read_line(&mut input).expect("input error");
+        // let mut command: Vec<&str> = input.trim().split(" ").collect();
+        let mut command: Vec<&str> = input.trim().split(" ").collect();
+        if command.len() > 3 {
+            println!("invalid");
+        }
+        // let command: (&str, &str, &str) = split.collect();
+        // let (Some(command), Some(key), Some(value), None) =
+        //     (split.next(), split.next(), split.next(), split.next())
+        // else {
+        //     println!("bad length");
+        //     return Err("bad length".into());
+        // };
+        // println!("{:?}", command);
+        match command[0] {
+            "set" => {
+                // let (key, value) = (command[0], command[1]);
+                skiplist.insert(command[1].parse()?, command[2].parse()?)?;
+            }
+            "get" => {
+                if let Some(val) = skiplist.search(command[1].parse()?) {
+                    println!("{:?}", val);
+                } else {
+                    println!("key does not exist");
+                };
+            }
+            "\\q" => break,
+            _ => {
+                println!("invalid command");
+                // break;
+            }
+        }
+    }
     Ok(())
 }
