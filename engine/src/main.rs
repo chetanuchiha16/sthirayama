@@ -10,9 +10,10 @@ use crate::{
     wal::Wal,
 };
 mod skiplist;
+mod wal;
+mod sstable;
 #[cfg(test)]
 mod test_skiplist;
-mod wal;
 
 fn try_new_skiplist() -> Result<(), Box<dyn Error>> {
     println!("creating new skiplist...");
