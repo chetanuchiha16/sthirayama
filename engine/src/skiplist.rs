@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::io::Error;
 use std::ptr::NonNull;
 
@@ -27,8 +27,8 @@ pub struct SkipListNode<K, V> {
 
 impl<K, V> SkipListNode<K, V>
 where
-    K: PartialOrd + Display + Clone,
-    V: Clone + Display,
+    K: PartialOrd  + Clone,
+    V: Clone ,
 {
     pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
         let node = unsafe {
@@ -69,8 +69,8 @@ pub struct SkipList<K, V> {
 
 impl<K, V> SkipList<K, V>
 where
-    K: PartialOrd + Clone + Display + Encode,
-    V: Clone + Display + Encode,
+    K: PartialOrd + Clone + Encode,
+    V: Clone + Encode,
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Result<Self, Error> {
@@ -131,7 +131,7 @@ where
     }
 }
 
-impl<K: Display + PartialOrd + Clone, V: Clone + Display> Display for SkipList<K, V> {
+impl<K:   PartialOrd + Clone + Debug, V: Clone  + Debug> Display for SkipList<K, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
 
@@ -141,7 +141,7 @@ impl<K: Display + PartialOrd + Clone, V: Clone + Display> Display for SkipList<K
 
         while let Some(cur_node) = current {
             if let Some(next_node) = SkipListNode::get_forward(&cur_node)[0] {
-                let key_str = format!("{}", SkipListNode::get_key(&next_node));
+                let key_str = format!("{:?}", SkipListNode::get_key(&next_node));
                 columns.push((next_node.clone(), key_str));
                 current = Some(next_node);
             } else {

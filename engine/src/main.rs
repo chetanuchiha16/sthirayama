@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // pring_skiplist_details()?;
     // try_new_skiplist()?;
     // try_wal()?;
-    let mut skiplist = SkipList::new(5, -1, -1)?;
+    let mut skiplist: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0'])?;
 
     loop {
         print!("sthirayama> ");
@@ -99,10 +99,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         match command[0] {
             "set" => {
                 // let (key, value) = (command[0], command[1]);
-                skiplist.insert(command[1].parse()?, command[2].parse()?)?;
+                // skiplist.insert(command[1].parse()?, command[2].parse()?)?;
+                skiplist.insert(command[1].as_bytes().to_vec(), command[2].as_bytes().to_vec())?;
             }
             "get" => {
-                if let Some(val) = skiplist.search(command[1].parse()?) {
+                if let Some(val) = skiplist.search(command[1].as_bytes().to_vec()) {
                     println!("{:?}", val);
                 } else {
                     println!("key does not exist");
