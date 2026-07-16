@@ -27,8 +27,8 @@ pub struct SkipListNode<K, V> {
 
 impl<K, V> SkipListNode<K, V>
 where
-    K: PartialOrd  + Clone,
-    V: Clone ,
+    K: PartialOrd + Clone,
+    V: Clone,
 {
     pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
         let node = unsafe {
@@ -131,7 +131,7 @@ where
     }
 }
 
-impl<K:   PartialOrd + Clone + Debug, V: Clone  + Debug> Display for SkipList<K, V> {
+impl<K: PartialOrd + Clone + Debug, V: Clone + Debug> Display for SkipList<K, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
 

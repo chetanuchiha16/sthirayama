@@ -10,10 +10,10 @@ use crate::{
     wal::Wal,
 };
 mod skiplist;
-mod wal;
 mod sstable;
 #[cfg(test)]
 mod test_skiplist;
+mod wal;
 
 fn try_new_skiplist() -> Result<(), Box<dyn Error>> {
     println!("creating new skiplist...");
@@ -100,11 +100,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             "set" => {
                 // let (key, value) = (command[0], command[1]);
                 // skiplist.insert(command[1].parse()?, command[2].parse()?)?;
-                skiplist.insert(command[1].as_bytes().to_vec(), command[2].as_bytes().to_vec())?;
+                skiplist.insert(
+                    command[1].as_bytes().to_vec(),
+                    command[2].as_bytes().to_vec(),
+                )?;
             }
             "get" => {
                 if let Some(val) = skiplist.search(command[1].as_bytes().to_vec()) {
-                    println!("{:?}", val);
+                    println!("{:?}", String::from_utf8(val)?);
                 } else {
                     println!("key does not exist");
                 };
