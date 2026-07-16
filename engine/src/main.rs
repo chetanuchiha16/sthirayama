@@ -107,7 +107,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             "get" => {
                 if let Some(val) = skiplist.search(command[1].as_bytes().to_vec()) {
-                    println!("{:?}", String::from_utf8(val)?);
+                    println!("{}", String::from_utf8(val)?);
                 } else {
                     println!("key does not exist");
                 };
