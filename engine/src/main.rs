@@ -6,9 +6,7 @@ use std::{
 };
 
 use crate::{
-    skiplist::{SkipList, SkipListNode},
-    sstable::SstableWriter,
-    wal::Wal,
+    skiplist::{SkipList, SkipListNode}, sstable::writer::SstableWriter, wal::Wal,
 };
 mod skiplist;
 mod sstable;

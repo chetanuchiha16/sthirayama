@@ -18,17 +18,21 @@ impl SstableWriter {
             .open("table.sst")?;
         Ok(Self { file, skiplist })
     }
+
     pub fn write(&mut self) {
         self.file.seek(io::SeekFrom::Start(0));
         let head = &self.skiplist.head.unwrap();
         let mut current = SkipListNode::get_forward(head)[0];
+        let mut size = 0usize;
         while let Some(cur_node) = current {
             let data = SkipListNode::get_data(&cur_node).clone();
             let encoded_data = bitcode::encode(&data);
-            let encoded_data_len = encoded_data.len().to_le_bytes();
+            let data_len = encoded_data.len();
+            let encoded_data_len = data_len.to_le_bytes();
             self.file.write_all(&encoded_data_len);
             self.file.write_all(&encoded_data);
-
+            self.file.flush();
+            size += data_len + encoded_data_len.len();
             println!(
                 "{} : {}",
                 String::from_utf8(data.key).unwrap(),
@@ -38,7 +42,7 @@ impl SstableWriter {
             current = next_node;
         }
     }
-
+    // to verify for now, maybe moved later
     pub fn read(&mut self) {
         self.file.seek(io::SeekFrom::Start(0));
         let mut buf = [0u8;8];
