@@ -42,9 +42,11 @@ impl SstableWriter {
             let data_len = encoded_data.len();
             let encoded_data_len = data_len.to_le_bytes();
             size += data_len + encoded_data_len.len();
+            println!("{}", size);
             if size > 4000 {
                 let block = BlockMeta::new(size, offset, last_key);
                 self.blocks.push(block);
+                println!("{:?}", self.blocks);
                 offset = size;
                 size = 0;
             }
