@@ -6,7 +6,9 @@ use std::{
 };
 
 use crate::{
-    skiplist::{SkipList, SkipListNode}, sstable::writer::SstableWriter, wal::Wal,
+    skiplist::{SkipList, SkipListNode},
+    sstable::writer::SstableWriter,
+    wal::Wal,
 };
 mod skiplist;
 mod sstable;
@@ -126,7 +128,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     skip_list.insert_with_wal("30".as_bytes().to_vec(), "3".as_bytes().to_vec())?;
 
     let mut s = SstableWriter::new(skip_list)?;
-    // s.write();
+    s.write();
     s.read();
     Ok(())
 }
