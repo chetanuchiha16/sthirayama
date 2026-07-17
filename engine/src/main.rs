@@ -7,6 +7,7 @@ use std::{
 
 use crate::{
     skiplist::{SkipList, SkipListNode},
+    sstable::SstableWriter,
     wal::Wal,
 };
 mod skiplist;
@@ -72,12 +73,7 @@ fn pring_skiplist_details() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // pring_skiplist_details()?;
-    // try_new_skiplist()?;
-    // try_wal()?;
-    let mut skiplist: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0'])?;
-
+fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), Box<dyn Error>> {
     loop {
         print!("sthirayama> ");
         stdout().flush()?;
@@ -119,5 +115,20 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
+    Ok(())
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    // pring_skiplist_details()?;
+    // try_new_skiplist()?;
+    // try_wal()?;
+    let mut skip_list: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0'])?;
+    skip_list.insert_with_wal("10".as_bytes().to_vec(), "1".as_bytes().to_vec())?;
+    skip_list.insert_with_wal("20".as_bytes().to_vec(), "2".as_bytes().to_vec())?;
+    skip_list.insert_with_wal("30".as_bytes().to_vec(), "3".as_bytes().to_vec())?;
+
+    let mut s = SstableWriter::new(skip_list)?;
+    // s.write();
+    s.read();
     Ok(())
 }

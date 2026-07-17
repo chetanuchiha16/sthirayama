@@ -40,7 +40,9 @@ where
         };
         node
     }
-
+    pub fn get_data(node: &NonNull<Self>) -> &SkipListKV<K, V> {
+        unsafe { &node.as_ref().data }
+    }
     pub fn get_key(node: &NonNull<Self>) -> &K {
         unsafe { &node.as_ref().data.key }
     }
