@@ -61,6 +61,13 @@ impl SstableWriter {
             let next_node = SkipListNode::get_forward(&cur_node)[0];
             current = next_node;
         }
+
+        for block in self.blocks.iter() {
+            let (mut block_meta_bytes_len_as_bytes, mut block_meta_bytes) = block.encode();
+            self.file.write_all(&mut block_meta_bytes_len_as_bytes);
+            self.file.write_all(&mut block_meta_bytes);
+        }
+        
     }
     // to verify for now, maybe moved later
     pub fn read(&mut self) {
