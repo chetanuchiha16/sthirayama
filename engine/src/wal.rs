@@ -6,7 +6,10 @@ use std::{
 
 use bitcode::{DecodeOwned, Encode};
 
-use crate::skiplist::{SkipList, SkipListKV};
+use crate::{
+    skiplist::{SkipList, SkipListKV},
+    traits::{TypeSkipListKey, TypeSkipListValue},
+};
 
 #[derive(Debug)]
 pub struct Wal {
@@ -34,7 +37,7 @@ impl Wal {
         })
     }
     /// append the entry to the wal file after every insert to the skiplist
-    pub fn append<K: Encode + Clone, V: Encode + Clone>(
+    pub fn append<K: TypeSkipListKey, V: TypeSkipListValue>(
         &mut self,
         key: K,
         value: V,

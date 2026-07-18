@@ -4,6 +4,7 @@ use std::ptr::NonNull;
 
 use bitcode::{Decode, Encode};
 
+use crate::traits::{TypeSkipListKey, TypeSkipListValue};
 use crate::wal::Wal;
 
 #[derive(Debug, Encode, Decode, Clone)]
@@ -12,12 +13,12 @@ pub struct SkipListKV<K, V> {
     pub value: V,
 }
 
-impl<K: Clone + Encode, V: Clone + Encode> SkipListKV<K, V> {
+impl<K: TypeSkipListKey, V: TypeSkipListValue> SkipListKV<K, V> {
     pub fn new(key: K, value: V) -> Self {
         Self { key, value }
     }
 
-    pub fn encode(&self) -> ([u8;8], Vec<u8>) {
+    pub fn encode(&self) -> ([u8; 8], Vec<u8>) {
         let kv_as_bytes = bitcode::encode(self);
         let kv_bytes_len_as_bytes = kv_as_bytes.len().to_le_bytes();
         (kv_bytes_len_as_bytes, kv_as_bytes)
@@ -33,8 +34,8 @@ pub struct SkipListNode<K, V> {
 
 impl<K, V> SkipListNode<K, V>
 where
-    K: PartialOrd + Clone + Encode,
-    V: Clone + Encode,
+    K: TypeSkipListKey,
+    V: TypeSkipListValue,
 {
     pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
         let node = unsafe {
@@ -77,8 +78,8 @@ pub struct SkipList<K, V> {
 
 impl<K, V> SkipList<K, V>
 where
-    K: PartialOrd + Clone + Encode,
-    V: Clone + Encode,
+    K: TypeSkipListKey,
+    V: TypeSkipListValue,
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Result<Self, Error> {
@@ -139,7 +140,7 @@ where
     }
 }
 
-impl<K: PartialOrd + Clone + Debug + Encode, V: Clone + Debug + Encode> Display for SkipList<K, V> {
+impl<K: TypeSkipListKey, V: TypeSkipListValue> Display for SkipList<K, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "--- SkipList (Height: {}) ---", self.max_level)?;
 

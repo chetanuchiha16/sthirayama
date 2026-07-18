@@ -16,6 +16,7 @@ mod sstable;
 #[cfg(test)]
 mod test_skiplist;
 mod tests;
+mod traits;
 mod wal;
 
 fn main() -> Result<(), Box<dyn Error>> {

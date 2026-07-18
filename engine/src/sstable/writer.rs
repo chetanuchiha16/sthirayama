@@ -67,7 +67,6 @@ impl SstableWriter {
             self.file.write_all(&mut block_meta_bytes_len_as_bytes);
             self.file.write_all(&mut block_meta_bytes);
         }
-        
     }
     // to verify for now, maybe moved later
     pub fn read(&mut self) {
