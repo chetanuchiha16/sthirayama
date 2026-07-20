@@ -55,11 +55,11 @@ impl SstableWriter {
             self.file.write_all(&encoded_data);
             self.file.flush();
 
-            println!(
-                "{} : {}",
-                String::from_utf8(kv.key).unwrap(),
-                String::from_utf8(kv.value).unwrap()
-            );
+            // println!(
+            //     "{} : {}",
+            //     String::from_utf8(kv.key).unwrap(),
+            //     String::from_utf8(kv.value).unwrap()
+            // );
         }
 
         /// writing blockMeta/index block
