@@ -38,10 +38,11 @@ impl SstableWriter {
         while let Some(cur_node) = current {
             let data = SkipListNode::get_data(&cur_node).clone();
             let mut last_key = data.key.clone();
-            let encoded_data = bitcode::encode(&data);
-            let data_len = encoded_data.len();
-            let encoded_data_len = data_len.to_le_bytes();
-            size += data_len + encoded_data_len.len();
+            // let encoded_data = bitcode::encode(&data);
+            // let data_len = encoded_data.len();
+            // let encoded_data_len = data_len.to_le_bytes();
+            let (encoded_data_len, encoded_data) = data.encode();
+            size += encoded_data.len() + encoded_data_len.len();
             println!("{}", size);
             if size > 4000 {
                 let block = BlockMeta::new(size, offset, last_key);
