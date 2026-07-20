@@ -31,19 +31,18 @@ impl SstableWriter {
 
     pub fn write(&mut self) {
         self.file.seek(io::SeekFrom::Start(0));
-        let head = &self.skiplist.head.unwrap();
-        let mut current = SkipListNode::get_forward(head)[0];
+
+        /// writing data block
         let mut size = 0usize;
         let mut offset = 0usize;
-        while let Some(cur_node) = current {
-            let data = SkipListNode::get_data(&cur_node).clone();
-            let mut last_key = data.key.clone();
-            // let encoded_data = bitcode::encode(&data);
-            // let data_len = encoded_data.len();
-            // let encoded_data_len = data_len.to_le_bytes();
-            let (encoded_data_len, encoded_data) = data.encode();
+
+        for kv in self.skiplist.iter() {
+            let mut last_key = kv.key.clone();
+            let (encoded_data_len, encoded_data) = kv.encode();
+
             size += encoded_data.len() + encoded_data_len.len();
             println!("{}", size);
+
             if size > 4000 {
                 let block = BlockMeta::new(size, offset, last_key);
                 self.blocks.push(block);
@@ -51,24 +50,27 @@ impl SstableWriter {
                 offset = size;
                 size = 0;
             }
+
             self.file.write_all(&encoded_data_len);
             self.file.write_all(&encoded_data);
             self.file.flush();
+
             println!(
                 "{} : {}",
-                String::from_utf8(data.key).unwrap(),
-                String::from_utf8(data.value).unwrap()
+                String::from_utf8(kv.key).unwrap(),
+                String::from_utf8(kv.value).unwrap()
             );
-            let next_node = SkipListNode::get_forward(&cur_node)[0];
-            current = next_node;
+
         }
 
+        /// writing blockMeta/index block
         for block in self.blocks.iter() {
             let (mut block_meta_bytes_len_as_bytes, mut block_meta_bytes) = block.encode();
             self.file.write_all(&mut block_meta_bytes_len_as_bytes);
             self.file.write_all(&mut block_meta_bytes);
         }
     }
+
     // to verify for now, maybe moved later
     pub fn read(&mut self) {
         self.file.seek(io::SeekFrom::Start(0));

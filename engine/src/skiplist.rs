@@ -91,6 +91,19 @@ where
             wal,
         })
     }
+
+    pub fn iter(&self) -> Vec<SkipListKV<K, V>> {
+        let mut kv_list = Vec::new();
+        let head = &self.head.unwrap();
+        let mut current = SkipListNode::get_forward(head)[0];
+        while let Some(cur_node) = current {
+            let kv = SkipListNode::get_data(&cur_node).clone();
+            kv_list.push(kv);
+            let next_node = SkipListNode::get_forward(&cur_node)[0];
+            current = next_node;
+        }
+        kv_list
+    }
     /// generate a random level for the node to be inserted with
     pub fn random_level(&self) -> usize {
         fastrand::usize(1..=self.max_level)
