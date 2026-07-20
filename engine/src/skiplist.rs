@@ -92,7 +92,8 @@ where
         })
     }
 
-    pub fn iter(&self) -> Vec<SkipListKV<K, V>> {
+    // pub fn iter(&self) -> Vec<SkipListKV<K, V>> {
+    pub fn iter(&self) -> impl IntoIterator<Item = SkipListKV<K, V>> {
         let mut kv_list = Vec::new();
         let head = &self.head.unwrap();
         let mut current = SkipListNode::get_forward(head)[0];
@@ -104,6 +105,7 @@ where
         }
         kv_list
     }
+    
     /// generate a random level for the node to be inserted with
     pub fn random_level(&self) -> usize {
         fastrand::usize(1..=self.max_level)

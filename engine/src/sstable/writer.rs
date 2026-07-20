@@ -60,7 +60,6 @@ impl SstableWriter {
                 String::from_utf8(kv.key).unwrap(),
                 String::from_utf8(kv.value).unwrap()
             );
-
         }
 
         /// writing blockMeta/index block
