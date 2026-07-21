@@ -1,4 +1,4 @@
-use std::{fmt::Debug, ptr::NonNull};
+use std::{fmt::Debug, marker::PhantomData, ptr::NonNull};
 
 use bitcode::{DecodeOwned, Encode};
 
@@ -11,14 +11,14 @@ pub trait TypeSkipListValue: Encode + DecodeOwned + Debug + Clone {}
 
 impl<V: Encode + DecodeOwned + Debug + Clone> TypeSkipListValue for V {}
 
-pub struct SkipListIterator<K, V> {
+pub struct SkipListIterator<'a, K, V> {
     // skiplist : SkipList<K, V>,
     pub next_node: Option<NonNull<SkipListNode<K, V>>>,
-    // pub kv : SkipListKV<K, V>
+    pub marker: PhantomData<&'a SkipListNode<K, V>>, // pub kv : SkipListKV<K, V>
 }
 
-impl<K: TypeSkipListKey, V: TypeSkipListValue> Iterator for SkipListIterator<K, V> {
-    type Item = SkipListKV<K, V>;
+impl<'a, K: TypeSkipListKey, V: TypeSkipListValue> Iterator for SkipListIterator<'a, K, V> {
+    type Item = &'a SkipListKV<K, V>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // let head = &self.skiplist.head.unwrap();
@@ -35,8 +35,17 @@ impl<K: TypeSkipListKey, V: TypeSkipListValue> Iterator for SkipListIterator<K, 
 
         self.next_node.map(|cur_node| {
             self.next_node = SkipListNode::get_forward(&cur_node)[0];
-            SkipListNode::get_data(&cur_node).clone()
+            SkipListNode::get_data(&cur_node)
         })
+
+        // if let Some(cur_node) = self.next_node {
+        //     self.next_node = SkipListNode::get_forward(&cur_node)[0];
+        //     // let c = SkipListNode::get_data(cur_node);
+        //     let c = unsafe { cur_node.as_ref() };
+        //     Some(c)
+        // } else {
+        //     None
+        // }
 
         // todo!()
     }

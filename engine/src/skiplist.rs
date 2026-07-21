@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Error;
+use std::marker::PhantomData;
 use std::ptr::NonNull;
 
 use bitcode::{Decode, Encode};
@@ -47,9 +48,11 @@ where
         };
         node
     }
-    pub fn get_data(node: &NonNull<Self>) -> &SkipListKV<K, V> {
+
+    pub fn get_data<'a>(node: &NonNull<Self>) -> &'a SkipListKV<K, V> {
         unsafe { &node.as_ref().data }
     }
+
     pub fn get_key(node: &NonNull<Self>) -> &K {
         unsafe { &node.as_ref().data.key }
     }
@@ -107,10 +110,11 @@ where
     //     kv_list
     // }
 
-    pub fn iter(&self) -> SkipListIterator<K, V> {
+    pub fn iter<'a>(&self) -> SkipListIterator<'a, K, V> {
         let current = &self.head.unwrap();
         SkipListIterator {
             next_node: SkipListNode::get_forward(current)[0],
+            marker: PhantomData,
         }
     }
 
