@@ -2,12 +2,14 @@ use crate::skiplist::SkipListKV;
 
 pub struct DataBlock {
     kv_list_bytes: Vec<u8>,
+    size: usize
 }
 
 impl DataBlock {
     pub fn new() -> Self {
         Self {
             kv_list_bytes: Vec::new(),
+            size: 0
         }
     }
 
@@ -15,5 +17,7 @@ impl DataBlock {
         let (len_byte, data_byte) = kv.encode(); // put all bytes from both
         self.kv_list_bytes.extend_from_slice(&len_byte);
         self.kv_list_bytes.extend_from_slice(&data_byte);
+
+        self.size += len_byte.len() + data_byte.len()
     }
 }
