@@ -35,7 +35,7 @@ impl<'a, K: TypeSkipListKey, V: TypeSkipListValue> Iterator for SkipListIterator
 
         self.next_node.map(|cur_node| {
             self.next_node = SkipListNode::get_forward(&cur_node)[0];
-            SkipListNode::get_data(&cur_node)
+            SkipListNode::get_data(&cur_node) // lifetime tells data doesnt necessarily live only till cur_node
         })
 
         // if let Some(cur_node) = self.next_node {

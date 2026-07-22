@@ -35,16 +35,16 @@ impl SstableWriter {
         /// writing data block
         let mut size = 0usize;
         let mut offset = 0usize;
-
+        // ver 1 encode print, encode print, when 4kb create new block meta
         for kv in self.skiplist.iter() {
-            let mut last_key = kv.key.clone();
+            let last_key = &kv.key;
             let (encoded_data_len, encoded_data) = kv.encode();
 
             size += encoded_data.len() + encoded_data_len.len();
             println!("{}", size);
 
             if size > 4000 {
-                let block = BlockMeta::new(size, offset, last_key);
+                let block = BlockMeta::new(size, offset, last_key.clone());
                 self.blocks.push(block);
                 println!("{:?}", self.blocks);
                 offset = size;
@@ -61,6 +61,8 @@ impl SstableWriter {
             //     String::from_utf8(kv.value).unwrap()
             // );
         }
+
+        //ver 2 build upto 4kb print
 
         /// writing blockMeta/index block
         for block in self.blocks.iter() {
