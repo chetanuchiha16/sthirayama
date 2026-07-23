@@ -83,9 +83,9 @@ impl SstableWriter {
 
         /// writing blockMeta/index block
         for block in self.blocks.iter() {
-            let (mut block_meta_bytes_len_as_bytes, mut block_meta_bytes) = block.encode();
-            self.file.write_all(&mut block_meta_bytes_len_as_bytes);
-            self.file.write_all(&mut block_meta_bytes);
+            let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
+            self.file.write_all(&block_meta_bytes_len_as_bytes);
+            self.file.write_all(&block_meta_bytes);
         }
         self.file.flush();
     }
