@@ -59,7 +59,7 @@ impl SstableWriter {
 
         //ver 2 build upto 4kb print
         let mut size = 0usize;
-        let mut offset = 0usize;
+        let mut offset = self.file.stream_position().unwrap();
         let mut data_block = DataBlock::new();
         let mut last_key = Vec::new();
         for kv in self.skiplist.iter() {
@@ -68,7 +68,7 @@ impl SstableWriter {
 
             if (!data_block.can_fit(entry_size)) {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.clone());
-                offset = data_block.size;
+                offset = self.file.stream_position().unwrap();
                 self.blocks.push(block_meta);
                 println!("{:?}", self.blocks);
                 data_block = DataBlock::new();
