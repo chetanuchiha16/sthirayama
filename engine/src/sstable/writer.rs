@@ -1,11 +1,12 @@
 use std::{
+    collections::binary_heap,
     fs::{File, OpenOptions},
     io::{self, Read, Seek, Write},
 };
 
 use crate::{
     skiplist::{self, SkipList, SkipListKV, SkipListNode},
-    sstable::{data_block::DataBlock, index::BlockMeta},
+    sstable::{data_block::DataBlock, errors::SsTableWriterError, index::BlockMeta},
 };
 
 pub struct SstableWriter {
@@ -15,7 +16,7 @@ pub struct SstableWriter {
 }
 
 impl SstableWriter {
-    pub fn new(skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<Self, io::Error> {
+    pub fn new(skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<Self, SsTableWriterError> {
         let file = OpenOptions::new()
             .create(true)
             .read(true)
@@ -29,7 +30,7 @@ impl SstableWriter {
         })
     }
 
-    pub fn write(&mut self) {
+    pub fn write(&mut self) -> Result<(), SsTableWriterError> {
         self.file.seek(io::SeekFrom::Start(0));
 
         /// writing data block
@@ -59,7 +60,7 @@ impl SstableWriter {
 
         //ver 2 build upto 4kb print
         let mut size = 0usize;
-        let mut offset = self.file.stream_position().unwrap();
+        let mut offset = self.file.stream_position()?;
         let mut data_block = DataBlock::new();
         let mut last_key = Vec::new();
         for kv in self.skiplist.iter() {
@@ -68,7 +69,8 @@ impl SstableWriter {
 
             if (!data_block.can_fit(entry_size)) {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.clone());
-                offset = self.file.stream_position().unwrap();
+                println!("{:?}", String::from_utf8(block_meta.last_key.clone()));
+                offset = self.file.stream_position()?;
                 self.blocks.push(block_meta);
                 println!("{:?}", self.blocks);
                 data_block = DataBlock::new();
@@ -88,18 +90,20 @@ impl SstableWriter {
             self.file.write_all(&block_meta_bytes);
         }
         self.file.flush();
+        Ok(())
     }
 
     // to verify for now, maybe moved later
-    pub fn read(&mut self) {
+    pub fn read(&mut self) -> Result<(), SsTableWriterError> {
         self.file.seek(io::SeekFrom::Start(0));
         let mut buf = [0u8; 8];
-        self.file.read_exact(&mut buf).unwrap();
+        self.file.read_exact(&mut buf)?;
         let data_len = usize::from_le_bytes(buf);
 
         let mut buf = vec![0u8; data_len];
         self.file.read_exact(&mut buf);
-        let data: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&buf).unwrap();
-        println!("{:?}", data)
+        let data: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&buf)?;
+        println!("{:?}", data);
+        Ok(())
     }
 }

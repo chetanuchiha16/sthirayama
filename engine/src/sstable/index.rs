@@ -4,7 +4,7 @@ use bitcode::Encode;
 pub struct BlockMeta {
     len: usize,
     offset: u64,
-    last_key: Vec<u8>,
+    pub last_key: Vec<u8>,
 }
 
 impl BlockMeta {

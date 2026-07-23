@@ -1,16 +1,19 @@
 use std::{
     error::Error,
     io::{Write, stdin, stdout},
+    string::FromUtf8Error,
     time::Instant,
 };
 
 use crate::{
+    engine_error,
     skiplist::{SkipList, SkipListKV, SkipListNode},
+    skiplist_error,
     sstable::writer::SstableWriter,
     wal::Wal,
 };
 
-pub fn try_new_skiplist() -> Result<(), Box<dyn Error>> {
+pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     println!("creating new skiplist...");
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
     skip_list.insert_with_wal(10, 100)?;
@@ -27,7 +30,7 @@ pub fn try_new_skiplist() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn try_wal() -> Result<(), Box<dyn Error>> {
+pub fn try_wal() -> Result<(), skiplist_error::SkipListError> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
     let start = Instant::now();
 
@@ -48,7 +51,7 @@ pub fn try_wal() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn pring_skiplist_details() -> Result<(), Box<dyn Error>> {
+pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1)?;
     skip_list.insert(6, 6)?;
     let skip_list_node = unsafe { SkipListNode::new(5, 5, 5).as_ref() };
@@ -67,7 +70,7 @@ pub fn pring_skiplist_details() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), Box<dyn Error>> {
+pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error::EngineError> {
     loop {
         print!("sthirayama> ");
         stdout().flush()?;
@@ -112,7 +115,7 @@ pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), Box<dyn Error
     Ok(())
 }
 
-pub fn test_block_split() -> Result<(), Box<dyn Error>> {
+pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let mut skip_list: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0'])?;
     let mut size = 0usize;
     while size <= 8000 {

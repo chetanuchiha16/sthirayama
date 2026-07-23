@@ -5,6 +5,7 @@ use std::ptr::NonNull;
 
 use bitcode::{Decode, Encode};
 
+use crate::skiplist_error;
 use crate::traits::{SkipListIterator, TypeSkipListKey, TypeSkipListValue};
 use crate::wal::Wal;
 
@@ -85,7 +86,11 @@ where
     V: TypeSkipListValue,
 {
     /// create a new skiplist with a sentinel head
-    pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Result<Self, Error> {
+    pub fn new(
+        max_level: usize,
+        dummy_k: K,
+        dummy_v: V,
+    ) -> Result<Self, skiplist_error::SkipListError> {
         let head = SkipListNode::new(max_level, dummy_k.clone(), dummy_v.clone());
         let wal = Wal::new()?;
         Ok(Self {
@@ -137,13 +142,17 @@ where
         if cur_k == key { Some(cur_v) } else { None }
     }
 
-    pub fn insert_with_wal(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
+    pub fn insert_with_wal(
+        &mut self,
+        key: K,
+        value: V,
+    ) -> Result<(), skiplist_error::SkipListError> {
         self.wal.append(key.clone(), value.clone())?;
         self.insert(key, value)?;
         Ok(())
     }
 
-    pub fn insert(&mut self, key: K, value: V) -> Result<(), std::io::Error> {
+    pub fn insert(&mut self, key: K, value: V) -> Result<(), skiplist_error::SkipListError> {
         let data = SkipListKV::new(key, value);
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value);

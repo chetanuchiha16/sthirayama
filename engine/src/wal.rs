@@ -8,6 +8,7 @@ use bitcode::{DecodeOwned, Encode};
 
 use crate::{
     skiplist::{SkipList, SkipListKV},
+    skiplist_error,
     traits::{TypeSkipListKey, TypeSkipListValue},
 };
 
@@ -75,7 +76,7 @@ impl Wal {
     >(
         &mut self,
         skiplist: &mut SkipList<K, V>,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), skiplist_error::SkipListError> {
         // let skiplist = SkipList::new(5, -1, -1).unwrap();
 
         self.file.seek(SeekFrom::Start(0))?;
@@ -97,8 +98,9 @@ impl Wal {
                 Ok(_) => {}
                 Err(e) if e.kind() == ErrorKind::UnexpectedEof => break,
 
-                Err(e) => return Err(e),
+                Err(e) => return Err(e.into()),
             }
+
             let data_len = usize::from_le_bytes(len_buffer);
 
             let mut data_buffer = vec![0u8; data_len];
