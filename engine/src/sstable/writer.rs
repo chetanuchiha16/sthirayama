@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     skiplist::{self, SkipList, SkipListKV, SkipListNode},
-    sstable::index::BlockMeta,
+    sstable::{data_block::DataBlock, index::BlockMeta},
 };
 
 pub struct SstableWriter {
@@ -33,36 +33,53 @@ impl SstableWriter {
         self.file.seek(io::SeekFrom::Start(0));
 
         /// writing data block
-        let mut size = 0usize;
-        let mut offset = 0usize;
+        // let mut size = 0usize;
+        // let mut offset = 0usize;
         // ver 1 encode print, encode print, when 4kb create new block meta
-        for kv in self.skiplist.iter() {
-            let last_key = &kv.key;
-            let (encoded_data_len, encoded_data) = kv.encode();
+        // for kv in self.skiplist.iter() {
+        //     let last_key = &kv.key;
+        //     let (encoded_data_len, encoded_data) = kv.encode();
 
-            size += encoded_data.len() + encoded_data_len.len();
-            println!("{}", size);
+        //     size += encoded_data.len() + encoded_data_len.len();
+        //     println!("{}", size);
 
-            if size > 4000 {
-                let block = BlockMeta::new(size, offset, last_key.clone());
-                self.blocks.push(block);
-                println!("{:?}", self.blocks);
-                offset = size;
-                size = 0;
-            }
+        //     if size > 4000 {
+        //         let block = BlockMeta::new(size, offset, last_key.clone());
+        //         self.blocks.push(block);
+        //         offset = size;
+        //         size = 0;
+        //     }
 
-            self.file.write_all(&encoded_data_len);
-            self.file.write_all(&encoded_data);
-            self.file.flush();
-
-            // println!(
-            //     "{} : {}",
-            //     String::from_utf8(kv.key).unwrap(),
-            //     String::from_utf8(kv.value).unwrap()
-            // );
-        }
+        //     // println!(
+        //         //     "{} : {}",
+        //         //     String::from_utf8(kv.key).unwrap(),
+        //         //     String::from_utf8(kv.value).unwrap()
+        //         // );
+        // }
 
         //ver 2 build upto 4kb print
+        let mut size = 0usize;
+        let mut offset = 0usize;
+        let mut data_block = DataBlock::new();
+        let mut last_key = Vec::new();
+        for kv in self.skiplist.iter() {
+            let (len_byte, data_byte) = kv.encode();
+            let entry_size = len_byte.len() + data_byte.len();
+
+            if (!data_block.can_fit(entry_size)) {
+                let block_meta = BlockMeta::new(data_block.size, offset, last_key.clone());
+                offset = data_block.size;
+                self.blocks.push(block_meta);
+                println!("{:?}", self.blocks);
+                data_block = DataBlock::new();
+            }
+
+            data_block.add(len_byte, &data_byte);
+            last_key = kv.key.clone();
+
+            self.file.write_all(&len_byte);
+            self.file.write_all(&data_byte);
+        }
 
         /// writing blockMeta/index block
         for block in self.blocks.iter() {
@@ -70,6 +87,7 @@ impl SstableWriter {
             self.file.write_all(&mut block_meta_bytes_len_as_bytes);
             self.file.write_all(&mut block_meta_bytes);
         }
+        self.file.flush();
     }
 
     // to verify for now, maybe moved later
