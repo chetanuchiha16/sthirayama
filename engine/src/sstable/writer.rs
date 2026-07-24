@@ -14,7 +14,7 @@ use crate::{
 pub struct SstableWriter {
     file: File,
     skiplist: SkipList<Vec<u8>, Vec<u8>>,
-    blocks: Vec<BlockMeta>,
+    index: Vec<BlockMeta>,
 }
 
 impl SstableWriter {
@@ -24,11 +24,11 @@ impl SstableWriter {
             .read(true)
             .append(true)
             .open("table.sst")?;
-        let blocks: Vec<BlockMeta> = Vec::new();
+        let index: Vec<BlockMeta> = Vec::new();
         Ok(Self {
             file,
             skiplist,
-            blocks,
+            index,
         })
     }
 
@@ -48,7 +48,7 @@ impl SstableWriter {
 
         //     if size > 4000 {
         //         let block = BlockMeta::new(size, offset, last_key.clone());
-        //         self.blocks.push(block);
+        //         self.index.push(block);
         //         offset = size;
         //         size = 0;
         //     }
@@ -73,8 +73,8 @@ impl SstableWriter {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.clone());
                 println!("{:?}", String::from_utf8(block_meta.last_key.clone()));
                 offset = self.file.stream_position()?;
-                self.blocks.push(block_meta);
-                println!("{:?}", self.blocks);
+                self.index.push(block_meta);
+                println!("{:?}", self.index);
                 data_block = DataBlock::new();
             }
 
@@ -88,7 +88,7 @@ impl SstableWriter {
         let index_offset = self.file.stream_position()?;
 
         /// writing blockMeta/index block
-        for block in self.blocks.iter() {
+        for block in self.index.iter() {
             let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
             self.file.write_all(&block_meta_bytes_len_as_bytes);
             self.file.write_all(&block_meta_bytes);
