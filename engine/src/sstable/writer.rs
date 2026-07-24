@@ -6,7 +6,9 @@ use std::{
 
 use crate::{
     skiplist::{self, SkipList, SkipListKV, SkipListNode},
-    sstable::{data_block::DataBlock, errors::SsTableWriterError, index::BlockMeta},
+    sstable::{
+        data_block::DataBlock, errors::SsTableWriterError, footer::Footer, index::BlockMeta,
+    },
 };
 
 pub struct SstableWriter {
@@ -83,6 +85,8 @@ impl SstableWriter {
             self.file.write_all(&data_byte);
         }
 
+        let index_offset = self.file.stream_position()?;
+
         /// writing blockMeta/index block
         for block in self.blocks.iter() {
             let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
@@ -90,6 +94,13 @@ impl SstableWriter {
             self.file.write_all(&block_meta_bytes);
         }
         self.file.flush();
+
+        ///writing footer
+        let footer = Footer::new(index_offset);
+        let (index_offset_len, index_offset_byte) = footer.encode();
+        self.file.write_all(&index_offset_len);
+        self.file.write_all(&index_offset_byte);
+
         Ok(())
     }
 
