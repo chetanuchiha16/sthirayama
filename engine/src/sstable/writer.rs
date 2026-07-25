@@ -78,7 +78,7 @@ impl SstableWriter {
                 data_block = DataBlock::new();
             }
 
-            data_block.add_and_increament_size(len_byte, &data_byte);
+            data_block.add(len_byte, &data_byte);
             last_key = kv.key.clone();
 
             self.file.write_all(&len_byte);
