@@ -64,22 +64,22 @@ impl SstableWriter {
         let mut size = 0usize;
         let mut offset = self.file.stream_position()?;
         let mut data_block = DataBlock::new();
-        let mut last_key = Vec::new();
+        let mut last_key = &Vec::new();
         for kv in self.skiplist.iter() {
             let (len_byte, data_byte) = kv.encode();
             let entry_size = len_byte.len() + data_byte.len();
-
-            if (!data_block.can_fit(entry_size)) {
-                let block_meta = BlockMeta::new(data_block.size, offset, last_key.clone());
-                println!("{:?}", String::from_utf8(block_meta.last_key.clone()));
+            
+            if !data_block.can_fit(entry_size) {
+                let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
+                println!("{:?}", str::from_utf8(&block_meta.last_key));
                 offset = self.file.stream_position()?;
                 self.index.push(block_meta);
                 println!("{:?}", self.index);
                 data_block = DataBlock::new();
             }
-
+            
             data_block.add(len_byte, &data_byte);
-            last_key = kv.key.clone();
+            last_key = &kv.key;
 
             self.file.write_all(&len_byte);
             self.file.write_all(&data_byte);
