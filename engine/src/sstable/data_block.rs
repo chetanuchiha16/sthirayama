@@ -15,7 +15,7 @@ impl DataBlock {
         }
     }
 
-    pub fn add(&mut self, len_byte: [u8; 8], data_byte: &Vec<u8>) {
+    pub fn add_and_increament_size(&mut self, len_byte: [u8; 8], data_byte: &Vec<u8>) {
         self.kv_list_bytes.extend_from_slice(&len_byte);
         self.kv_list_bytes.extend_from_slice(data_byte);
 

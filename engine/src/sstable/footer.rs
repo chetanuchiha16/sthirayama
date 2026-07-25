@@ -1,13 +1,13 @@
 pub struct Footer {
     index_offset: u64,
-    // index_offset_len: usize,
+    index_len: u64,
 }
 
 impl Footer {
-    pub fn new(index_offset: u64) -> Self {
+    pub fn new(index_offset: u64, index_len: u64) -> Self {
         Self {
             index_offset,
-            // index_offset_len: ,
+            index_len
         }
     }
 

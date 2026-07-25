@@ -78,7 +78,7 @@ impl SstableWriter {
                 data_block = DataBlock::new();
             }
 
-            data_block.add(len_byte, &data_byte);
+            data_block.add_and_increament_size(len_byte, &data_byte);
             last_key = kv.key.clone();
 
             self.file.write_all(&len_byte);
@@ -96,10 +96,12 @@ impl SstableWriter {
         self.file.flush();
 
         ///writing footer
-        let footer = Footer::new(index_offset);
+        let index_len = self.file.stream_position()? - index_offset;
+        let footer = Footer::new(index_offset, index_len);
         let (index_offset_len, index_offset_byte) = footer.encode();
         self.file.write_all(&index_offset_len);
         self.file.write_all(&index_offset_byte);
+
 
         Ok(())
     }
