@@ -76,7 +76,7 @@ where
 #[derive(Debug)]
 pub struct SkipList<K, V> {
     pub max_level: usize,
-    pub head: Option<NonNull<SkipListNode<K, V>>>,
+    pub head: NonNull<SkipListNode<K, V>>,
     pub wal: Wal,
 }
 
@@ -95,7 +95,7 @@ where
         let wal = Wal::new()?;
         Ok(Self {
             max_level,
-            head: Some(head),
+            head: head,
             wal,
         })
     }
@@ -116,7 +116,7 @@ where
     // }
 
     pub fn iter<'a>(&self) -> SkipListIterator<'a, K, V> {
-        let current = &self.head.unwrap();
+        let current = &self.head;
         SkipListIterator {
             next_node: SkipListNode::get_forward(current)[0],
             marker: PhantomData,
@@ -129,7 +129,7 @@ where
     }
 
     pub fn search(&self, key: K) -> Option<V> {
-        let mut current: NonNull<SkipListNode<K, V>> = self.head?; //caused having reference to temp
+        let mut current: NonNull<SkipListNode<K, V>> = self.head; //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = SkipListNode::get_forward(&current)[level]
                 && SkipListNode::get_key(&node) <= &key
@@ -156,8 +156,8 @@ where
         let data = SkipListKV::new(key, value);
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value);
-        let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head.unwrap(); self.max_level];
-        let mut current = self.head.unwrap(); //caused having reference to temp
+        let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head; self.max_level];
+        let mut current = self.head; //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = SkipListNode::get_forward(&current)[level]
                 && SkipListNode::get_key(&node) < &data.key
@@ -182,7 +182,7 @@ impl<K: TypeSkipListKey, V: TypeSkipListValue> Display for SkipList<K, V> {
 
         // --- Step 1: Collect all keys in order from Level 0 to build our columns ---
         let mut columns = Vec::new();
-        let mut current = self.head;
+        let mut current = Some(self.head);
 
         while let Some(cur_node) = current {
             if let Some(next_node) = SkipListNode::get_forward(&cur_node)[0] {
@@ -199,7 +199,7 @@ impl<K: TypeSkipListKey, V: TypeSkipListValue> Display for SkipList<K, V> {
             write!(f, "Level {:2}: Head", level)?;
 
             // Start traversal tracking for the current level
-            let mut current_node_ptr = self.head;
+            let mut current_node_ptr = Some(self.head);
 
             // Inside your level loop...
             for (node, key_str) in &columns {
