@@ -38,7 +38,7 @@ pub fn try_wal() -> Result<(), skiplist_error::SkipListError> {
     println!("----before recovering the skiplist----");
     println!("{}", skip_list);
     println!("recovering......");
-    let mut wal = Wal::new().unwrap();
+    let mut wal = Wal::new()?;
     // wal.append(5, 6).unwrap();
     wal.recover::<i32, i32>(&mut skip_list)?;
     println!("----after recovering the skiplist----");

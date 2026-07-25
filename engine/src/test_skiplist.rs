@@ -1,4 +1,4 @@
-use crate::skiplist::{SkipList, SkipListKV, SkipListNode};
+use crate::{skiplist::{SkipList, SkipListKV, SkipListNode}, skiplist_error::SkipListError};
 
 #[test]
 fn test_new_skiplistkv() {
@@ -17,20 +17,22 @@ fn test_new_skiplist_node() {
 }
 
 #[test]
-fn test_new_skiplist() {
-    let skiplist = SkipList::new(5, -1, -1).unwrap();
+fn test_new_skiplist() -> Result<(), SkipListError>{
+    let skiplist = SkipList::new(5, -1, -1)?;
     let head = skiplist.head;
     let key = SkipListNode::get_key(&head);
     let value = SkipListNode::get_value(&head);
     assert_eq!(key, &-1);
     assert_eq!(value, &-1);
     assert_eq!(skiplist.max_level, 5);
+    Ok(())
 }
 
 #[test]
-fn test_insert_and_search() {
-    let mut skiplist = SkipList::new(5, -1, -1).unwrap();
-    skiplist.insert_with_wal(6, 7).unwrap();
+fn test_insert_and_search() -> Result<(), SkipListError>{
+    let mut skiplist = SkipList::new(5, -1, -1)?;
+    skiplist.insert_with_wal(6, 7)?;
     assert_eq!(skiplist.search(6), Some(7));
     assert_eq!(skiplist.search(7), None);
+    Ok(())
 }

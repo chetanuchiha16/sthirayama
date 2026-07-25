@@ -105,7 +105,7 @@ impl Wal {
 
             let mut data_buffer = vec![0u8; data_len];
             self.file.read_exact(&mut data_buffer)?;
-            let data: SkipListKV<K, V> = bitcode::decode(&data_buffer).unwrap();
+            let data: SkipListKV<K, V> = bitcode::decode(&data_buffer)?;
             println!("{} : {}", data.key, data.value);
             skiplist.insert(data.key, data.value)?;
         }
