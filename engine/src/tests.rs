@@ -59,7 +59,7 @@ pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     println!("{:?}", skip_list.random_level());
     println!("{:?}", skip_list.max_level);
     println!("{:?}", skip_list_node);
-    let head = unsafe { skip_list.head.unwrap().as_mut() };
+    let head = unsafe { skip_list.head.as_mut() };
     println!("{:?}", head);
     println!("{:?}", head.forward);
     println!("{:?}", head.data.key);

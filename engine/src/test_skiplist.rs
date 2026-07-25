@@ -19,7 +19,7 @@ fn test_new_skiplist_node() {
 #[test]
 fn test_new_skiplist() {
     let skiplist = SkipList::new(5, -1, -1).unwrap();
-    let head = skiplist.head.unwrap();
+    let head = skiplist.head;
     let key = SkipListNode::get_key(&head);
     let value = SkipListNode::get_value(&head);
     assert_eq!(key, &-1);
