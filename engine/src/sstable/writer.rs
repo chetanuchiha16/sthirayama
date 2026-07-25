@@ -93,16 +93,16 @@ impl SstableWriter {
             self.file.write_all(&block_meta_bytes_len_as_bytes);
             self.file.write_all(&block_meta_bytes);
         }
-        self.file.flush();
-
+        
         ///writing footer
         let index_len = self.file.stream_position()? - index_offset;
         let footer = Footer::new(index_offset, index_len);
         let (index_offset_len, index_offset_byte) = footer.encode();
         self.file.write_all(&index_offset_len);
         self.file.write_all(&index_offset_byte);
-
-
+        
+        
+        self.file.flush();
         Ok(())
     }
 
