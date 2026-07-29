@@ -3,3 +3,6 @@ count the number of entries on the skiplist, when it reaches a limit, start the 
 traverse the skiplist, serialize the data get the len, write the len and data as bytes, 
 
 after every 4kb start new block note down the highest key, the len and offset of each block
+
+
+seek to last, read the footer, go to start of the index, load the index block to memory, then do binary search
