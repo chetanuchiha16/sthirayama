@@ -16,9 +16,8 @@ pub struct SstableReader {
 impl SstableReader {
     pub fn new() -> Result<Self, SsTableReaderError> {
         let file = OpenOptions::new()
-            .create(true)
             .read(true)
-            .append(true)
+            // .append(true)
             .open("table.sst")?;
         Ok(Self { file })
     }
@@ -55,7 +54,7 @@ impl SstableReader {
         let index: IndexBlock = bitcode::decode(&buf)?;
 
         // println!("here {:?}", buf);
-        println!("{:?}", index.blocks);
+        println!("index read: {:?}", index.blocks);
         Ok(())
     }
 }

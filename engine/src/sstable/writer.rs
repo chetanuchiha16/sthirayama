@@ -25,7 +25,9 @@ impl SstableWriter {
         let file = OpenOptions::new()
             .create(true)
             .read(true)
-            .append(true)
+            // .append(true)
+            .write(true)
+            .truncate(true)
             .open("table.sst")?;
         let index = IndexBlock::new();
         Ok(Self {
@@ -77,7 +79,7 @@ impl SstableWriter {
                 println!("{:?}", str::from_utf8(&block_meta.last_key));
                 offset = self.file.stream_position()?;
                 self.index.blocks.push(block_meta);
-                println!("{:?}", self.index.blocks);
+                println!("index written: {:?}", self.index.blocks);
                 data_block = DataBlock::new();
             }
 
