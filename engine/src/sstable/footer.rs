@@ -1,4 +1,6 @@
-#[derive(Debug)]
+use bitcode::{Decode, Encode};
+
+#[derive(Debug, Encode, Decode)]
 pub struct Footer {
     index_offset: u64,
     index_len: u64,
@@ -17,10 +19,10 @@ impl Footer {
     }
 
     pub fn encode(&self) -> ([u8; 8], Vec<u8>) {
-        let index_offset_byte = bitcode::encode(&self.index_offset);
-        let index_offset_byte_len_byte = index_offset_byte.len().to_le_bytes();
+        let footer_byte = bitcode::encode(self);
+        let footer_byte_len_byte = footer_byte.len().to_le_bytes();
         // println!("ioblb {}", usize::from_le_bytes(index_offset_byte_len_byte));
 
-        (index_offset_byte_len_byte, index_offset_byte)
+        (footer_byte_len_byte, footer_byte)
     }
 }
