@@ -5,7 +5,7 @@ use crate::sstable::{self, errors::SsTableWriterError};
 #[derive(Debug)]
 pub enum SkipListError {
     IoError(io::Error),
-    BitcodeError(bitcode::Error)
+    BitcodeError(bitcode::Error),
 }
 
 impl From<io::Error> for SkipListError {

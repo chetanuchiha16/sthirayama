@@ -8,7 +8,7 @@ use std::{
 use crate::{
     skiplist::{SkipList, SkipListKV, SkipListNode},
     sstable::writer::SstableWriter,
-    tests::{cli, test_block_split},
+    tests::{cli, test_block_split, test_sstable_read},
     wal::Wal,
 };
 mod engine_error;
@@ -25,6 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // try_new_skiplist()?;
     // try_wal()?;
     test_block_split();
+    test_sstable_read();
     // cli(skiplist)
     Ok(())
 }

@@ -9,7 +9,7 @@ use crate::{
     engine_error,
     skiplist::{SkipList, SkipListKV, SkipListNode},
     skiplist_error,
-    sstable::writer::SstableWriter,
+    sstable::{reader::SstableReader, writer::SstableWriter},
     wal::Wal,
 };
 
@@ -135,5 +135,11 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let mut s = SstableWriter::new(skip_list)?;
     s.write();
     // s.read();
+    Ok(())
+}
+
+pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
+    let mut sstable_reader = SstableReader::new()?;
+    sstable_reader.read_footer();
     Ok(())
 }

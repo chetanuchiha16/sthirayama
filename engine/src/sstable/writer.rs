@@ -68,7 +68,7 @@ impl SstableWriter {
         for kv in self.skiplist.iter() {
             let (len_byte, data_byte) = kv.encode();
             let entry_size = len_byte.len() + data_byte.len();
-            
+
             if !data_block.can_fit(entry_size) {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
                 println!("{:?}", str::from_utf8(&block_meta.last_key));
@@ -77,7 +77,7 @@ impl SstableWriter {
                 println!("{:?}", self.index);
                 data_block = DataBlock::new();
             }
-            
+
             data_block.add(len_byte, &data_byte);
             last_key = &kv.key;
 
@@ -93,15 +93,16 @@ impl SstableWriter {
             self.file.write_all(&block_meta_bytes_len_as_bytes);
             self.file.write_all(&block_meta_bytes);
         }
-        
+
         ///writing footer
+        let footer_offset = self.file.stream_position()?;
         let index_len = self.file.stream_position()? - index_offset;
         let footer = Footer::new(index_offset, index_len);
         let (index_offset_len, index_offset_byte) = footer.encode();
-        self.file.write_all(&index_offset_len);
         self.file.write_all(&index_offset_byte);
-        
-        
+        self.file.write_all(&index_offset_len);
+        println!("{:?} offset len written {}", footer, usize::from_le_bytes(index_offset_len));
+
         self.file.flush();
         Ok(())
     }

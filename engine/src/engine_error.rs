@@ -1,7 +1,8 @@
 use std::{io, string::FromUtf8Error};
 
 use crate::{
-    skiplist_error::{self, SkipListError}, sstable::errors::{SsTableReaderError, SsTableWriterError},
+    skiplist_error::{self, SkipListError},
+    sstable::errors::{SsTableReaderError, SsTableWriterError},
 };
 
 pub enum EngineError {
