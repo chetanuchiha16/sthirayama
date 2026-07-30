@@ -3,7 +3,11 @@ use std::{
     io::{Read, Seek},
 };
 
-use crate::sstable::{errors::SsTableReaderError, footer::Footer};
+use crate::sstable::{
+    errors::SsTableReaderError,
+    footer::Footer,
+    index::{BlockMeta, IndexBlock},
+};
 
 pub struct SstableReader {
     file: File,
@@ -31,7 +35,27 @@ impl SstableReader {
         let mut buf = vec![0u8; len];
         self.file.read_exact(&mut buf);
         let ans: Footer = bitcode::decode(&buf)?;
-        println!("footer len written: {len}, footer read: {:?}", ans);
+        println!("footer len read: {len}, footer read: {:?}", ans);
         Ok(ans)
+    }
+
+    pub fn read_index(&mut self) -> Result<(), SsTableReaderError> {
+        let footer = self.read_footer()?;
+        let index_offset = footer.index_offset;
+        // let index_len = footer.index_len as usize; // we can just get IndexBlock len instead of from footer
+
+        self.file.seek(std::io::SeekFrom::Start(index_offset))?;
+
+        let mut buffer = [0u8; 8];
+        self.file.read_exact(&mut buffer);
+        let index_len = usize::from_le_bytes(buffer);
+
+        let mut buf = vec![0u8; index_len];
+        self.file.read_exact(&mut buf)?;
+        let index: IndexBlock = bitcode::decode(&buf)?;
+
+        // println!("here {:?}", buf);
+        println!("{:?}", index.blocks);
+        Ok(())
     }
 }

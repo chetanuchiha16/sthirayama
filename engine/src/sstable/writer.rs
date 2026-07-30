@@ -7,14 +7,17 @@ use std::{
 use crate::{
     skiplist::{self, SkipList, SkipListKV, SkipListNode},
     sstable::{
-        data_block::DataBlock, errors::SsTableWriterError, footer::Footer, index::BlockMeta,
+        data_block::DataBlock,
+        errors::SsTableWriterError,
+        footer::Footer,
+        index::{BlockMeta, IndexBlock},
     },
 };
 
 pub struct SstableWriter {
     file: File,
     skiplist: SkipList<Vec<u8>, Vec<u8>>,
-    index: Vec<BlockMeta>,
+    index: IndexBlock,
 }
 
 impl SstableWriter {
@@ -24,7 +27,7 @@ impl SstableWriter {
             .read(true)
             .append(true)
             .open("table.sst")?;
-        let index: Vec<BlockMeta> = Vec::new();
+        let index = IndexBlock::new();
         Ok(Self {
             file,
             skiplist,
@@ -73,8 +76,8 @@ impl SstableWriter {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
                 println!("{:?}", str::from_utf8(&block_meta.last_key));
                 offset = self.file.stream_position()?;
-                self.index.push(block_meta);
-                println!("{:?}", self.index);
+                self.index.blocks.push(block_meta);
+                println!("{:?}", self.index.blocks);
                 data_block = DataBlock::new();
             }
 
@@ -88,11 +91,12 @@ impl SstableWriter {
         let index_offset = self.file.stream_position()?;
 
         /// writing blockMeta/index block
-        for block in self.index.iter() {
-            let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
-            self.file.write_all(&block_meta_bytes_len_as_bytes);
-            self.file.write_all(&block_meta_bytes);
-        }
+        // for block in self.index.blocks.iter() {
+        //     let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
+        //     self.file.write_all(&block_meta_bytes_len_as_bytes);
+        //     self.file.write_all(&block_meta_bytes);
+        // }
+        self.index.write_bytes_to(&mut self.file);
 
         ///writing footer
         let footer_offset = self.file.stream_position()?;

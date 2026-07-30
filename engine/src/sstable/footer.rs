@@ -2,8 +2,8 @@ use bitcode::{Decode, Encode};
 
 #[derive(Debug, Encode, Decode)]
 pub struct Footer {
-    index_offset: u64,
-    index_len: u64,
+    pub index_offset: u64,
+    pub index_len: u64,
 }
 
 impl Footer {

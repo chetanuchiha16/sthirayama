@@ -140,6 +140,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
 
 pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
     let mut sstable_reader = SstableReader::new()?;
-    sstable_reader.read_footer();
+    // sstable_reader.read_footer();
+    sstable_reader.read_index()?;
     Ok(())
 }
