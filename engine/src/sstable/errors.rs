@@ -1,5 +1,6 @@
 use std::io;
 
+#[derive(Debug)]
 pub enum SsTableWriterError {
     IoError(io::Error),
     BitcodeError(bitcode::Error),
@@ -17,6 +18,7 @@ impl From<bitcode::Error> for SsTableWriterError {
     }
 }
 
+#[derive(Debug)]
 pub enum SsTableReaderError {
     IoError(io::Error),
     BitcodeError(bitcode::Error),

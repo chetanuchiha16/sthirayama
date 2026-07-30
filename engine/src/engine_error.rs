@@ -5,6 +5,7 @@ use crate::{
     sstable::errors::{SsTableReaderError, SsTableWriterError},
 };
 
+#[derive(Debug)]
 pub enum EngineError {
     SkipListError(skiplist_error::SkipListError),
     SsTableWriterError(SsTableWriterError),
