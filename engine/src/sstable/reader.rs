@@ -3,7 +3,7 @@ use std::{
     io::{Read, Seek},
 };
 
-use crate::sstable::errors::SsTableReaderError;
+use crate::sstable::{errors::SsTableReaderError, footer::Footer};
 
 pub struct SstableReader {
     file: File,
@@ -30,9 +30,8 @@ impl SstableReader {
 
         let mut buf = vec![0u8; len];
         self.file.read_exact(&mut buf);
-        let ans: u64 = bitcode::decode(&buf)?;
-        println!("offset len read from footer {}", len);
-        println!("index offset read from footer {}", ans);
+        let ans: Footer = bitcode::decode(&buf)?;
+        println!("footer len written: {len}, footer read: {:?}", ans);
         Ok(())
     }
 }

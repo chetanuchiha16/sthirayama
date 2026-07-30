@@ -98,10 +98,14 @@ impl SstableWriter {
         let footer_offset = self.file.stream_position()?;
         let index_len = self.file.stream_position()? - index_offset;
         let footer = Footer::new(index_offset, index_len);
-        let (index_offset_len, index_offset_byte) = footer.encode();
-        self.file.write_all(&index_offset_byte);
-        self.file.write_all(&index_offset_len);
-        println!("{:?} offset len written {}", footer, usize::from_le_bytes(index_offset_len));
+        let (footer_len, footer_byte) = footer.encode();
+        self.file.write_all(&footer_byte);
+        self.file.write_all(&footer_len);
+        println!(
+            "footer written: {:?}, footer len written: {}",
+            footer,
+            usize::from_le_bytes(footer_len)
+        );
 
         self.file.flush();
         Ok(())
