@@ -61,17 +61,17 @@ impl SstableReader {
     pub fn binary_search_index(
         &mut self,
         key: &Vec<u8>,
-    ) -> Result<Option<i32>, SsTableReaderError> {
+    ) -> Result<Option<usize>, SsTableReaderError> {
         let mut index_block = self.read_index()?.blocks;
         let (mut left, mut right) = (0i32, index_block.len() as i32 - 1);
-        let mut ans_idx: Option<i32> = None;
+        let mut ans_idx: Option<usize> = None;
 
         while left <= right {
             let mid = left + (right - left) / 2;
             let mid_block = &index_block[mid as usize];
             let mid_block_key = &mid_block.last_key;
             if key >= mid_block_key {
-                ans_idx = Some(mid);
+                ans_idx = Some(mid as usize);
                 left = mid + 1;
             } else {
                 right = mid - 1;
