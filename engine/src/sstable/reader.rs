@@ -38,7 +38,7 @@ impl SstableReader {
         Ok(ans)
     }
 
-    pub fn read_index(&mut self) -> Result<(), SsTableReaderError> {
+    pub fn read_index(&mut self) -> Result<IndexBlock, SsTableReaderError> {
         let footer = self.read_footer()?;
         let index_offset = footer.index_offset;
         // let index_len = footer.index_len as usize; // we can just get IndexBlock len instead of from footer
@@ -55,6 +55,39 @@ impl SstableReader {
 
         // println!("here {:?}", buf);
         println!("index read: {:?}", index.blocks);
-        Ok(())
+        Ok(index)
+    }
+
+    pub fn binary_search_index(
+        &mut self,
+        key: &Vec<u8>,
+    ) -> Result<Option<i32>, SsTableReaderError> {
+        let mut index_block = self.read_index()?.blocks;
+        let (mut left, mut right) = (0i32, index_block.len() as i32 - 1);
+        let mut ans_idx: Option<i32> = None;
+
+        while left <= right {
+            let mid = left + (right - left) / 2;
+            let mid_block = &index_block[mid as usize];
+            let mid_block_key = &mid_block.last_key;
+            if key >= mid_block_key {
+                ans_idx = Some(mid);
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        let found = str::from_utf8(&index_block[ans_idx.unwrap() as usize].last_key)?;
+        let key_val = str::from_utf8(key)?;
+        let left_val = str::from_utf8(&index_block[0].last_key)?;
+        let right_val = str::from_utf8(&index_block[1].last_key)?;
+
+        println!(
+            "left {}, key {}, right: {}, found: {found}",
+            left_val, key_val, right_val
+        );
+
+        Ok(ans_idx)
     }
 }

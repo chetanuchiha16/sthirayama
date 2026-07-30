@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, str::Utf8Error};
 
 #[derive(Debug)]
 pub enum SsTableWriterError {
@@ -22,7 +22,7 @@ impl From<bitcode::Error> for SsTableWriterError {
 pub enum SsTableReaderError {
     IoError(io::Error),
     BitcodeError(bitcode::Error),
-    // Error(Error)
+    Utf8Error(Utf8Error), // Error(Error)
 }
 
 impl From<io::Error> for SsTableReaderError {
@@ -33,5 +33,11 @@ impl From<io::Error> for SsTableReaderError {
 impl From<bitcode::Error> for SsTableReaderError {
     fn from(value: bitcode::Error) -> Self {
         SsTableReaderError::BitcodeError(value)
+    }
+}
+
+impl From<Utf8Error> for SsTableReaderError {
+    fn from(value: Utf8Error) -> Self {
+        SsTableReaderError::Utf8Error(value)
     }
 }

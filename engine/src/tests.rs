@@ -141,6 +141,8 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
 pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
     let mut sstable_reader = SstableReader::new()?;
     // sstable_reader.read_footer();
-    sstable_reader.read_index()?;
+    // sstable_reader.read_index()?;
+    let key = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
+    sstable_reader.binary_search_index(&key);
     Ok(())
 }
