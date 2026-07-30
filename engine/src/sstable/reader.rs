@@ -19,7 +19,7 @@ impl SstableReader {
         Ok(Self { file })
     }
 
-    pub fn read_footer(&mut self) -> Result<(), SsTableReaderError> {
+    pub fn read_footer(&mut self) -> Result<Footer, SsTableReaderError> {
         self.file.seek(std::io::SeekFrom::End(-8));
         let mut buf = [0u8; 8];
         self.file.read_exact(&mut buf);
@@ -32,6 +32,6 @@ impl SstableReader {
         self.file.read_exact(&mut buf);
         let ans: Footer = bitcode::decode(&buf)?;
         println!("footer len written: {len}, footer read: {:?}", ans);
-        Ok(())
+        Ok(ans)
     }
 }
