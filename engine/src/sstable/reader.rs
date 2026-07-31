@@ -3,10 +3,13 @@ use std::{
     io::{Read, Seek},
 };
 
-use crate::sstable::{
-    errors::SsTableReaderError,
-    footer::Footer,
-    index::{BlockMeta, IndexBlock},
+use crate::{
+    skiplist::SkipListKV,
+    sstable::{
+        errors::SsTableReaderError,
+        footer::Footer,
+        index::{BlockMeta, IndexBlock},
+    },
 };
 
 pub struct SstableReader {
@@ -38,7 +41,7 @@ impl SstableReader {
         Ok(ans)
     }
 
-    pub fn read_index(&mut self) -> Result<IndexBlock, SsTableReaderError> {
+    pub fn read_index_block(&mut self) -> Result<IndexBlock, SsTableReaderError> {
         let footer = self.read_footer()?;
         let index_offset = footer.index_offset;
         // let index_len = footer.index_len as usize; // we can just get IndexBlock len instead of from footer
@@ -62,7 +65,7 @@ impl SstableReader {
         &mut self,
         key: &Vec<u8>,
     ) -> Result<Option<usize>, SsTableReaderError> {
-        let mut index_block = self.read_index()?.blocks;
+        let mut index_block = self.read_index_block()?.blocks;
         let (mut left, mut right) = (0i32, index_block.len() as i32 - 1);
         let mut ans_idx: Option<usize> = None;
 
@@ -89,5 +92,50 @@ impl SstableReader {
         );
 
         Ok(ans_idx)
+    }
+
+    pub fn read_data_block(
+        &mut self,
+        key: &Vec<u8>,
+    ) -> Result<Vec<SkipListKV<Vec<u8>, Vec<u8>>>, SsTableReaderError> {
+        let block_idx = self.binary_search_index(key)?.unwrap();
+        let index_block = self.read_index_block()?.blocks;
+        let block_meta = &index_block[block_idx];
+
+        let data_block_offset = block_meta.offset;
+        let data_block_len = block_meta.len;
+
+        self.file
+            .seek(std::io::SeekFrom::Start(data_block_offset))?;
+        let mut kv_list: Vec<SkipListKV<Vec<u8>, Vec<u8>>> = Vec::new();
+        let mut i = 0;
+        // while i < data_block_len {
+
+        let mut buffer = [0u8; 8];
+        self.file.read_exact(&mut buffer)?;
+        let kv_len = usize::from_le_bytes(buffer);
+
+        let mut bytes = vec![0u8; kv_len];
+        self.file.read_exact(&mut bytes)?;
+        let kv: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&bytes)?;
+
+        kv_list.push(kv);
+        i += kv_len;
+
+        // println!("{:?}", kv);
+        // println!(
+        //     "finding {} found {}",
+        //     str::from_utf8(key)?,
+        //     str::from_utf8(&kv.key)?
+        // );
+        // }
+        println!("{:?}", kv_list[0]);
+        Ok(kv_list)
+    }
+
+    pub fn binary_search_data(&mut self, key: &Vec<u8>) -> Result<Option<i32>, SsTableReaderError> {
+        todo!();
+
+        Ok(None)
     }
 }

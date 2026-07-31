@@ -88,6 +88,7 @@ impl SstableWriter {
 
             self.file.write_all(&len_byte);
             self.file.write_all(&data_byte);
+            // data_block.write_to(&mut self.file);
         }
 
         let index_offset = self.file.stream_position()?;

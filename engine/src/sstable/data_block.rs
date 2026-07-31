@@ -1,9 +1,11 @@
+use std::{fs::File, io::Write};
+
 use crate::skiplist::SkipListKV;
 
 pub struct DataBlock {
     kv_list_bytes: Vec<u8>,
     pub size: usize,
-    pub last_key: Vec<u8>,
+    // pub last_key: Vec<u8>,
 }
 
 impl DataBlock {
@@ -11,7 +13,7 @@ impl DataBlock {
         Self {
             kv_list_bytes: Vec::new(),
             size: 0,
-            last_key: Vec::new(),
+            // last_key: Vec::new(),
         }
     }
 
@@ -24,5 +26,11 @@ impl DataBlock {
 
     pub fn can_fit(&self, entry_size: usize) -> bool {
         self.size + entry_size < 4000
+    }
+
+    pub fn write_to(&self, file: &mut File) {
+        let len = self.size.to_le_bytes();
+        file.write_all(&len);
+        file.write_all(&self.kv_list_bytes);
     }
 }

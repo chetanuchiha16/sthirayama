@@ -143,6 +143,7 @@ pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
     // sstable_reader.read_footer();
     // sstable_reader.read_index()?;
     let key = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
-    sstable_reader.binary_search_index(&key);
+    // sstable_reader.binary_search_index(&key);
+    sstable_reader.read_data_block(&key)?;
     Ok(())
 }

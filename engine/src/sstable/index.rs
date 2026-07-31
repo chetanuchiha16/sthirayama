@@ -6,8 +6,8 @@ use crate::sstable::errors::SsTableWriterError;
 
 #[derive(Debug, Encode, Decode)]
 pub struct BlockMeta {
-    len: usize,
-    offset: u64,
+    pub len: usize,
+    pub offset: u64,
     pub last_key: Vec<u8>,
 }
 
