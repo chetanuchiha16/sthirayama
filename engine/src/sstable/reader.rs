@@ -122,14 +122,15 @@ impl SstableReader {
         kv_list.push(kv);
         i += kv_len;
 
-        // println!("{:?}", kv);
-        // println!(
-        //     "finding {} found {}",
-        //     str::from_utf8(key)?,
-        //     str::from_utf8(&kv.key)?
-        // );
+        let kv = &kv_list[0];
+        // println!("{:?}", kv_list[0]);
+        println!("{:?}", kv);
+        println!(
+            "finding {} found {}",
+            str::from_utf8(key)?,
+            str::from_utf8(&kv.0)?
+        );
         // }
-        println!("{:?}", kv_list[0]);
         Ok(kv_list)
     }
 

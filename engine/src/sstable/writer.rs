@@ -70,25 +70,28 @@ impl SstableWriter {
         let mut offset = self.file.stream_position()?;
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
-        for kv in self.skiplist.iter() {
-            let (len_byte, data_byte) = kv.encode();
-            let entry_size = len_byte.len() + data_byte.len();
+        for SkipListKV(key, value) in self.skiplist.iter() {
+            // let (len_byte, data_byte) = kv.encode();
+            let key_len_bytes = key.len().to_le_bytes();
+            let value_len_bytes = value.len().to_le_bytes();
+
+            let entry_size = key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len();
 
             if !data_block.can_fit(entry_size) {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
                 println!("{:?}", str::from_utf8(&block_meta.last_key));
-                offset = self.file.stream_position()?;
                 self.index.blocks.push(block_meta);
                 println!("index written: {:?}", self.index.blocks);
+                data_block.write_to(&mut self.file);
                 data_block = DataBlock::new();
+                offset = self.file.stream_position()?;
             }
 
-            data_block.add(len_byte, &data_byte);
-            last_key = &kv.key;
+            data_block.add(key, value);
+            last_key = &key;
 
-            self.file.write_all(&len_byte);
-            self.file.write_all(&data_byte);
-            // data_block.write_to(&mut self.file);
+            // self.file.write_all(&len_byte);
+            // self.file.write_all(&data_byte);
         }
 
         let index_offset = self.file.stream_position()?;

@@ -62,8 +62,8 @@ pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     let head = unsafe { skip_list.head.as_mut() };
     println!("{:?}", head);
     println!("{:?}", head.forward);
-    println!("{:?}", head.data.key);
-    println!("{:?}", head.data.value);
+    println!("{:?}", head.data.0);
+    println!("{:?}", head.data.1);
     println!("{:?}", head.level);
     // head.forward[0] = SkipListNode::new(2, &5, 6);
     println!("{:?}", skip_list.search(6));
@@ -122,7 +122,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
         let key = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let data = SkipListKV::new(key, value);
-        skip_list.insert_with_wal(data.key.clone(), data.value.clone());
+        skip_list.insert_with_wal(data.0.clone(), data.1.clone());
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
         let data_len_bytes_len = data_len.to_le_bytes().len();
