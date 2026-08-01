@@ -109,38 +109,37 @@ impl SstableReader {
             .seek(std::io::SeekFrom::Start(data_block_offset))?;
         let mut kv_list: Vec<SkipListKV<Vec<u8>, Vec<u8>>> = Vec::new();
         let mut i = 0;
-        // while i < data_block_len {
+        while i < data_block_len {
+            let mut k_len_buffer = [0u8; 8];
+            self.file.read_exact(&mut k_len_buffer)?;
+            let k_len = usize::from_le_bytes(k_len_buffer);
 
-        let mut k_len_buffer = [0u8; 8];
-        self.file.read_exact(&mut k_len_buffer)?;
-        let k_len = usize::from_le_bytes(k_len_buffer);
+            let mut k_bytes = vec![0u8; k_len];
+            self.file.read_exact(&mut k_bytes)?;
+            let k = str::from_utf8(&k_bytes)?;
 
-        let mut k_bytes = vec![0u8; k_len];
-        self.file.read_exact(&mut k_bytes)?;
-        // let kv: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&k_bytes)?;
-        let k = str::from_utf8(&k_bytes)?;
+            let mut v_len_bytes = [0u8; 8];
+            self.file.read_exact(&mut v_len_bytes)?;
+            let v_len = usize::from_le_bytes(v_len_bytes);
 
-        let mut v_len_bytes = [0u8; 8];
-        self.file.read_exact(&mut v_len_bytes)?;
-        let v_len = usize::from_le_bytes(v_len_bytes);
-        let mut v_bytes = vec![0u8; v_len];
-        self.file.read_exact(&mut v_bytes)?;
-        let v = str::from_utf8(&v_bytes)?;
+            let mut v_bytes = vec![0u8; v_len];
+            self.file.read_exact(&mut v_bytes)?;
+            let v = str::from_utf8(&v_bytes)?;
 
-        let kv = SkipListKV::new(k_bytes, v_bytes);
+            let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone());
 
-        kv_list.push(kv);
-        // i += kv_len;
+            kv_list.push(kv);
+            i += k_len + v_len + k_bytes.len() + v_bytes.len();
 
-        let kv = &kv_list[0];
-        // println!("{:?}", kv_list[0]);
-        println!("{:?}", kv);
-        println!(
-            "finding {} found {}",
-            str::from_utf8(key)?,
-            str::from_utf8(&kv.0)?
-        );
-        // }
+            // let kv = &kv_list[0];
+            // println!("{:?}", kv);
+            // println!(
+            //     "finding {} found {}",
+            //     str::from_utf8(key)?,
+            //     str::from_utf8(&kv.0)?
+            // );
+        }
+        println!("{:?}", kv_list);
         Ok(kv_list)
     }
 
