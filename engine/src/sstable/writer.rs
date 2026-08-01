@@ -67,7 +67,6 @@ impl SstableWriter {
 
         //ver 2 build upto 4kb print
         let mut size = 0usize;
-        let mut offset = self.file.stream_position()?;
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
         for SkipListKV(key, value) in self.skiplist.iter() {
@@ -78,13 +77,13 @@ impl SstableWriter {
             let entry_size = key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len();
 
             if !data_block.can_fit(entry_size) {
+                let offset = self.file.stream_position()?;
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
                 println!("{:?}", str::from_utf8(&block_meta.last_key));
                 self.index.blocks.push(block_meta);
                 println!("index written: {:?}", self.index.blocks);
                 data_block.write_to(&mut self.file);
                 data_block = DataBlock::new();
-                offset = self.file.stream_position()?;
             }
 
             data_block.add(key, value);
