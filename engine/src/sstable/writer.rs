@@ -94,11 +94,11 @@ impl SstableWriter {
         }
 
         if data_block.size > 0 {
-                let offset = self.file.stream_position()?;
-                let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
-                self.index.blocks.push(block_meta);
-                data_block.write_to(&mut self.file);
-            }
+            let offset = self.file.stream_position()?;
+            let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
+            self.index.blocks.push(block_meta);
+            data_block.write_to(&mut self.file);
+        }
 
         let index_offset = self.file.stream_position()?;
 

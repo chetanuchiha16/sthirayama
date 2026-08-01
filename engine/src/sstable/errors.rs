@@ -23,6 +23,7 @@ pub enum SsTableReaderError {
     IoError(io::Error),
     BitcodeError(bitcode::Error),
     Utf8Error(Utf8Error), // Error(Error)
+    NotFoundError,
 }
 
 impl From<io::Error> for SsTableReaderError {

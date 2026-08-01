@@ -80,16 +80,23 @@ impl SstableReader {
                 right = mid - 1;
             }
         }
-
-        let found = str::from_utf8(&index_block[ans_idx.unwrap() as usize].last_key)?;
         let key_val = str::from_utf8(key)?;
         let left_val = str::from_utf8(&index_block[0].last_key)?;
         let right_val = str::from_utf8(&index_block[1].last_key)?;
+        if let Some(answer_idx) = ans_idx {
+            let found = str::from_utf8(&index_block[answer_idx as usize].last_key)?;
 
-        println!(
-            "left {}, key {}, right: {}, found: {found}",
-            left_val, key_val, right_val
-        );
+            println!(
+                "left: {}, key to find: {}, right: {}, found block's last key: {found}",
+                left_val, key_val, right_val
+            );
+        } else {
+            println!(
+                "left: {}, key to find: {}, right: {}",
+                left_val, key_val, right_val
+            );
+            println!("{key_val} Not Found")
+        }
 
         Ok(ans_idx)
     }
@@ -98,7 +105,9 @@ impl SstableReader {
         &mut self,
         key: &Vec<u8>,
     ) -> Result<Vec<SkipListKV<Vec<u8>, Vec<u8>>>, SsTableReaderError> {
-        let block_idx = self.binary_search_index(key)?.unwrap();
+        let block_idx = self
+            .binary_search_index(key)?
+            .ok_or_else(|| SsTableReaderError::NotFoundError)?;
         let index_block = self.read_index_block()?.blocks;
         let block_meta = &index_block[block_idx];
 
@@ -129,7 +138,7 @@ impl SstableReader {
             let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone());
 
             kv_list.push(kv);
-            i += k_len + v_len + k_bytes.len() + v_bytes.len();
+            i += k_len_buffer.len() + v_len_bytes.len() + k_bytes.len() + v_bytes.len();
 
             // let kv = &kv_list[0];
             // println!("{:?}", kv);
