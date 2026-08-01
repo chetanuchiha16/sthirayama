@@ -111,16 +111,26 @@ impl SstableReader {
         let mut i = 0;
         // while i < data_block_len {
 
-        let mut buffer = [0u8; 8];
-        self.file.read_exact(&mut buffer)?;
-        let kv_len = usize::from_le_bytes(buffer);
+        let mut k_len_buffer = [0u8; 8];
+        self.file.read_exact(&mut k_len_buffer)?;
+        let k_len = usize::from_le_bytes(k_len_buffer);
 
-        let mut bytes = vec![0u8; kv_len];
-        self.file.read_exact(&mut bytes)?;
-        let kv: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&bytes)?;
+        let mut k_bytes = vec![0u8; k_len];
+        self.file.read_exact(&mut k_bytes)?;
+        // let kv: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&k_bytes)?;
+        let k = str::from_utf8(&k_bytes)?;
+
+        let mut v_len_bytes = [0u8; 8];
+        self.file.read_exact(&mut v_len_bytes)?;
+        let v_len = usize::from_le_bytes(v_len_bytes);
+        let mut v_bytes = vec![0u8; v_len];
+        self.file.read_exact(&mut v_bytes)?;
+        let v = str::from_utf8(&v_bytes)?;
+
+        let kv = SkipListKV::new(k_bytes, v_bytes);
 
         kv_list.push(kv);
-        i += kv_len;
+        // i += kv_len;
 
         let kv = &kv_list[0];
         // println!("{:?}", kv_list[0]);
