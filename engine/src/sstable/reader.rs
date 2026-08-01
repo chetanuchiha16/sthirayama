@@ -38,7 +38,7 @@ impl SstableReader {
         let mut buf = vec![0u8; len];
         self.file.read_exact(&mut buf);
         let ans: Footer = bitcode::decode(&buf)?;
-        println!("footer len read: {len}, footer read: {:?}", ans);
+        // println!("footer len read: {len}, footer read: {:?}", ans);
         Ok(ans)
     }
 
@@ -58,7 +58,7 @@ impl SstableReader {
         let index: IndexBlock = bitcode::decode(&buf)?;
 
         // println!("here {:?}", buf);
-        println!("index read: {:?}", index.blocks);
+        // println!("index read: {:?}", index.blocks);
         Ok(index)
     }
 
@@ -87,15 +87,15 @@ impl SstableReader {
         if let Some(answer_idx) = ans_idx {
             let found = str::from_utf8(&index_block[answer_idx as usize].last_key)?;
 
-            println!(
-                "left: {}, key to find: {}, right: {}, found block's last key: {found}",
-                left_val, key_val, right_val
-            );
+            // println!(
+            //     "left: {}, key to find: {}, right: {}, found block's last key: {found}",
+            //     left_val, key_val, right_val
+            // );
         } else {
-            println!(
-                "left: {}, key to find: {}, right: {}",
-                left_val, key_val, right_val
-            );
+            // println!(
+            //     "left: {}, key to find: {}, right: {}",
+            //     left_val, key_val, right_val
+            // );
             println!("{key_val} Not Found")
         }
 
@@ -105,10 +105,11 @@ impl SstableReader {
     pub fn read_data_block(
         &mut self,
         key: &Vec<u8>,
-    ) -> Result<Vec<SkipListKV<Vec<u8>, Vec<u8>>>, SsTableReaderError> {
-        let block_idx = self
-            .binary_search_index(key)?
-            .ok_or_else(|| SsTableReaderError::NotFoundError)?;
+    ) -> Result<Option<Vec<SkipListKV<Vec<u8>, Vec<u8>>>>, SsTableReaderError> {
+        let Some(block_idx) = self.binary_search_index(key)? else {
+            return Ok(None);
+        };
+
         let index_block = self.read_index_block()?.blocks;
         let block_meta = &index_block[block_idx];
 
@@ -119,7 +120,7 @@ impl SstableReader {
             .seek(std::io::SeekFrom::Start(data_block_offset))?;
         let mut kv_list: Vec<SkipListKV<Vec<u8>, Vec<u8>>> = Vec::new();
         let mut i = 0;
-        println!("{:?}", block_meta);
+        // println!("{:?}", block_meta);
         while i < data_block_len {
             let mut k_len_buffer = [0u8; 8];
             self.file.read_exact(&mut k_len_buffer)?;
@@ -150,20 +151,17 @@ impl SstableReader {
             //     str::from_utf8(&kv.0)?
             // );
         }
-        println!("i = {}, len = {}", i, data_block_len);
-        println!("{:?}", kv_list);
-        println!("{}", key >= &index_block[0].last_key);
-        println!("{}", key >= &index_block[1].last_key);
-        println!("{}", key >= &index_block[2].last_key);
-        println!("{:?}", b"99".to_vec() >= b"479".to_vec());
-        Ok(kv_list)
+        // println!("{:?}", kv_list);
+        Ok(Some(kv_list))
     }
 
     pub fn binary_search_data(
         &mut self,
         key: &Vec<u8>,
     ) -> Result<Option<Vec<u8>>, SsTableReaderError> {
-        let data_block = self.read_data_block(key)?;
+        let Some(data_block) = self.read_data_block(key)? else {
+            return Ok(None);
+        };
         let (mut left, mut right) = (0, data_block.len() as i32 - 1);
 
         while left <= right {
