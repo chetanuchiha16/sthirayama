@@ -119,10 +119,11 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let mut skip_list: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0'])?;
     let mut size = 0usize;
     while size <= 8000 {
-        let key = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
+        let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let data = SkipListKV::new(key, value);
         skip_list.insert_with_wal(data.0.clone(), data.1.clone());
+
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
         let data_len_bytes_len = data_len.to_le_bytes().len();
@@ -131,6 +132,11 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     // skip_list.insert_with_wal("10".as_bytes().to_vec(), "1".as_bytes().to_vec())?;
     // skip_list.insert_with_wal("20".as_bytes().to_vec(), "2".as_bytes().to_vec())?;
     // skip_list.insert_with_wal("30".as_bytes().to_vec(), "3".as_bytes().to_vec())?;
+
+    let key = 99.to_string().as_bytes().to_vec();
+    let value = 6.to_string().as_bytes().to_vec();
+    let data = SkipListKV::new(key, value);
+    skip_list.insert_with_wal(data.0.clone(), data.1.clone());
 
     let mut s = SstableWriter::new(skip_list)?;
     s.write();
@@ -142,8 +148,13 @@ pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
     let mut sstable_reader = SstableReader::new()?;
     // sstable_reader.read_footer();
     // sstable_reader.read_index()?;
-    let key = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
+    let num = 99;
+    let key = num.to_string().as_bytes().to_vec();
     // sstable_reader.binary_search_index(&key);
-    sstable_reader.read_data_block(&key)?;
+    // sstable_reader.read_data_block(&key)?;
+    let value = sstable_reader.binary_search_data(&key)?;
+    let key_val = str::from_utf8(&key).unwrap();
+    // let value_val = str::from_utf8(&value.clone().unwrap().clone()).unwrap();
+    println!("to find {key_val} {:?}, found {:?}", key, value);
     Ok(())
 }

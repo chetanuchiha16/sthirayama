@@ -70,6 +70,9 @@ impl SstableWriter {
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
         for SkipListKV(key, value) in self.skiplist.iter() {
+            if key == b"99" {
+                println!("found 99")
+            }
             // let (len_byte, data_byte) = kv.encode();
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();

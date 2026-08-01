@@ -6,6 +6,7 @@ use std::{
 use crate::{
     skiplist::SkipListKV,
     sstable::{
+        data_block,
         errors::SsTableReaderError,
         footer::Footer,
         index::{BlockMeta, IndexBlock},
@@ -73,11 +74,11 @@ impl SstableReader {
             let mid = left + (right - left) / 2;
             let mid_block = &index_block[mid as usize];
             let mid_block_key = &mid_block.last_key;
-            if key >= mid_block_key {
+            if key <= mid_block_key {
                 ans_idx = Some(mid as usize);
-                left = mid + 1;
-            } else {
                 right = mid - 1;
+            } else {
+                left = mid + 1;
             }
         }
         let key_val = str::from_utf8(key)?;
@@ -118,6 +119,7 @@ impl SstableReader {
             .seek(std::io::SeekFrom::Start(data_block_offset))?;
         let mut kv_list: Vec<SkipListKV<Vec<u8>, Vec<u8>>> = Vec::new();
         let mut i = 0;
+        println!("{:?}", block_meta);
         while i < data_block_len {
             let mut k_len_buffer = [0u8; 8];
             self.file.read_exact(&mut k_len_buffer)?;
@@ -148,12 +150,33 @@ impl SstableReader {
             //     str::from_utf8(&kv.0)?
             // );
         }
+        println!("i = {}, len = {}", i, data_block_len);
         println!("{:?}", kv_list);
+        println!("{}", key >= &index_block[0].last_key);
+        println!("{}", key >= &index_block[1].last_key);
+        println!("{}", key >= &index_block[2].last_key);
+        println!("{:?}", b"99".to_vec() >= b"479".to_vec());
         Ok(kv_list)
     }
 
-    pub fn binary_search_data(&mut self, key: &Vec<u8>) -> Result<Option<i32>, SsTableReaderError> {
-        todo!();
+    pub fn binary_search_data(
+        &mut self,
+        key: &Vec<u8>,
+    ) -> Result<Option<Vec<u8>>, SsTableReaderError> {
+        let data_block = self.read_data_block(key)?;
+        let (mut left, mut right) = (0, data_block.len() as i32 - 1);
+
+        while left <= right {
+            let mid = left + (right - left) / 2;
+            let mid_val = &data_block[mid as usize];
+            if mid_val.0 == *key {
+                return Ok(Some(mid_val.1.clone()));
+            } else if *key < mid_val.0 {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
 
         Ok(None)
     }
