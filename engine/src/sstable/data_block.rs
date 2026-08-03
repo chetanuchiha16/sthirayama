@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write};
 
-use crate::skiplist::SkipListKV;
+use crate::{skiplist::SkipListKV, sstable::errors};
 
 pub struct DataBlock {
     kv_list_bytes: Vec<u8>,
@@ -34,9 +34,10 @@ impl DataBlock {
         self.size + entry_size < 4000
     }
 
-    pub fn write_to(&self, file: &mut File) {
+    pub fn write_to(&self, file: &mut File) -> Result<(), errors::SsTableWriterError> {
         // let len = self.size.to_le_bytes();
         // file.write_all(&len);
-        file.write_all(&self.kv_list_bytes);
+        file.write_all(&self.kv_list_bytes)?;
+        Ok(())
     }
 }

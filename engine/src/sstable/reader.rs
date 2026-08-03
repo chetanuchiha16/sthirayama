@@ -27,16 +27,16 @@ impl SstableReader {
     }
 
     pub fn read_footer(&mut self) -> Result<Footer, SsTableReaderError> {
-        self.file.seek(std::io::SeekFrom::End(-8));
+        self.file.seek(std::io::SeekFrom::End(-8))?;
         let mut buf = [0u8; 8];
-        self.file.read_exact(&mut buf);
+        self.file.read_exact(&mut buf)?;
 
         let len = usize::from_le_bytes(buf);
         let n: i64 = 8 + len as i64;
-        self.file.seek(std::io::SeekFrom::End(-n));
+        self.file.seek(std::io::SeekFrom::End(-n))?;
 
         let mut buf = vec![0u8; len];
-        self.file.read_exact(&mut buf);
+        self.file.read_exact(&mut buf)?;
         let ans: Footer = bitcode::decode(&buf)?;
         // println!("footer len read: {len}, footer read: {:?}", ans);
         Ok(ans)
@@ -50,7 +50,7 @@ impl SstableReader {
         self.file.seek(std::io::SeekFrom::Start(index_offset))?;
 
         let mut buffer = [0u8; 8];
-        self.file.read_exact(&mut buffer);
+        self.file.read_exact(&mut buffer)?;
         let index_len = usize::from_le_bytes(buffer);
 
         let mut buf = vec![0u8; index_len];
@@ -84,7 +84,6 @@ impl SstableReader {
         let key_val = str::from_utf8(key)?;
         let left_val = str::from_utf8(&index_block[0].last_key)?;
         if index_block.len() > 1 {
-
             let right_val = str::from_utf8(&index_block[1].last_key)?;
         }
         if let Some(answer_idx) = ans_idx {

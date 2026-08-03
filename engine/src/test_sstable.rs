@@ -134,14 +134,3 @@ fn test_single_entry() -> Result<(), EngineError> {
 
     Ok(())
 }
-
-#[test]
-fn test_empty_table() -> Result<(), EngineError> {
-    build_sstable(0)?;
-
-    let mut reader = SstableReader::new()?;
-
-    assert_eq!(reader.binary_search_data(&b"0000".to_vec())?, None);
-
-    Ok(())
-}

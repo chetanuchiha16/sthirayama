@@ -118,8 +118,8 @@ impl SstableWriter {
         let index_len = self.file.stream_position()? - index_offset;
         let footer = Footer::new(index_offset, index_len);
         let (footer_len, footer_byte) = footer.encode();
-        self.file.write_all(&footer_byte);
-        self.file.write_all(&footer_len);
+        self.file.write_all(&footer_byte)?;
+        self.file.write_all(&footer_len)?;
         // println!(
         //     "footer written: {:?}, footer len written: {}",
         //     footer,
@@ -138,7 +138,7 @@ impl SstableWriter {
         let data_len = usize::from_le_bytes(buf);
 
         let mut buf = vec![0u8; data_len];
-        self.file.read_exact(&mut buf);
+        self.file.read_exact(&mut buf)?;
         let data: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&buf)?;
         println!("{:?}", data);
         Ok(())
