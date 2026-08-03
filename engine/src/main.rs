@@ -18,6 +18,8 @@ mod skiplist_error;
 mod sstable;
 #[cfg(test)]
 mod test_skiplist;
+#[cfg(test)]
+mod test_sstable;
 mod tests;
 mod traits;
 mod wal;

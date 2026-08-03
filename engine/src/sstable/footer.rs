@@ -8,10 +8,10 @@ pub struct Footer {
 
 impl Footer {
     pub fn new(index_offset: u64, index_len: u64) -> Self {
-        println!(
-            "index len inside new {} and index offset is {}",
-            index_len, index_offset
-        );
+        // println!(
+        //     "index len inside new {} and index offset is {}",
+        //     index_len, index_offset
+        // );
         Self {
             index_offset,
             index_len,

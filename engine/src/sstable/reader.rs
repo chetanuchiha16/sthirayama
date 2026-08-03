@@ -83,7 +83,10 @@ impl SstableReader {
         }
         let key_val = str::from_utf8(key)?;
         let left_val = str::from_utf8(&index_block[0].last_key)?;
-        let right_val = str::from_utf8(&index_block[1].last_key)?;
+        if index_block.len() > 1 {
+
+            let right_val = str::from_utf8(&index_block[1].last_key)?;
+        }
         if let Some(answer_idx) = ans_idx {
             let found = str::from_utf8(&index_block[answer_idx as usize].last_key)?;
 

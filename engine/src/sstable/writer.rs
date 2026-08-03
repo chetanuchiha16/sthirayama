@@ -70,9 +70,9 @@ impl SstableWriter {
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
         for SkipListKV(key, value) in self.skiplist.iter() {
-            if key == b"99" {
-                println!("found 99")
-            }
+            // if key == b"99" {
+            //     println!("found 99")
+            // }
             // let (len_byte, data_byte) = kv.encode();
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
@@ -82,9 +82,9 @@ impl SstableWriter {
             if !data_block.can_fit(entry_size) {
                 let offset = self.file.stream_position()?;
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
-                println!("{:?}", str::from_utf8(&block_meta.last_key));
+                // println!("{:?}", str::from_utf8(&block_meta.last_key));
                 self.index.blocks.push(block_meta);
-                println!("index written: {:?}", self.index.blocks);
+                // println!("index written: {:?}", self.index.blocks);
                 data_block.write_to(&mut self.file);
                 data_block = DataBlock::new();
             }
@@ -120,11 +120,11 @@ impl SstableWriter {
         let (footer_len, footer_byte) = footer.encode();
         self.file.write_all(&footer_byte);
         self.file.write_all(&footer_len);
-        println!(
-            "footer written: {:?}, footer len written: {}",
-            footer,
-            usize::from_le_bytes(footer_len)
-        );
+        // println!(
+        //     "footer written: {:?}, footer len written: {}",
+        //     footer,
+        //     usize::from_le_bytes(footer_len)
+        // );
 
         self.file.flush();
         Ok(())

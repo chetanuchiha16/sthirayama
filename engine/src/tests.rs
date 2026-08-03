@@ -152,9 +152,10 @@ pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
     let key = num.to_string().as_bytes().to_vec();
     // sstable_reader.binary_search_index(&key);
     // sstable_reader.read_data_block(&key)?;
-    let value = sstable_reader.binary_search_data(&key)?;
+    let value = sstable_reader.binary_search_data(&key)?.unwrap();
     let key_val = str::from_utf8(&key).unwrap();
-    // let value_val = str::from_utf8(&value.clone().unwrap().clone()).unwrap();
-    println!("to find {key_val} {:?}, found {:?}", key, value);
+    let value_val = str::from_utf8(&value).unwrap();
+
+    println!("found value {} for the key {}", value_val, key_val);
     Ok(())
 }
