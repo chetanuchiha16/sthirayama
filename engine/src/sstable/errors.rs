@@ -42,3 +42,19 @@ impl From<Utf8Error> for SsTableReaderError {
         SsTableReaderError::Utf8Error(value)
     }
 }
+
+pub enum SstableError {
+    SstableReaderError(SsTableReaderError),
+    SsTableWriterError(SsTableWriterError),
+}
+
+impl From<SsTableReaderError> for SstableError {
+    fn from(value: SsTableReaderError) -> Self {
+        SstableError::SstableReaderError(value)
+    }
+}
+impl From<SsTableWriterError> for SstableError {
+    fn from(value: SsTableWriterError) -> Self {
+        SstableError::SsTableWriterError(value)
+    }
+}

@@ -1,15 +1,17 @@
 use std::{
     fs::{File, OpenOptions},
-    io::{Read, Seek},
+    io::{Read, Seek, Write},
+    sync::atomic::Ordering,
 };
 
 use crate::{
     skiplist::SkipListKV,
     sstable::{
-        data_block,
+        GLOBAL_COUNT, data_block,
         errors::SsTableReaderError,
         footer::Footer,
         index::{BlockMeta, IndexBlock},
+        manifest::Manifest,
     },
 };
 
@@ -19,10 +21,13 @@ pub struct SstableReader {
 
 impl SstableReader {
     pub fn new() -> Result<Self, SsTableReaderError> {
+        let mut manifest_file = Manifest::new()?;
+        let path = manifest_file.read()?;
+
         let file = OpenOptions::new()
             .read(true)
             // .append(true)
-            .open("table.sst")?;
+            .open(path)?;
         Ok(Self { file })
     }
 

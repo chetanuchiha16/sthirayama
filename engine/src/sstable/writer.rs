@@ -2,15 +2,18 @@ use std::{
     collections::binary_heap,
     fs::{File, OpenOptions},
     io::{self, Read, Seek, Write},
+    sync::atomic::Ordering,
 };
 
 use crate::{
     skiplist::{self, SkipList, SkipListKV, SkipListNode},
     sstable::{
+        GLOBAL_COUNT,
         data_block::DataBlock,
         errors::SsTableWriterError,
         footer::Footer,
         index::{BlockMeta, IndexBlock},
+        manifest::Manifest,
     },
 };
 
@@ -22,13 +25,16 @@ pub struct SstableWriter {
 
 impl SstableWriter {
     pub fn new(skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<Self, SsTableWriterError> {
+        let mut manifest = Manifest::new()?;
+        let path = manifest.write()?;
+
         let file = OpenOptions::new()
             .create(true)
             .read(true)
             // .append(true)
             .write(true)
             .truncate(true)
-            .open("table.sst")?;
+            .open(path)?;
         let index = IndexBlock::new();
         Ok(Self {
             file,
