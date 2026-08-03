@@ -1,3 +1,5 @@
+use tempfile::NamedTempFile;
+
 use crate::{
     engine_error::EngineError,
     skiplist::SkipList,
@@ -18,11 +20,14 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
         let value = format!("value{}", i).into_bytes();
         skiplist.insert_with_wal(key, value);
     }
+    let file = NamedTempFile::new()?;
 
-    let mut writer = SstableWriter::new(skiplist)?;
+    let path = file.path();
+
+    let mut writer = SstableWriter::new(path, skiplist)?;
     writer.write()?;
 
-    let mut reader = SstableReader::new()?;
+    let mut reader = SstableReader::new(path)?;
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -36,10 +41,10 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     Ok(())
 }
 
-use std::fs;
+use std::{fs, path::Path};
 
-fn build_sstable(count: usize) -> Result<(), EngineError> {
-    let _ = fs::remove_file("table.sst");
+fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineError> {
+    let _ = fs::remove_file(&path);
 
     let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0'])?;
 
@@ -49,7 +54,7 @@ fn build_sstable(count: usize) -> Result<(), EngineError> {
         skiplist.insert_with_wal(key, value);
     }
 
-    let mut writer = SstableWriter::new(skiplist)?;
+    let mut writer = SstableWriter::new(path, skiplist)?;
     writer.write()?;
 
     Ok(())
@@ -57,9 +62,12 @@ fn build_sstable(count: usize) -> Result<(), EngineError> {
 
 #[test]
 fn test_first_key() -> Result<(), EngineError> {
-    build_sstable(1000)?;
+    let file = NamedTempFile::new()?;
 
-    let mut reader = SstableReader::new()?;
+    let path = file.path();
+    build_sstable(path, 1000)?;
+
+    let mut reader = SstableReader::new(path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
@@ -71,9 +79,11 @@ fn test_first_key() -> Result<(), EngineError> {
 
 #[test]
 fn test_last_key() -> Result<(), EngineError> {
-    build_sstable(1000)?;
+    let file = NamedTempFile::new()?;
 
-    let mut reader = SstableReader::new()?;
+    let path = file.path();
+    build_sstable(path, 1000)?;
+    let mut reader = SstableReader::new(path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0999".to_vec())?,
@@ -85,9 +95,11 @@ fn test_last_key() -> Result<(), EngineError> {
 
 #[test]
 fn test_middle_key() -> Result<(), EngineError> {
-    build_sstable(1000)?;
+    let file = NamedTempFile::new()?;
 
-    let mut reader = SstableReader::new()?;
+    let path = file.path();
+    build_sstable(path, 1000)?;
+    let mut reader = SstableReader::new(path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0500".to_vec())?,
@@ -99,9 +111,11 @@ fn test_middle_key() -> Result<(), EngineError> {
 
 #[test]
 fn test_key_not_found() -> Result<(), EngineError> {
-    build_sstable(1000)?;
+    let file = NamedTempFile::new()?;
 
-    let mut reader = SstableReader::new()?;
+    let path = file.path();
+    build_sstable(path, 1000)?;
+    let mut reader = SstableReader::new(path)?;
 
     assert_eq!(reader.binary_search_data(&b"1500".to_vec())?, None);
 
@@ -110,9 +124,11 @@ fn test_key_not_found() -> Result<(), EngineError> {
 
 #[test]
 fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
-    build_sstable(1000)?;
+    let file = NamedTempFile::new()?;
 
-    let mut reader = SstableReader::new()?;
+    let path = file.path();
+    build_sstable(path, 1000)?;
+    let mut reader = SstableReader::new(path)?;
 
     assert_eq!(reader.binary_search_data(&b"-001".to_vec())?, None);
 
@@ -121,9 +137,11 @@ fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
 
 #[test]
 fn test_single_entry() -> Result<(), EngineError> {
-    build_sstable(1)?;
+    let file = NamedTempFile::new()?;
 
-    let mut reader = SstableReader::new()?;
+    let path = file.path();
+    build_sstable(path, 1)?;
+    let mut reader = SstableReader::new(path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,

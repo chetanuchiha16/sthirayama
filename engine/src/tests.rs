@@ -138,14 +138,14 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let data = SkipListKV::new(key, value);
     skip_list.insert_with_wal(data.0.clone(), data.1.clone());
 
-    let mut s = SstableWriter::new(skip_list)?;
+    let mut s = SstableWriter::new("sstable.sst", skip_list)?;
     s.write();
     // s.read();
     Ok(())
 }
 
 pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
-    let mut sstable_reader = SstableReader::new()?;
+    let mut sstable_reader = SstableReader::new("sstable.sst")?;
     // sstable_reader.read_footer();
     // sstable_reader.read_index()?;
     let num = 99;

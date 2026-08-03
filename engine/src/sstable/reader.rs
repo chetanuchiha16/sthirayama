@@ -1,6 +1,7 @@
 use std::{
     fs::{File, OpenOptions},
     io::{Read, Seek, Write},
+    path::Path,
     sync::atomic::Ordering,
 };
 
@@ -15,20 +16,18 @@ use crate::{
     },
 };
 
-pub struct SstableReader {
+pub struct SstableReader<T: AsRef<Path>> {
+    path: T,
     file: File,
 }
 
-impl SstableReader {
-    pub fn new() -> Result<Self, SsTableReaderError> {
-        let mut manifest_file = Manifest::new()?;
-        let path = manifest_file.read()?;
-
+impl<T: AsRef<Path>> SstableReader<T> {
+    pub fn new(path: T) -> Result<Self, SsTableReaderError> {
         let file = OpenOptions::new()
             .read(true)
             // .append(true)
-            .open(path)?;
-        Ok(Self { file })
+            .open(&path)?;
+        Ok(Self { path, file })
     }
 
     pub fn read_footer(&mut self) -> Result<Footer, SsTableReaderError> {

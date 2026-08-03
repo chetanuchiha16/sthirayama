@@ -43,14 +43,14 @@ impl Manifest {
 
     pub fn write(&mut self) -> Result<String, io::Error> {
         let path = format!("sstable/{:06}.sst", GLOBAL_COUNT.load(Ordering::SeqCst));
-        
+
         let mut buf = GLOBAL_COUNT.load(Ordering::SeqCst).to_le_bytes();
         println!(
             "{}, {}",
             usize::from_le_bytes(buf),
             GLOBAL_COUNT.load(Ordering::SeqCst)
         );
-        
+
         self.file.write_all(&buf);
         self.file.flush();
         GLOBAL_COUNT.fetch_add(1, Ordering::SeqCst);
