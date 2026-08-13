@@ -40,12 +40,12 @@ impl Wal {
     /// append the entry to the wal file after every insert to the skiplist
     pub fn append<K: TypeSkipListKey, V: TypeSkipListValue>(
         &mut self,
-        key: K,
-        value: V,
+        key: &K,
+        value: &V,
     ) -> std::io::Result<()> {
         // let key_len_bytes = size_of::<K>().to_le_bytes();
         // let value_len_bytes = size_of::<V>().to_le_bytes();
-        let data = SkipListKV::new(key, value);
+        let data = SkipListKV::new(key.clone(), value.clone());
         let data_bytes = bitcode::encode(&data);
         let data_len_bytes = data_bytes.len().to_le_bytes();
         self.file.write_all(&data_len_bytes)?;

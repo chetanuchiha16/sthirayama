@@ -84,11 +84,7 @@ where
     V: TypeSkipListValue,
 {
     /// create a new skiplist with a sentinel head
-    pub fn new(
-        max_level: usize,
-        dummy_k: K,
-        dummy_v: V,
-    ) -> Self {
+    pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
         let head = SkipListNode::new(max_level, dummy_k.clone(), dummy_v.clone());
         Self {
             max_level,
@@ -138,7 +134,6 @@ where
         let cur_v = SkipListNode::get_value(&current).to_owned();
         if cur_k == key { Some(cur_v) } else { None }
     }
-
 
     pub fn insert(&mut self, key: K, value: V) -> Result<(), skiplist_error::SkipListError> {
         let data = SkipListKV::new(key, value);

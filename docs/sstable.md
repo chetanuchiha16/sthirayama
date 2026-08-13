@@ -6,3 +6,6 @@ after every 4kb start new block note down the highest key, the len and offset of
 
 
 seek to last, read the footer, go to start of the index, load the index block to memory, then do binary search
+
+aug 13: 9:43 pm
+instead of making sstable writer hold generic T path buf, take the T and store as pathbuf itself

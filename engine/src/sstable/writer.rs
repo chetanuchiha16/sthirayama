@@ -2,7 +2,7 @@ use std::{
     collections::binary_heap,
     fs::{File, OpenOptions},
     io::{self, Read, Seek, Write},
-    path::Path,
+    path::{Path, PathBuf},
     sync::atomic::Ordering,
 };
 
@@ -18,15 +18,18 @@ use crate::{
     },
 };
 
-pub struct SstableWriter<T: AsRef<Path>> {
-    path: T,
+pub struct SstableWriter {
+    path: PathBuf,
     file: File,
     skiplist: SkipList<Vec<u8>, Vec<u8>>,
     index: IndexBlock,
 }
 
-impl<T: AsRef<Path>> SstableWriter<T> {
-    pub fn new(path: T, skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<Self, SsTableWriterError> {
+impl SstableWriter {
+    pub fn new<T: AsRef<Path>>(
+        path: T,
+        skiplist: SkipList<Vec<u8>, Vec<u8>>,
+    ) -> Result<Self, SsTableWriterError> {
         let file = OpenOptions::new()
             .create(true)
             .read(true)
@@ -36,7 +39,7 @@ impl<T: AsRef<Path>> SstableWriter<T> {
             .open(&path)?;
         let index = IndexBlock::new();
         Ok(Self {
-            path,
+            path: path.as_ref().to_path_buf(),
             file,
             skiplist,
             index,
