@@ -7,3 +7,7 @@ edition = "2024"
 bitcode = "0.6.9"
 fastrand = "2.4.1"
 tempfile = "3.27.0"
+
+[features]
+default = []
+use-legacy-search = []

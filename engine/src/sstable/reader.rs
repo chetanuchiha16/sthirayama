@@ -66,46 +66,21 @@ impl<T: AsRef<Path>> SstableReader<T> {
         Ok(index)
     }
 
+    
+    #[cfg(not(feature = "use-legacy-search"))]
     pub fn binary_search_index(
         &mut self,
         key: &Vec<u8>,
     ) -> Result<Option<usize>, SsTableReaderError> {
-        let mut index_block = self.read_index_block()?.blocks;
-        let (mut left, mut right) = (0i32, index_block.len() as i32 - 1);
-        let mut ans_idx: Option<usize> = None;
 
-        while left <= right {
-            let mid = left + (right - left) / 2;
-            let mid_block = &index_block[mid as usize];
-            let mid_block_key = &mid_block.last_key;
-            if key <= mid_block_key {
-                ans_idx = Some(mid as usize);
-                right = mid - 1;
-            } else {
-                left = mid + 1;
-            }
-        }
-        let key_val = str::from_utf8(key)?;
-        let left_val = str::from_utf8(&index_block[0].last_key)?;
-        if index_block.len() > 1 {
-            let right_val = str::from_utf8(&index_block[1].last_key)?;
-        }
-        if let Some(answer_idx) = ans_idx {
-            let found = str::from_utf8(&index_block[answer_idx as usize].last_key)?;
+        let mut index_block = &self.read_index_block()?.blocks;
+        let idx = index_block.partition_point(|block_meta| block_meta.last_key.as_slice() < key);
 
-            // println!(
-            //     "left: {}, key to find: {}, right: {}, found block's last key: {found}",
-            //     left_val, key_val, right_val
-            // );
+        if idx < index_block.len() {
+            Ok(Some(idx))
         } else {
-            // println!(
-            //     "left: {}, key to find: {}, right: {}",
-            //     left_val, key_val, right_val
-            // );
-            println!("{key_val} Not Found")
+            Ok(None)
         }
-
-        Ok(ans_idx)
     }
 
     pub fn read_data_block(
@@ -161,6 +136,68 @@ impl<T: AsRef<Path>> SstableReader<T> {
         Ok(Some(kv_list))
     }
 
+    
+    #[cfg(not(feature = "use-legacy-search"))]
+    pub fn binary_search_data(
+        &mut self,
+        key: &Vec<u8>,
+    ) -> Result<Option<Vec<u8>>, SsTableReaderError> {
+        let Some(data_block) = self.read_data_block(key)? else {
+            return Ok(None);
+        };
+        
+        let x = match data_block.binary_search_by_key(key, |data| data.0.clone()) {
+            Ok(key_idx) => Some(data_block[key_idx].1.clone()),
+            Err(_) => None,
+        };
+        
+        Ok(x)
+    }
+
+    #[cfg(feature = "use-legacy-search")]
+    pub fn binary_search_index(
+        &mut self,
+        key: &Vec<u8>,
+    ) -> Result<Option<usize>, SsTableReaderError> {
+        let mut index_block = self.read_index_block()?.blocks;
+        let (mut left, mut right) = (0i32, index_block.len() as i32 - 1);
+        let mut ans_idx: Option<usize> = None;
+
+        while left <= right {
+            let mid = left + (right - left) / 2;
+            let mid_block = &index_block[mid as usize];
+            let mid_block_key = &mid_block.last_key;
+            if key <= mid_block_key {
+                ans_idx = Some(mid as usize);
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        let key_val = str::from_utf8(key)?;
+        let left_val = str::from_utf8(&index_block[0].last_key)?;
+        if index_block.len() > 1 {
+            let right_val = str::from_utf8(&index_block[1].last_key)?;
+        }
+        if let Some(answer_idx) = ans_idx {
+            let found = str::from_utf8(&index_block[answer_idx as usize].last_key)?;
+
+            // println!(
+            //     "left: {}, key to find: {}, right: {}, found block's last key: {found}",
+            //     left_val, key_val, right_val
+            // );
+        } else {
+            // println!(
+            //     "left: {}, key to find: {}, right: {}",
+            //     left_val, key_val, right_val
+            // );
+            println!("{key_val} Not Found")
+        }
+
+        Ok(ans_idx)
+    }
+    
+    #[cfg(feature = "use-legacy-search")]
     pub fn binary_search_data(
         &mut self,
         key: &Vec<u8>,
