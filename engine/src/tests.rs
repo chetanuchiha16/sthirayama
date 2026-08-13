@@ -6,11 +6,7 @@ use std::{
 };
 
 use crate::{
-    engine_error,
-    skiplist::{SkipList, SkipListKV, SkipListNode},
-    skiplist_error,
-    sstable::{reader::SstableReader, writer::SstableWriter},
-    wal::Wal,
+    engine_error, memtable::Memtable, skiplist::{SkipList, SkipListKV, SkipListNode}, skiplist_error, sstable::{reader::SstableReader, writer::SstableWriter}, wal::Wal,
 };
 
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
@@ -116,13 +112,14 @@ pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error:
 }
 
 pub fn test_block_split() -> Result<(), engine_error::EngineError> {
-    let mut skip_list: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0']);
+    // let mut skip_list: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0']);
+    let mut memtable = Memtable::new();
     let mut size = 0usize;
     while size <= 8000 {
         let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let data = SkipListKV::new(key, value);
-        skip_list.insert(data.0.clone(), data.1.clone());
+        memtable.insert(data.0.clone(), data.1.clone());
 
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
@@ -136,9 +133,9 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let key = 99.to_string().as_bytes().to_vec();
     let value = 6.to_string().as_bytes().to_vec();
     let data = SkipListKV::new(key, value);
-    skip_list.insert(data.0.clone(), data.1.clone());
+    memtable.insert(data.0.clone(), data.1.clone());
 
-    let mut s = SstableWriter::new("sstable.sst", skip_list)?;
+    let mut s = SstableWriter::new("sstable.sst", memtable)?;
     s.write();
     // s.read();
     Ok(())

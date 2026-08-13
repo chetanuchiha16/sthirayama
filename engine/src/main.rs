@@ -12,7 +12,10 @@ use crate::{
     tests::{cli, test_block_split, test_sstable_read},
     wal::Wal,
 };
+
+mod engine;
 mod engine_error;
+mod memtable;
 mod skiplist;
 mod skiplist_error;
 mod sstable;
@@ -23,6 +26,7 @@ mod test_sstable;
 mod tests;
 mod traits;
 mod wal;
+
 fn main() -> Result<(), EngineError> {
     // pring_skiplist_details()?;
     // try_new_skiplist()?;

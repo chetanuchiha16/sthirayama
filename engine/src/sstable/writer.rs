@@ -7,8 +7,7 @@ use std::{
 };
 
 use crate::{
-    skiplist::{self, SkipList, SkipListKV, SkipListNode},
-    sstable::{
+    memtable::{self, Memtable}, skiplist::{self, SkipList, SkipListKV, SkipListNode}, sstable::{
         GLOBAL_COUNT,
         data_block::DataBlock,
         errors::SsTableWriterError,
@@ -21,14 +20,16 @@ use crate::{
 pub struct SstableWriter {
     path: PathBuf,
     file: File,
-    skiplist: SkipList<Vec<u8>, Vec<u8>>,
+    memtable: Memtable,
+    // skiplist: SkipList<Vec<u8>, Vec<u8>>,
     index: IndexBlock,
 }
 
 impl SstableWriter {
     pub fn new<T: AsRef<Path>>(
         path: T,
-        skiplist: SkipList<Vec<u8>, Vec<u8>>,
+        // skiplist: SkipList<Vec<u8>, Vec<u8>>,
+        memtable: Memtable
     ) -> Result<Self, SsTableWriterError> {
         let file = OpenOptions::new()
             .create(true)
@@ -41,7 +42,8 @@ impl SstableWriter {
         Ok(Self {
             path: path.as_ref().to_path_buf(),
             file,
-            skiplist,
+            // skiplist,
+            memtable,
             index,
         })
     }
@@ -78,7 +80,7 @@ impl SstableWriter {
         let mut size = 0usize;
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
-        for SkipListKV(key, value) in self.skiplist.iter() {
+        for SkipListKV(key, value) in self.memtable.skiplist.iter() {
             // if key == b"99" {
             //     println!("found 99")
             // }

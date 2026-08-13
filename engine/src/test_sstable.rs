@@ -1,9 +1,7 @@
 use tempfile::NamedTempFile;
 
 use crate::{
-    engine_error::EngineError,
-    skiplist::SkipList,
-    sstable::{reader::SstableReader, writer::SstableWriter},
+    engine_error::EngineError, memtable::Memtable, skiplist::SkipList, sstable::{reader::SstableReader, writer::SstableWriter},
 };
 
 #[test]
@@ -12,19 +10,20 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
 
     let _ = fs::remove_file("table.sst");
 
-    let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
+    // let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
+    let mut memtable = Memtable::new();
 
     // Create multiple blocks
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        skiplist.insert(key, value);
+        memtable.insert(key, value);
     }
     let file = NamedTempFile::new()?;
 
     let path = file.path();
 
-    let mut writer = SstableWriter::new(path, skiplist)?;
+    let mut writer = SstableWriter::new(path, memtable)?;
     writer.write()?;
 
     let mut reader = SstableReader::new(path)?;
@@ -46,15 +45,16 @@ use std::{fs, path::Path};
 fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineError> {
     let _ = fs::remove_file(&path);
 
-    let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
+    // let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
+    let mut memtable = Memtable::new();
 
     for i in 0..count {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        skiplist.insert(key, value);
+        memtable.insert(key, value);
     }
 
-    let mut writer = SstableWriter::new(path, skiplist)?;
+    let mut writer = SstableWriter::new(path, memtable)?;
     writer.write()?;
 
     Ok(())
