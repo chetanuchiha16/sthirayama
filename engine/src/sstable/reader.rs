@@ -66,13 +66,11 @@ impl<T: AsRef<Path>> SstableReader<T> {
         Ok(index)
     }
 
-    
     #[cfg(not(feature = "use-legacy-search"))]
     pub fn binary_search_index(
         &mut self,
         key: &Vec<u8>,
     ) -> Result<Option<usize>, SsTableReaderError> {
-
         let mut index_block = &self.read_index_block()?.blocks;
         let idx = index_block.partition_point(|block_meta| block_meta.last_key.as_slice() < key);
 
@@ -136,7 +134,6 @@ impl<T: AsRef<Path>> SstableReader<T> {
         Ok(Some(kv_list))
     }
 
-    
     #[cfg(not(feature = "use-legacy-search"))]
     pub fn binary_search_data(
         &mut self,
@@ -145,12 +142,12 @@ impl<T: AsRef<Path>> SstableReader<T> {
         let Some(data_block) = self.read_data_block(key)? else {
             return Ok(None);
         };
-        
+
         let x = match data_block.binary_search_by_key(key, |data| data.0.clone()) {
             Ok(key_idx) => Some(data_block[key_idx].1.clone()),
             Err(_) => None,
         };
-        
+
         Ok(x)
     }
 
@@ -196,7 +193,7 @@ impl<T: AsRef<Path>> SstableReader<T> {
 
         Ok(ans_idx)
     }
-    
+
     #[cfg(feature = "use-legacy-search")]
     pub fn binary_search_data(
         &mut self,

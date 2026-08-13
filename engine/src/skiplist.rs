@@ -75,7 +75,7 @@ where
 pub struct SkipList<K, V> {
     pub max_level: usize,
     pub head: NonNull<SkipListNode<K, V>>,
-    pub wal: Wal,
+    // pub wal: Wal,
 }
 
 impl<K, V> SkipList<K, V>
@@ -94,7 +94,7 @@ where
         Ok(Self {
             max_level,
             head: head,
-            wal,
+            // wal,
         })
     }
 
@@ -140,15 +140,6 @@ where
         if cur_k == key { Some(cur_v) } else { None }
     }
 
-    pub fn insert_with_wal(
-        &mut self,
-        key: K,
-        value: V,
-    ) -> Result<(), skiplist_error::SkipListError> {
-        self.wal.append(key.clone(), value.clone())?;
-        self.insert(key, value)?;
-        Ok(())
-    }
 
     pub fn insert(&mut self, key: K, value: V) -> Result<(), skiplist_error::SkipListError> {
         let data = SkipListKV::new(key, value);

@@ -16,10 +16,10 @@ use crate::{
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     println!("creating new skiplist...");
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
-    skip_list.insert_with_wal(10, 100)?;
-    skip_list.insert_with_wal(20, 200)?;
-    skip_list.insert_with_wal(5, 50)?;
-    skip_list.insert_with_wal(15, 150)?;
+    skip_list.insert(10, 100)?;
+    skip_list.insert(20, 200)?;
+    skip_list.insert(5, 50)?;
+    skip_list.insert(15, 150)?;
     println!("{}", skip_list);
 
     println!("{:?}", skip_list.search(5)); // Some(50)
@@ -122,21 +122,21 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
         let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let data = SkipListKV::new(key, value);
-        skip_list.insert_with_wal(data.0.clone(), data.1.clone());
+        skip_list.insert(data.0.clone(), data.1.clone());
 
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
         let data_len_bytes_len = data_len.to_le_bytes().len();
         size += data_len + data_len_bytes_len;
     }
-    // skip_list.insert_with_wal("10".as_bytes().to_vec(), "1".as_bytes().to_vec())?;
-    // skip_list.insert_with_wal("20".as_bytes().to_vec(), "2".as_bytes().to_vec())?;
-    // skip_list.insert_with_wal("30".as_bytes().to_vec(), "3".as_bytes().to_vec())?;
+    // skip_list.insert("10".as_bytes().to_vec(), "1".as_bytes().to_vec())?;
+    // skip_list.insert("20".as_bytes().to_vec(), "2".as_bytes().to_vec())?;
+    // skip_list.insert("30".as_bytes().to_vec(), "3".as_bytes().to_vec())?;
 
     let key = 99.to_string().as_bytes().to_vec();
     let value = 6.to_string().as_bytes().to_vec();
     let data = SkipListKV::new(key, value);
-    skip_list.insert_with_wal(data.0.clone(), data.1.clone());
+    skip_list.insert(data.0.clone(), data.1.clone());
 
     let mut s = SstableWriter::new("sstable.sst", skip_list)?;
     s.write();
