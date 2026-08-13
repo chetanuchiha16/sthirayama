@@ -88,14 +88,13 @@ where
         max_level: usize,
         dummy_k: K,
         dummy_v: V,
-    ) -> Result<Self, skiplist_error::SkipListError> {
+    ) -> Self {
         let head = SkipListNode::new(max_level, dummy_k.clone(), dummy_v.clone());
-        let wal = Wal::new()?;
-        Ok(Self {
+        Self {
             max_level,
             head: head,
             // wal,
-        })
+        }
     }
 
     // pub fn iter(&self) -> Vec<SkipListKV<K, V>> {

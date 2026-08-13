@@ -15,7 +15,7 @@ use crate::{
 
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     println!("creating new skiplist...");
-    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
+    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
     skip_list.insert(10, 100)?;
     skip_list.insert(20, 200)?;
     skip_list.insert(5, 50)?;
@@ -31,7 +31,7 @@ pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
 }
 
 pub fn try_wal() -> Result<(), skiplist_error::SkipListError> {
-    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1)?;
+    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
     let start = Instant::now();
 
     // Call the function you are testing
@@ -52,7 +52,7 @@ pub fn try_wal() -> Result<(), skiplist_error::SkipListError> {
 }
 
 pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
-    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1)?;
+    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
     skip_list.insert(6, 6)?;
     let skip_list_node = unsafe { SkipListNode::new(5, 5, 5).as_ref() };
     println!("{:?}", skip_list);
@@ -116,7 +116,7 @@ pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error:
 }
 
 pub fn test_block_split() -> Result<(), engine_error::EngineError> {
-    let mut skip_list: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0'])?;
+    let mut skip_list: SkipList<Vec<u8>, Vec<u8>> = SkipList::new(5, vec![b'0'], vec![b'0']);
     let mut size = 0usize;
     while size <= 8000 {
         let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();

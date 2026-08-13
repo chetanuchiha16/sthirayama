@@ -12,7 +12,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
 
     let _ = fs::remove_file("table.sst");
 
-    let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0'])?;
+    let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
 
     // Create multiple blocks
     for i in 0..1000 {
@@ -46,7 +46,7 @@ use std::{fs, path::Path};
 fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineError> {
     let _ = fs::remove_file(&path);
 
-    let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0'])?;
+    let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
 
     for i in 0..count {
         let key = format!("{:04}", i).into_bytes();
