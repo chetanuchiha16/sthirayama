@@ -4,6 +4,7 @@ use crate::{
     memtable::Memtable, skiplist_error::SkipListError, sstable::{errors::SsTableWriterError, writer::SstableWriter}, wal::Wal,
 };
 
+///Database Engine 
 pub struct Engine {
     memtable: Memtable,
     immutable_memtable: Option<Memtable>,
