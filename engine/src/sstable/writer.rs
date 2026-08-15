@@ -36,7 +36,7 @@ impl SstableWriter {
     ) -> Result<Self, SsTableWriterError> {
         // let sstable_root = PathBuf::from("../sstable");
         let sstable_path = get_sstable_path();
-        println!("{}", sstable_path.display());
+        // println!("{}", sstable_path.display());
 
         let sstable_file = sstable_path.join(path);
         let file = OpenOptions::new()
@@ -47,7 +47,7 @@ impl SstableWriter {
             .truncate(true)
             .open(&sstable_file)?;
         let index = IndexBlock::new();
-        println!("{}", sstable_file.display());
+        // println!("{}", sstable_file.display());
         Ok(Self {
             // path: path.as_ref().to_path_buf(),
             path: sstable_file,
@@ -59,7 +59,7 @@ impl SstableWriter {
         })
     }
 
-    pub fn write(&mut self) -> Result<(), SsTableWriterError> {
+    pub fn write(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
         self.file.seek(io::SeekFrom::Start(0));
 
         /// writing data block
@@ -149,7 +149,7 @@ impl SstableWriter {
         // );
 
         self.file.flush();
-        Ok(())
+        Ok(last_key.to_owned())
     }
 
     // to verify for now, maybe moved later
