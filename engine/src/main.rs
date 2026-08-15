@@ -14,6 +14,7 @@ use crate::{
     wal::Wal,
 };
 
+mod config;
 mod engine;
 mod engine_error;
 mod memtable;

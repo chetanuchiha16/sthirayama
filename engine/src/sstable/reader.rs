@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::{
+    config::get_sstable_path,
     skiplist::SkipListKV,
     sstable::{
         GLOBAL_COUNT, data_block,
@@ -23,13 +24,15 @@ pub struct SstableReader {
 
 impl SstableReader {
     pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, SsTableReaderError> {
-        let sstable_root = PathBuf::from("../sstable");
+        // let sstable_root = PathBuf::from("../sstable");
+        let sstable_path = get_sstable_path();
+        let sstable_file = sstable_path.join(path);
         let file = OpenOptions::new()
             .read(true)
             // .append(true)
-            .open(&path)?;
+            .open(&sstable_file)?;
         Ok(Self {
-            path: sstable_root.join(path),
+            path: sstable_file,
             file,
         })
     }

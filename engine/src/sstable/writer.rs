@@ -7,6 +7,7 @@ use std::{
 };
 
 use crate::{
+    config::get_sstable_path,
     memtable::{self, Memtable},
     skiplist::{self, SkipList, SkipListKV, SkipListNode},
     sstable::{
@@ -33,19 +34,23 @@ impl SstableWriter {
         // skiplist: SkipList<Vec<u8>, Vec<u8>>,
         memtable: Memtable,
     ) -> Result<Self, SsTableWriterError> {
-        let sstable_root = PathBuf::from("../sstable");
+        // let sstable_root = PathBuf::from("../sstable");
+        let sstable_path = get_sstable_path();
+        println!("{}", sstable_path.display());
 
+        let sstable_file = sstable_path.join(path);
         let file = OpenOptions::new()
             .create(true)
             .read(true)
             // .append(true)
             .write(true)
             .truncate(true)
-            .open(&path)?;
+            .open(&sstable_file)?;
         let index = IndexBlock::new();
+        println!("{}", sstable_file.display());
         Ok(Self {
             // path: path.as_ref().to_path_buf(),
-            path: sstable_root.join(path),
+            path: sstable_file,
 
             file,
             // skiplist,
