@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::{
+    engine::Engine,
     engine_error::EngineError,
     skiplist::{SkipList, SkipListKV, SkipListNode},
     sstable::writer::SstableWriter,
@@ -31,8 +32,19 @@ fn main() -> Result<(), EngineError> {
     // pring_skiplist_details()?;
     // try_new_skiplist()?;
     // try_wal()?;
-    test_block_split()?;
-    test_sstable_read()?;
+    // test_block_split()?;
+    // test_sstable_read()?;
     // cli(skiplist)
+
+    let mut engine = Engine::new()?;
+    for i in (0..1000) {
+        let key = format!("{}", i).into_bytes();
+        let value = format!("{}", i * 2).into_bytes();
+        engine.set(key, value);
+    }
+    let key = format!("{}", 999).into_bytes();
+    let val = engine.get(key)?;
+
+    println!("{:?}", val.map(|x| { String::from_utf8(x.to_vec()) }));
     Ok(())
 }

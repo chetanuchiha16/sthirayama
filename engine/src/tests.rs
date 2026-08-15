@@ -6,7 +6,12 @@ use std::{
 };
 
 use crate::{
-    engine_error, memtable::Memtable, skiplist::{SkipList, SkipListKV, SkipListNode}, skiplist_error, sstable::{reader::SstableReader, writer::SstableWriter}, wal::Wal,
+    engine_error,
+    memtable::Memtable,
+    skiplist::{SkipList, SkipListKV, SkipListNode},
+    skiplist_error,
+    sstable::{reader::SstableReader, writer::SstableWriter},
+    wal::Wal,
 };
 
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {

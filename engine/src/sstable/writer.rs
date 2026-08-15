@@ -7,7 +7,9 @@ use std::{
 };
 
 use crate::{
-    memtable::{self, Memtable}, skiplist::{self, SkipList, SkipListKV, SkipListNode}, sstable::{
+    memtable::{self, Memtable},
+    skiplist::{self, SkipList, SkipListKV, SkipListNode},
+    sstable::{
         GLOBAL_COUNT,
         data_block::DataBlock,
         errors::SsTableWriterError,
@@ -29,8 +31,10 @@ impl SstableWriter {
     pub fn new<T: AsRef<Path>>(
         path: T,
         // skiplist: SkipList<Vec<u8>, Vec<u8>>,
-        memtable: Memtable
+        memtable: Memtable,
     ) -> Result<Self, SsTableWriterError> {
+        let sstable_root = PathBuf::from("../sstable");
+
         let file = OpenOptions::new()
             .create(true)
             .read(true)
@@ -40,7 +44,9 @@ impl SstableWriter {
             .open(&path)?;
         let index = IndexBlock::new();
         Ok(Self {
-            path: path.as_ref().to_path_buf(),
+            // path: path.as_ref().to_path_buf(),
+            path: sstable_root.join(path),
+
             file,
             // skiplist,
             memtable,

@@ -1,7 +1,7 @@
 use std::{
     fs::{File, OpenOptions},
     io::{Read, Seek, Write},
-    path::Path,
+    path::{Path, PathBuf},
     sync::atomic::Ordering,
 };
 
@@ -16,18 +16,22 @@ use crate::{
     },
 };
 
-pub struct SstableReader<T: AsRef<Path>> {
-    path: T,
+pub struct SstableReader {
+    path: PathBuf,
     file: File,
 }
 
-impl<T: AsRef<Path>> SstableReader<T> {
-    pub fn new(path: T) -> Result<Self, SsTableReaderError> {
+impl SstableReader {
+    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, SsTableReaderError> {
+        let sstable_root = PathBuf::from("../sstable");
         let file = OpenOptions::new()
             .read(true)
             // .append(true)
             .open(&path)?;
-        Ok(Self { path, file })
+        Ok(Self {
+            path: sstable_root.join(path),
+            file,
+        })
     }
 
     pub fn read_footer(&mut self) -> Result<Footer, SsTableReaderError> {
