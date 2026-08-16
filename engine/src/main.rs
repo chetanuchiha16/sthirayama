@@ -41,14 +41,18 @@ fn main() -> Result<(), EngineError> {
     for i in (0..10000) {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(key, value);
+        engine.set(&key, value);
     }
-    let key = format!("{:04}", 9).into_bytes(); // to make sure lex sort == num sort
-    let val = engine.get(key)?;
+    for i in (0..10000) {
+        let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort
+        let val = engine.get(&key)?;
 
-    println!(
-        "{:?} from main",
-        val.map(|x| { String::from_utf8(x.to_vec()) })
-    );
+        println!(
+            "finding {}, {:?} from main",
+            String::from_utf8(key.to_vec())?,
+            val.map(|x| { String::from_utf8(x.to_vec()) })
+        );
+    }
+
     Ok(())
 }

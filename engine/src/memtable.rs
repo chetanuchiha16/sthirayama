@@ -17,9 +17,9 @@ impl Memtable {
         }
     }
 
-    pub fn insert(&mut self, key: Vec<u8>, value: Vec<u8>) {
+    pub fn insert(&mut self, key: &Vec<u8>, value: Vec<u8>) {
         self.size += key.len() + value.len();
         // println!("{}", self.size);
-        self.skiplist.insert(key, value);
+        self.skiplist.insert(key.clone(), value);
     }
 }

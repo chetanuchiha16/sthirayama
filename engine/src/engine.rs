@@ -48,8 +48,8 @@ impl Engine {
         })
     }
 
-    pub fn set(&mut self, key: Vec<u8>, value: Vec<u8>) {
-        self.wal.append(&key, &value);
+    pub fn set(&mut self, key: &Vec<u8>, value: Vec<u8>) {
+        self.wal.append(key, &value);
         self.memtable.insert(key, value);
         let limit = 4 * 1024;
         if self.memtable.size > limit {
@@ -113,7 +113,7 @@ impl Engine {
         }
     }
 
-    pub fn get(&mut self, key: Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
+    pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.skiplist.search(key.clone()) {
             Some(value) => {
                 println!("from memtable");
@@ -125,6 +125,7 @@ impl Engine {
                 };
                 let mut sstable = SstableReader::new(format!("{:06}.sst", sstable_no))?;
                 println!("from sstable {}", sstable_no);
+                
                 Ok(sstable.binary_search_data(&key)?)
             }
         }

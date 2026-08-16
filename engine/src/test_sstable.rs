@@ -20,7 +20,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        memtable.insert(key, value);
+        memtable.insert(&key, value);
     }
     let file = NamedTempFile::new()?;
 
@@ -54,7 +54,7 @@ fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineErro
     for i in 0..count {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        memtable.insert(key, value);
+        memtable.insert(&key, value);
     }
 
     let mut writer = SstableWriter::new(path, memtable)?;

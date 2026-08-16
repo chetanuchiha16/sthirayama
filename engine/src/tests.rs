@@ -124,7 +124,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
         let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let data = SkipListKV::new(key, value);
-        memtable.insert(data.0.clone(), data.1.clone());
+        memtable.insert(&data.0.clone(), data.1.clone());
 
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
@@ -138,7 +138,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let key = 99.to_string().as_bytes().to_vec();
     let value = 6.to_string().as_bytes().to_vec();
     let data = SkipListKV::new(key, value);
-    memtable.insert(data.0.clone(), data.1.clone());
+    memtable.insert(&data.0.clone(), data.1.clone());
 
     let mut s = SstableWriter::new("sstable.sst", memtable)?;
     s.write();
