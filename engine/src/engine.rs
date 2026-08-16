@@ -1,9 +1,9 @@
 use std::{
     collections::HashMap,
-    fs::{File, OpenOptions},
+    fs::{File, OpenOptions, create_dir_all},
     io::{Read, Seek, Write},
     mem,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use crate::{
@@ -21,11 +21,14 @@ use crate::{
 };
 struct SstableMeta {
     sstable_no: usize,
-    last_key: Vec<u8>
+    last_key: Vec<u8>,
 }
 impl SstableMeta {
-    pub fn new(sstable_no : usize, last_key: &Vec<u8>) -> Self {
-        Self { sstable_no, last_key: last_key.clone() }
+    pub fn new(sstable_no: usize, last_key: &Vec<u8>) -> Self {
+        Self {
+            sstable_no,
+            last_key: last_key.clone(),
+        }
     }
 }
 
@@ -36,31 +39,36 @@ pub struct Engine {
     wal: Wal,
     sstable_count: usize,
     // ssts: File,
-     // sstable : SstableWriter
-    sstable_meta_list: Vec<SstableMeta>
+    // sstable : SstableWriter
+    path: PathBuf,
+    sstable_meta_list: Vec<SstableMeta>,
 }
 
 impl Engine {
-    pub fn new() -> Result<Self, EngineError> {
-        let ssts_path = get_sstable_path().join("ssts.sst");
+    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, EngineError> {
+        let path = get_sstable_path().join(&path);
+        create_dir_all(&path);
+        // let path = path.as_ref().join(".sst");
+        // let ssts_path = get_sstable_path().join(&path);
 
-        let mut file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .append(true)
-            .create(true)
-            .open(ssts_path)?;
+        // let mut file = OpenOptions::new()
+        //     .read(true)
+        //     .write(true)
+        //     .append(true)
+        //     .create(true)
+        //     .open(ssts_path)?;
         Ok(Self {
             memtable: Memtable::new(),
             immutable_memtable: None,
             wal: Wal::new()?,
             sstable_count: 0,
             // ssts: file,
-            sstable_meta_list: Vec::new()
+            path: path,
+            sstable_meta_list: Vec::new(),
         })
     }
-    
-    pub fn set(&mut self, key: &Vec<u8>, value: Vec<u8>) -> Result<(), EngineError>{
+
+    pub fn set(&mut self, key: &Vec<u8>, value: Vec<u8>) -> Result<(), EngineError> {
         self.wal.append(key, &value);
         self.memtable.insert(key, value);
         let limit = 4 * 1024;
@@ -71,11 +79,12 @@ impl Engine {
         }
         Ok(())
     }
-    
+
     fn flush(&mut self) -> Result<(), EngineError> {
         let frozen = mem::replace(&mut self.memtable, Memtable::new());
         //because you need new sstable for a new frozen memtable anyway
-        let mut sstable = SstableWriter::new(format!("{:06}.sst", self.sstable_count), frozen)?;
+        let mut path = self.path.join(format!("{:06}.sst", self.sstable_count));
+        let mut sstable = SstableWriter::new(path, frozen)?;
 
         // let sst_count_buf = self.sstable_count.to_le_bytes();
         // self.ssts.write_all(&sst_count_buf);
@@ -91,7 +100,7 @@ impl Engine {
         self.sstable_count += 1;
         Ok(())
     }
-    
+
     // fn get_count_last_key(&mut self, i: usize) -> Result<Vec<(Vec<u8>, usize)>, EngineError> {
     //     // let mut count_last_key: HashMap<Vec<u8>, usize> = HashMap::new();
     //     self.ssts.seek(std::io::SeekFrom::Start(0))?;
@@ -143,9 +152,10 @@ impl Engine {
                 let Some(sstable_no) = self.get_key_file_path(&key)? else {
                     return Ok(None);
                 };
-                let mut sstable = SstableReader::new(format!("{:06}.sst", sstable_no))?;
+                let mut path = self.path.join(format!("{:06}.sst", sstable_no));
+                let mut sstable = SstableReader::new(path)?;
                 println!("from sstable {}", sstable_no);
-                
+
                 Ok(sstable.binary_search_data(&key)?)
             }
         }

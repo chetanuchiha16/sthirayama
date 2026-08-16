@@ -22,11 +22,11 @@ mod skiplist;
 mod skiplist_error;
 mod sstable;
 #[cfg(test)]
+mod test_engine;
+#[cfg(test)]
 mod test_skiplist;
 #[cfg(test)]
 mod test_sstable;
-#[cfg(test)]
-mod test_engine;
 mod tests;
 mod traits;
 mod wal;
@@ -39,7 +39,7 @@ fn main() -> Result<(), EngineError> {
     // test_sstable_read()?;
     // cli(skiplist)
 
-    let mut engine = Engine::new()?;
+    let mut engine = Engine::new("main")?;
     for i in (0..10000) {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("{:04}", i * 2).into_bytes();
