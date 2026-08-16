@@ -8,6 +8,7 @@ use std::{
 
 use crate::{
     config::get_sstable_path,
+    engine_error::EngineError,
     memtable::Memtable,
     skiplist_error::SkipListError,
     sstable::{
@@ -29,7 +30,7 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new() -> Result<Self, SkipListError> {
+    pub fn new() -> Result<Self, EngineError> {
         let ssts_path = get_sstable_path().join("ssts.sst");
 
         let file = OpenOptions::new()
@@ -58,7 +59,7 @@ impl Engine {
         }
     }
 
-    fn flush(&mut self) -> Result<(), SsTableWriterError> {
+    fn flush(&mut self) -> Result<(), EngineError> {
         let frozen = mem::replace(&mut self.memtable, Memtable::new());
         //because you need new sstable for a new frozen memtable anyway
         let mut sstable = SstableWriter::new(format!("{:06}.sst", self.sstable_count), frozen)?;
@@ -74,7 +75,7 @@ impl Engine {
         Ok(())
     }
 
-    fn get_count_last_key(&mut self) -> Result<Vec<(Vec<u8>, usize)>, SsTableReaderError> {
+    fn get_count_last_key(&mut self) -> Result<Vec<(Vec<u8>, usize)>, EngineError> {
         // let mut count_last_key: HashMap<Vec<u8>, usize> = HashMap::new();
         let mut last_keys_count: Vec<(Vec<u8>, usize)> = Vec::new();
         self.ssts.seek(std::io::SeekFrom::Start(0));
@@ -99,7 +100,7 @@ impl Engine {
         Ok(last_keys_count)
     }
 
-    fn get_key_file_path(&mut self, key: &Vec<u8>) -> Result<Option<usize>, SsTableReaderError> {
+    fn get_key_file_path(&mut self, key: &Vec<u8>) -> Result<Option<usize>, EngineError> {
         let last_keys_count = self.get_count_last_key()?;
         let idx = last_keys_count.partition_point(|(last_key, _)| last_key < key);
         if idx < last_keys_count.len() {
@@ -112,7 +113,7 @@ impl Engine {
         }
     }
 
-    pub fn get(&mut self, key: Vec<u8>) -> Result<Option<Vec<u8>>, SsTableReaderError> {
+    pub fn get(&mut self, key: Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.skiplist.search(key.clone()) {
             Some(value) => {
                 println!("from memtable");
@@ -124,7 +125,7 @@ impl Engine {
                 };
                 let mut sstable = SstableReader::new(format!("{:06}.sst", sstable_no))?;
                 println!("from sstable {}", sstable_no);
-                sstable.binary_search_data(&key)
+                Ok(sstable.binary_search_data(&key)?)
             }
         }
     }

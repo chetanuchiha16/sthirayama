@@ -1,4 +1,4 @@
-use std::{io, string::FromUtf8Error};
+use std::{io, str::Utf8Error, string::FromUtf8Error};
 
 use crate::{
     skiplist_error::{self, SkipListError},
@@ -41,5 +41,11 @@ impl From<FromUtf8Error> for EngineError {
 impl From<io::Error> for EngineError {
     fn from(value: io::Error) -> Self {
         EngineError::IoError(value)
+    }
+}
+
+impl From<Utf8Error> for EngineError {
+    fn from(value: Utf8Error) -> Self {
+        EngineError::SsTableReaderError(SsTableReaderError::Utf8Error(value))
     }
 }
