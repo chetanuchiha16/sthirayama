@@ -25,6 +25,8 @@ mod sstable;
 mod test_skiplist;
 #[cfg(test)]
 mod test_sstable;
+#[cfg(test)]
+mod test_engine;
 mod tests;
 mod traits;
 mod wal;
@@ -41,7 +43,7 @@ fn main() -> Result<(), EngineError> {
     for i in (0..10000) {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(&key, value);
+        engine.set(&key, value)?;
     }
     for i in (0..10000) {
         let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort
