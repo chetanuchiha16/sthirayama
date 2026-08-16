@@ -74,9 +74,7 @@ impl Engine {
         Ok(())
     }
 
-    fn get_count_last_key(
-        &mut self,
-    ) -> Result<Vec<(Vec<u8>, usize)>, SsTableReaderError> {
+    fn get_count_last_key(&mut self) -> Result<Vec<(Vec<u8>, usize)>, SsTableReaderError> {
         // let mut count_last_key: HashMap<Vec<u8>, usize> = HashMap::new();
         let mut last_keys_count: Vec<(Vec<u8>, usize)> = Vec::new();
         self.ssts.seek(std::io::SeekFrom::Start(0));
@@ -121,11 +119,11 @@ impl Engine {
                 Ok(Some(value))
             }
             None => {
-                let x = self.get_key_file_path(&key)?;
-                let Some(y) = x else { return Ok(None) };
-                // println!("{:?}", x);
-                let mut sstable = SstableReader::new(format!("{:06}.sst", y))?;
-                println!("from sstable {}", y);
+                let Some(sstable_no) = self.get_key_file_path(&key)? else {
+                    return Ok(None);
+                };
+                let mut sstable = SstableReader::new(format!("{:06}.sst", sstable_no))?;
+                println!("from sstable {}", sstable_no);
                 sstable.binary_search_data(&key)
             }
         }
