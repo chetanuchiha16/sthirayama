@@ -76,9 +76,9 @@ impl Engine {
 
     fn get_count_last_key(
         &mut self,
-    ) -> Result<(Vec<Vec<u8>>, HashMap<Vec<u8>, usize>), SsTableReaderError> {
-        let mut count_last_key: HashMap<Vec<u8>, usize> = HashMap::new();
-        let mut last_keys: Vec<Vec<u8>> = Vec::new();
+    ) -> Result<Vec<(Vec<u8>, usize)>, SsTableReaderError> {
+        // let mut count_last_key: HashMap<Vec<u8>, usize> = HashMap::new();
+        let mut last_keys_count: Vec<(Vec<u8>, usize)> = Vec::new();
         self.ssts.seek(std::io::SeekFrom::Start(0));
         for i in (0..self.sstable_count) {
             let mut buf = [0u8; 8];
@@ -90,24 +90,25 @@ impl Engine {
             self.ssts.read_exact(&mut last_key_buf)?;
             // let last_key = str::from_utf8(&last_key_buf)?;
             // println!("{:?}", count);
-            count_last_key.insert(last_key_buf.clone(), count);
+            // count_last_key.insert(last_key_buf.clone(), count);
             println!(
                 "last key {:?}, count {:?}",
                 &str::from_utf8(&last_key_buf)?,
                 count
             );
-            last_keys.push(last_key_buf);
+            last_keys_count.push((last_key_buf, count));
         }
-        Ok((last_keys, count_last_key))
+        Ok(last_keys_count)
     }
 
     fn get_key_file_path(&mut self, key: &Vec<u8>) -> Result<Option<usize>, SsTableReaderError> {
-        let (last_keys, count_last_key) = self.get_count_last_key()?;
-        let idx = last_keys.partition_point(|last_key| last_key < key);
-        if idx < last_keys.len() {
-            let key = last_keys[idx].clone();
-            let val = count_last_key.get(&key).cloned();
-            Ok(val)
+        let last_keys_count = self.get_count_last_key()?;
+        let idx = last_keys_count.partition_point(|(last_key, _)| last_key < key);
+        if idx < last_keys_count.len() {
+            // let key = last_keys_count[idx].clone();
+            // let val = count_last_key.get(&key).cloned();
+            let (key, val) = &last_keys_count[idx];
+            Ok(Some(*val))
         } else {
             Ok(None)
         }
