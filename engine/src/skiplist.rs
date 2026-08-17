@@ -59,6 +59,9 @@ where
     pub fn get_value(node: &NonNull<Self>) -> &V {
         unsafe { &node.as_ref().data.1 }
     }
+    pub fn get_value_mut(node: &mut NonNull<Self>) -> &mut V {
+        unsafe { &mut node.as_mut().data.1 }
+    }
 
     pub fn get_forward(node: &NonNull<Self>) -> &Vec<Option<NonNull<SkipListNode<K, V>>>> {
         unsafe { &node.as_ref().forward }
@@ -136,9 +139,9 @@ where
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Result<(), skiplist_error::SkipListError> {
-        let data = SkipListKV::new(key, value);
+        let data = &SkipListKV::new(key, value);
         let new_node_level = self.random_level();
-        let mut new_node = SkipListNode::new(new_node_level, data.0.clone(), data.1);
+        let mut new_node = SkipListNode::new(new_node_level, data.0.clone(), data.1.clone());
         let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head; self.max_level];
         let mut current = self.head; //caused having reference to temp
         for level in (0..self.max_level).rev() {
@@ -148,6 +151,14 @@ where
                 current = node;
             }
             update[level] = current;
+        }
+
+        if let Some(mut node) = SkipListNode::get_forward(&current)[0] {
+            if SkipListNode::get_key(&node) == &data.0 {
+                // update existing value
+                SkipListNode::get_value_mut(&mut node).clone_from(&data.1);
+                return Ok(());
+            }
         }
 
         for level in (0..new_node_level).rev() {
