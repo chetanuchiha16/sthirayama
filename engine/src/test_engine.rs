@@ -127,3 +127,53 @@ fn test_keys_across_multiple_flushes() {
         );
     }
 }
+
+#[test]
+fn test_set_overwrites_value() {
+    let mut engine = Engine::new("test_set_overwrites_value").unwrap();
+
+    let key = b"0001".to_vec();
+
+    engine.set(&key, b"first".to_vec()).unwrap();
+    assert_eq!(
+        engine.get(&key).unwrap(),
+        Some(b"first".to_vec())
+    );
+
+    // Update the existing key.
+    engine.set(&key, b"second".to_vec()).unwrap();
+
+    assert_eq!(
+        engine.get(&key).unwrap(),
+        Some(b"second".to_vec())
+    );
+}
+
+#[test]
+fn test_update_after_flush() {
+    let mut engine = Engine::new("test_update_after_flush").unwrap();
+
+    let key = b"0001".to_vec();
+
+    engine.set(&key, b"first".to_vec()).unwrap();
+
+    // Force the original value into an SSTable.
+    for i in 0..1000 {
+        let key = format!("{:04}", i + 10).into_bytes();
+        let value = format!("value{:04}", i + 10).into_bytes();
+        engine.set(&key, value).unwrap();
+    }
+
+    assert_eq!(
+        engine.get(&key).unwrap(),
+        Some(b"first".to_vec())
+    );
+
+    // New value goes into the newer memtable.
+    engine.set(&key, b"second".to_vec()).unwrap();
+
+    assert_eq!(
+        engine.get(&key).unwrap(),
+        Some(b"second".to_vec())
+    );
+}

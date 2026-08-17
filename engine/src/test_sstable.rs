@@ -155,3 +155,30 @@ fn test_single_entry() -> Result<(), EngineError> {
 
     Ok(())
 }
+
+#[test]
+fn test_update() -> Result<(), EngineError> {
+    let file = NamedTempFile::new()?;
+    let path = file.path();
+
+    let mut memtable = Memtable::new();
+
+    // Insert original value.
+    let key = b"0001".to_vec();
+    memtable.insert(&key, b"old_value".to_vec());
+
+    // Update the same key.
+    memtable.insert(&key, b"new_value".to_vec());
+
+    let mut writer = SstableWriter::new(path, memtable)?;
+    writer.write()?;
+
+    let mut reader = SstableReader::new(path)?;
+
+    assert_eq!(
+        reader.binary_search_data(&key)?,
+        Some(b"new_value".to_vec())
+    );
+
+    Ok(())
+}
