@@ -143,7 +143,7 @@ impl Engine {
     }
 
     pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
-        match self.memtable.skiplist.search(key.clone()) {
+        match self.memtable.extract(key)? {
             Some(value) => {
                 println!("from memtable");
                 Ok(Some(value))

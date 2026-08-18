@@ -151,7 +151,18 @@ impl SstableReader {
         };
 
         let x = match data_block.binary_search_by_key(key, |data| data.key.clone()) {
-            Ok(key_idx) => Some(data_block[key_idx].value.clone()),
+            Ok(key_idx) => {
+                use crate::memtable::Value::{self, Tombstone};
+
+                let x = data_block[key_idx].value.clone();
+                let y = Value::from_bytes(&x)?;
+                match y {
+                    Value::Data(data) => Some(data),
+                    Value::Tombstone => None,
+                }
+
+                // Some(data_block[key_idx].value.clone())
+            }
             Err(_) => None,
         };
 
