@@ -10,12 +10,15 @@ use crate::traits::{SkipListIterator, TypeSkipListKey, TypeSkipListValue};
 use crate::wal::Wal;
 
 #[derive(Debug, Encode, Decode, Clone)]
-pub struct SkipListKV<K, V>(pub K, pub V);
+pub struct SkipListKV<K, V> {
+    pub key: K,
+    pub value: V,
+}
 
 impl<K: TypeSkipListKey, V: TypeSkipListValue> SkipListKV<K, V> {
     pub fn new(key: K, value: V) -> Self {
         // Self { key, value }
-        Self(key, value)
+        Self { key, value }
     }
 
     pub fn encode(&self) -> ([u8; 8], Vec<u8>) {
@@ -53,14 +56,14 @@ where
     }
 
     pub fn get_key(node: &NonNull<Self>) -> &K {
-        unsafe { &node.as_ref().data.0 }
+        unsafe { &node.as_ref().data.key }
     }
 
     pub fn get_value(node: &NonNull<Self>) -> &V {
-        unsafe { &node.as_ref().data.1 }
+        unsafe { &node.as_ref().data.value }
     }
     pub fn get_value_mut(node: &mut NonNull<Self>) -> &mut V {
-        unsafe { &mut node.as_mut().data.1 }
+        unsafe { &mut node.as_mut().data.value }
     }
 
     pub fn get_forward(node: &NonNull<Self>) -> &Vec<Option<NonNull<SkipListNode<K, V>>>> {
@@ -141,12 +144,12 @@ where
     pub fn insert(&mut self, key: K, value: V) -> Result<(), skiplist_error::SkipListError> {
         let data = &SkipListKV::new(key, value);
         let new_node_level = self.random_level();
-        let mut new_node = SkipListNode::new(new_node_level, data.0.clone(), data.1.clone());
+        let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value.clone());
         let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head; self.max_level];
         let mut current = self.head; //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = SkipListNode::get_forward(&current)[level]
-                && SkipListNode::get_key(&node) < &data.0
+                && SkipListNode::get_key(&node) < &data.key
             {
                 current = node;
             }
@@ -154,9 +157,9 @@ where
         }
 
         if let Some(mut node) = SkipListNode::get_forward(&current)[0] {
-            if SkipListNode::get_key(&node) == &data.0 {
+            if SkipListNode::get_key(&node) == &data.key {
                 // update existing value
-                SkipListNode::get_value_mut(&mut node).clone_from(&data.1);
+                SkipListNode::get_value_mut(&mut node).clone_from(&data.value);
                 return Ok(());
             }
         }

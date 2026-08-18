@@ -135,18 +135,12 @@ fn test_set_overwrites_value() {
     let key = b"0001".to_vec();
 
     engine.set(&key, b"first".to_vec()).unwrap();
-    assert_eq!(
-        engine.get(&key).unwrap(),
-        Some(b"first".to_vec())
-    );
+    assert_eq!(engine.get(&key).unwrap(), Some(b"first".to_vec()));
 
     // Update the existing key.
     engine.set(&key, b"second".to_vec()).unwrap();
 
-    assert_eq!(
-        engine.get(&key).unwrap(),
-        Some(b"second".to_vec())
-    );
+    assert_eq!(engine.get(&key).unwrap(), Some(b"second".to_vec()));
 }
 
 #[test]
@@ -164,16 +158,10 @@ fn test_update_after_flush() {
         engine.set(&key, value).unwrap();
     }
 
-    assert_eq!(
-        engine.get(&key).unwrap(),
-        Some(b"first".to_vec())
-    );
+    assert_eq!(engine.get(&key).unwrap(), Some(b"first".to_vec()));
 
     // New value goes into the newer memtable.
     engine.set(&key, b"second".to_vec()).unwrap();
 
-    assert_eq!(
-        engine.get(&key).unwrap(),
-        Some(b"second".to_vec())
-    );
+    assert_eq!(engine.get(&key).unwrap(), Some(b"second".to_vec()));
 }

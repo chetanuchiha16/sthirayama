@@ -150,8 +150,8 @@ impl SstableReader {
             return Ok(None);
         };
 
-        let x = match data_block.binary_search_by_key(key, |data| data.0.clone()) {
-            Ok(key_idx) => Some(data_block[key_idx].1.clone()),
+        let x = match data_block.binary_search_by_key(key, |data| data.key.clone()) {
+            Ok(key_idx) => Some(data_block[key_idx].value.clone()),
             Err(_) => None,
         };
 

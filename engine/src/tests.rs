@@ -63,8 +63,8 @@ pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     let head = unsafe { skip_list.head.as_mut() };
     println!("{:?}", head);
     println!("{:?}", head.forward);
-    println!("{:?}", head.data.0);
-    println!("{:?}", head.data.1);
+    println!("{:?}", head.data.key);
+    println!("{:?}", head.data.value);
     println!("{:?}", head.level);
     // head.forward[0] = SkipListNode::new(2, &5, 6);
     println!("{:?}", skip_list.search(6));
@@ -124,7 +124,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
         let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let data = SkipListKV::new(key, value);
-        memtable.insert(&data.0.clone(), data.1.clone());
+        memtable.insert(&data.key.clone(), data.value.clone());
 
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
@@ -138,7 +138,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let key = 99.to_string().as_bytes().to_vec();
     let value = 6.to_string().as_bytes().to_vec();
     let data = SkipListKV::new(key, value);
-    memtable.insert(&data.0.clone(), data.1.clone());
+    memtable.insert(&data.key.clone(), data.value.clone());
 
     let mut s = SstableWriter::new("sstable.sst", memtable)?;
     s.write();

@@ -91,7 +91,7 @@ impl SstableWriter {
         let mut size = 0usize;
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
-        for SkipListKV(key, value) in self.memtable.skiplist.iter() {
+        for SkipListKV { key, value } in self.memtable.skiplist.iter() {
             // if key == b"99" {
             //     println!("found 99")
             // }

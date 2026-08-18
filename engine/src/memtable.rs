@@ -1,3 +1,5 @@
+use bitcode::{Decode, Encode};
+
 use crate::{
     skiplist::SkipList,
     skiplist_error::SkipListError,
