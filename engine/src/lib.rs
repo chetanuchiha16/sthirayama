@@ -1,6 +1,6 @@
-pub mod engine_error;
-pub mod engine;
 pub mod config;
+pub mod engine;
+pub mod engine_error;
 pub mod memtable;
 pub mod skiplist;
 pub mod skiplist_error;

@@ -34,7 +34,7 @@ fn test_new_skiplist() -> Result<(), SkipListError> {
 #[test]
 fn test_insert_and_search() -> Result<(), SkipListError> {
     let mut skiplist = SkipList::new(5, -1, -1);
-    skiplist.insert(6, 7)?;
+    skiplist.insert(6, 7);
     assert_eq!(skiplist.search(6), Some(7));
     assert_eq!(skiplist.search(7), None);
     Ok(())
@@ -44,11 +44,11 @@ fn test_insert_and_search() -> Result<(), SkipListError> {
 fn test_insert_and_update() -> Result<(), SkipListError> {
     let mut skiplist = SkipList::new(5, -1, -1);
 
-    skiplist.insert(6, 7)?;
+    skiplist.insert(6, 7);
     assert_eq!(skiplist.search(6), Some(7));
 
     // Same key, new value
-    skiplist.insert(6, 10)?;
+    skiplist.insert(6, 10);
 
     assert_eq!(skiplist.search(6), Some(10));
 

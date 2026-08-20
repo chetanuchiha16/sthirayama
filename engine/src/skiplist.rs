@@ -1,13 +1,10 @@
 use std::fmt::{Debug, Display, Formatter};
-use std::io::Error;
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 
 use bitcode::{Decode, Encode};
 
-use crate::skiplist_error;
 use crate::traits::{SkipListIterator, TypeSkipListKey, TypeSkipListValue};
-use crate::wal::Wal;
 
 #[derive(Debug, Encode, Decode, Clone)]
 pub struct SkipListKV<K, V> {
@@ -141,7 +138,7 @@ where
         if cur_k == key { Some(cur_v) } else { None }
     }
 
-    pub fn insert(&mut self, key: K, value: V) -> Result<(), skiplist_error::SkipListError> {
+    pub fn insert(&mut self, key: K, value: V) {
         let data = &SkipListKV::new(key, value);
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value.clone());
@@ -160,7 +157,7 @@ where
             if SkipListNode::get_key(&node) == &data.key {
                 // update existing value
                 SkipListNode::get_value_mut(&mut node).clone_from(&data.value);
-                return Ok(());
+                return;
             }
         }
 
@@ -169,7 +166,6 @@ where
                 SkipListNode::get_forward_mut(&mut update[level])[level];
             SkipListNode::get_forward_mut(&mut update[level])[level] = Some(new_node);
         }
-        Ok(())
     }
 }
 

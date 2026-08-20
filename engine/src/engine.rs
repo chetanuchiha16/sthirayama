@@ -1,12 +1,16 @@
 use std::{
-    collections::HashMap,
-    fs::{File, OpenOptions, create_dir_all},
-    io::{Read, Seek, Write},
+    fs::create_dir_all,
     mem,
     path::{Path, PathBuf},
 };
 
-use crate::{config::get_sstable_path, engine_error::EngineError, memtable::Memtable, sstable::{reader::SstableReader, writer::SstableWriter}, wal::Wal};
+use crate::{
+    config::get_sstable_path,
+    engine_error::EngineError,
+    memtable::Memtable,
+    sstable::{reader::SstableReader, writer::SstableWriter},
+    wal::Wal,
+};
 struct SstableMeta {
     sstable_no: usize,
     last_key: Vec<u8>,
@@ -23,7 +27,7 @@ impl SstableMeta {
 ///Database Engine
 pub struct Engine {
     memtable: Memtable,
-    immutable_memtable: Option<Memtable>,
+    // immutable_memtable: Option<Memtable>,
     wal: Wal,
     sstable_count: usize,
     // ssts: File,
@@ -35,7 +39,7 @@ pub struct Engine {
 impl Engine {
     pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, EngineError> {
         let path = get_sstable_path()?.join(&path);
-        create_dir_all(&path);
+        create_dir_all(&path)?;
         // let path = path.as_ref().join(".sst");
         // let ssts_path = get_sstable_path().join(&path);
 
@@ -47,7 +51,7 @@ impl Engine {
         //     .open(ssts_path)?;
         Ok(Self {
             memtable: Memtable::new(),
-            immutable_memtable: None,
+            // immutable_memtable: None,
             wal: Wal::new()?,
             sstable_count: 0,
             // ssts: file,
@@ -57,8 +61,8 @@ impl Engine {
     }
 
     pub fn set(&mut self, key: &Vec<u8>, value: Vec<u8>) -> Result<(), EngineError> {
-        self.wal.append(key, &value);
-        self.memtable.insert(key, value);
+        self.wal.append(key, &value)?;
+        self.memtable.insert(key, value)?;
         let limit = 4 * 1024;
         if self.memtable.size > limit {
             // println!("memtable size reached 4kb");
@@ -71,7 +75,7 @@ impl Engine {
     fn flush(&mut self) -> Result<(), EngineError> {
         let frozen = mem::replace(&mut self.memtable, Memtable::new());
         //because you need new sstable for a new frozen memtable anyway
-        let mut path = self.path.join(format!("{:06}.sst", self.sstable_count));
+        let path = self.path.join(format!("{:06}.sst", self.sstable_count));
         let mut sstable = SstableWriter::new(path, frozen)?;
 
         // let sst_count_buf = self.sstable_count.to_le_bytes();
@@ -140,7 +144,7 @@ impl Engine {
                 let Some(sstable_no) = self.get_key_file_path(&key)? else {
                     return Ok(None);
                 };
-                let mut path = self.path.join(format!("{:06}.sst", sstable_no));
+                let path = self.path.join(format!("{:06}.sst", sstable_no));
                 let mut sstable = SstableReader::new(path)?;
                 println!("from sstable {}", sstable_no);
 
