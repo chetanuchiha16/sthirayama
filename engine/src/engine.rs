@@ -137,7 +137,7 @@ impl Engine {
     pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.extract(key)? {
             Some(value) => {
-                println!("from memtable");
+                // println!("from memtable");
                 Ok(Some(value))
             }
             None => {
@@ -146,7 +146,7 @@ impl Engine {
                 };
                 let path = self.path.join(format!("{:06}.sst", sstable_no));
                 let mut sstable = SstableReader::new(path)?;
-                println!("from sstable {}", sstable_no);
+                // println!("from sstable {}", sstable_no);
 
                 Ok(sstable.binary_search_data(&key)?)
             }
