@@ -1,7 +1,7 @@
 use std::{
     fs::{File, OpenOptions},
     io::{self, Read, Seek, Write},
-    path::{Path},
+    path::Path,
 };
 
 use crate::{
@@ -47,7 +47,6 @@ impl SstableWriter {
         Ok(Self {
             // path: path.as_ref().to_path_buf(),
             // path: sstable_file,
-
             file,
             // skiplist,
             memtable,
@@ -125,10 +124,10 @@ impl SstableWriter {
 
         // writing blockMeta/index block
         // for block in self.index.blocks.iter() {
-            //     let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
-            //     self.file.write_all(&block_meta_bytes_len_as_bytes);
-            //     self.file.write_all(&block_meta_bytes);
-            // }
+        //     let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
+        //     self.file.write_all(&block_meta_bytes_len_as_bytes);
+        //     self.file.write_all(&block_meta_bytes);
+        // }
         self.index.write_bytes_to(&mut self.file)?;
 
         //writing footer

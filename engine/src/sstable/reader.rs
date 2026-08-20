@@ -1,17 +1,13 @@
 use std::{
     fs::{File, OpenOptions},
     io::{Read, Seek},
-    path::{Path},
+    path::Path,
 };
 
 use crate::{
     config::get_sstable_path,
     skiplist::SkipListKV,
-    sstable::{
-        errors::SsTableReaderError,
-        footer::Footer,
-        index::IndexBlock,
-    },
+    sstable::{errors::SsTableReaderError, footer::Footer, index::IndexBlock},
 };
 
 pub struct SstableReader {

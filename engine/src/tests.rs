@@ -15,10 +15,10 @@ use crate::{
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     println!("creating new skiplist...");
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
-    skip_list.insert(10, 100)?;
-    skip_list.insert(20, 200)?;
-    skip_list.insert(5, 50)?;
-    skip_list.insert(15, 150)?;
+    skip_list.insert(10, 100);
+    skip_list.insert(20, 200);
+    skip_list.insert(5, 50);
+    skip_list.insert(15, 150);
     println!("{}", skip_list);
 
     println!("{:?}", skip_list.search(5)); // Some(50)
@@ -52,7 +52,7 @@ pub fn try_wal() -> Result<(), skiplist_error::SkipListError> {
 
 pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
-    skip_list.insert(6, 6)?;
+    skip_list.insert(6, 6);
     let skip_list_node = unsafe { SkipListNode::new(5, 5, 5).as_ref() };
     println!("{:?}", skip_list);
     println!("{:?}", skip_list.random_level());
@@ -95,7 +95,7 @@ pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error:
                 skiplist.insert(
                     command[1].as_bytes().to_vec(),
                     command[2].as_bytes().to_vec(),
-                )?;
+                );
             }
             "get" => {
                 if let Some(val) = skiplist.search(command[1].as_bytes().to_vec()) {
