@@ -3,7 +3,6 @@ use tempfile::NamedTempFile;
 use crate::{
     engine_error::EngineError,
     memtable::Memtable,
-    skiplist::SkipList,
     sstable::{reader::SstableReader, writer::SstableWriter},
 };
 
@@ -20,7 +19,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        memtable.insert(&key, value);
+        memtable.insert(&key, value)?;
     }
     let file = NamedTempFile::new()?;
 
@@ -54,7 +53,7 @@ fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineErro
     for i in 0..count {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        memtable.insert(&key, value);
+        memtable.insert(&key, value)?;
     }
 
     let mut writer = SstableWriter::new(path, memtable)?;
@@ -165,10 +164,10 @@ fn test_update() -> Result<(), EngineError> {
 
     // Insert original value.
     let key = b"0001".to_vec();
-    memtable.insert(&key, b"old_value".to_vec());
+    memtable.insert(&key, b"old_value".to_vec())?;
 
     // Update the same key.
-    memtable.insert(&key, b"new_value".to_vec());
+    memtable.insert(&key, b"new_value".to_vec())?;
 
     let mut writer = SstableWriter::new(path, memtable)?;
     writer.write()?;
