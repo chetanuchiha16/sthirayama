@@ -11,3 +11,10 @@ tempfile = "3.27.0"
 [features]
 default = []
 use-legacy-search = []
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "engine_bench" # This must match the filename in benches/ exactly
+harness = false  
