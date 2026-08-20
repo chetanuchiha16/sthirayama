@@ -4,7 +4,6 @@ use crate::{
     memtable::Value::Tombstone,
     skiplist::SkipList,
     skiplist_error::SkipListError,
-    sstable::{errors::SsTableWriterError, writer::SstableWriter},
 };
 
 #[derive(Debug, Clone, Encode, Decode)]
@@ -35,12 +34,13 @@ impl Memtable {
         }
     }
 
-    pub fn insert(&mut self, key: &Vec<u8>, value: Vec<u8>) {
+    pub fn insert(&mut self, key: &Vec<u8>, value: Vec<u8>) -> Result<(), SkipListError>{
         let val = Value::Data(value.to_vec()).to_bytes();
         // let val_bytes = val.to_bytes();
         self.size += key.len() + value.len();
         // println!("{}", self.size);
-        self.skiplist.insert(key.clone(), val);
+        self.skiplist.insert(key.clone(), val)?;
+        Ok(())
     }
 
     pub fn extract(&self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, SkipListError> {

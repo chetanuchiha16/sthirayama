@@ -2,7 +2,7 @@ use std::{fmt::Debug, marker::PhantomData, ptr::NonNull};
 
 use bitcode::{DecodeOwned, Encode};
 
-use crate::skiplist::{SkipList, SkipListKV, SkipListNode};
+use crate::skiplist::{SkipListKV, SkipListNode};
 
 pub trait TypeSkipListKey: Encode + DecodeOwned + Clone + PartialOrd + Debug {}
 

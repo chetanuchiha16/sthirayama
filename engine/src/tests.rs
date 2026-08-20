@@ -1,7 +1,5 @@
 use std::{
-    error::Error,
     io::{Write, stdin, stdout},
-    string::FromUtf8Error,
     time::Instant,
 };
 
@@ -78,7 +76,7 @@ pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error:
         let mut input = String::new();
         stdin().read_line(&mut input).expect("input error");
         // let mut command: Vec<&str> = input.trim().split(" ").collect();
-        let mut command: Vec<&str> = input.trim().split(" ").collect();
+        let command: Vec<&str> = input.trim().split(" ").collect();
         if command.len() > 3 {
             println!("invalid");
         }
@@ -124,7 +122,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
         let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
         let data = SkipListKV::new(key, value);
-        memtable.insert(&data.key.clone(), data.value.clone());
+        memtable.insert(&data.key.clone(), data.value.clone())?;
 
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
@@ -138,10 +136,10 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let key = 99.to_string().as_bytes().to_vec();
     let value = 6.to_string().as_bytes().to_vec();
     let data = SkipListKV::new(key, value);
-    memtable.insert(&data.key.clone(), data.value.clone());
+    memtable.insert(&data.key.clone(), data.value.clone())?;
 
     let mut s = SstableWriter::new("sstable.sst", memtable)?;
-    s.write();
+    s.write()?;
     // s.read();
     Ok(())
 }

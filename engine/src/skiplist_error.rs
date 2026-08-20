@@ -1,6 +1,5 @@
 use std::io;
 
-use crate::sstable::{self, errors::SsTableWriterError};
 
 #[derive(Debug)]
 pub enum SkipListError {

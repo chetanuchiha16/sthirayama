@@ -1,24 +1,21 @@
 use std::{
     fs::{File, OpenOptions},
-    io::{Read, Seek, Write},
-    path::{Path, PathBuf},
-    sync::atomic::Ordering,
+    io::{Read, Seek},
+    path::{Path},
 };
 
 use crate::{
     config::get_sstable_path,
     skiplist::SkipListKV,
     sstable::{
-        GLOBAL_COUNT, data_block,
         errors::SsTableReaderError,
         footer::Footer,
-        index::{BlockMeta, IndexBlock},
-        manifest::Manifest,
+        index::IndexBlock,
     },
 };
 
 pub struct SstableReader {
-    path: PathBuf,
+    // path: PathBuf,
     file: File,
 }
 
@@ -32,7 +29,7 @@ impl SstableReader {
             // .append(true)
             .open(&sstable_file)?;
         Ok(Self {
-            path: sstable_file,
+            // path: sstable_file,
             file,
         })
     }
@@ -78,7 +75,7 @@ impl SstableReader {
         &mut self,
         key: &Vec<u8>,
     ) -> Result<Option<usize>, SsTableReaderError> {
-        let mut index_block = &self.read_index_block()?.blocks;
+        let index_block = &self.read_index_block()?.blocks;
         let idx = index_block.partition_point(|block_meta| block_meta.last_key.as_slice() < key);
 
         if idx < index_block.len() {
@@ -114,7 +111,7 @@ impl SstableReader {
 
             let mut k_bytes = vec![0u8; k_len];
             self.file.read_exact(&mut k_bytes)?;
-            let k = str::from_utf8(&k_bytes)?;
+            let _k = str::from_utf8(&k_bytes)?;
 
             let mut v_len_bytes = [0u8; 8];
             self.file.read_exact(&mut v_len_bytes)?;
@@ -122,7 +119,7 @@ impl SstableReader {
 
             let mut v_bytes = vec![0u8; v_len];
             self.file.read_exact(&mut v_bytes)?;
-            let v = str::from_utf8(&v_bytes)?;
+            let _v = str::from_utf8(&v_bytes)?;
 
             let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone());
 
@@ -152,7 +149,7 @@ impl SstableReader {
 
         let x = match data_block.binary_search_by_key(key, |data| data.key.clone()) {
             Ok(key_idx) => {
-                use crate::memtable::Value::{self, Tombstone};
+                use crate::memtable::Value::{self};
 
                 let x = data_block[key_idx].value.clone();
                 let y = Value::from_bytes(&x)?;

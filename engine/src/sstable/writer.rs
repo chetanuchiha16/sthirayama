@@ -1,27 +1,23 @@
 use std::{
-    collections::binary_heap,
     fs::{File, OpenOptions},
     io::{self, Read, Seek, Write},
-    path::{Path, PathBuf},
-    sync::atomic::Ordering,
+    path::{Path},
 };
 
 use crate::{
     config::get_sstable_path,
-    memtable::{self, Memtable},
-    skiplist::{self, SkipList, SkipListKV, SkipListNode},
+    memtable::Memtable,
+    skiplist::SkipListKV,
     sstable::{
-        GLOBAL_COUNT,
         data_block::DataBlock,
         errors::SsTableWriterError,
         footer::Footer,
         index::{BlockMeta, IndexBlock},
-        manifest::Manifest,
     },
 };
 
 pub struct SstableWriter {
-    path: PathBuf,
+    // path: PathBuf,
     file: File,
     memtable: Memtable,
     // skiplist: SkipList<Vec<u8>, Vec<u8>>,
@@ -50,7 +46,7 @@ impl SstableWriter {
         // println!("{}", sstable_file.display());
         Ok(Self {
             // path: path.as_ref().to_path_buf(),
-            path: sstable_file,
+            // path: sstable_file,
 
             file,
             // skiplist,
@@ -60,9 +56,9 @@ impl SstableWriter {
     }
 
     pub fn write(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
-        self.file.seek(io::SeekFrom::Start(0));
+        self.file.seek(io::SeekFrom::Start(0))?;
 
-        /// writing data block
+        // writing data block
         // let mut size = 0usize;
         // let mut offset = 0usize;
         // ver 1 encode print, encode print, when 4kb create new block meta
@@ -88,7 +84,7 @@ impl SstableWriter {
         // }
 
         //ver 2 build upto 4kb print
-        let mut size = 0usize;
+        let _size = 0usize;
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
         for SkipListKV { key, value } in self.memtable.skiplist.iter() {
@@ -107,7 +103,7 @@ impl SstableWriter {
                 // println!("{:?}", str::from_utf8(&block_meta.last_key));
                 self.index.blocks.push(block_meta);
                 // println!("index written: {:?}", self.index.blocks);
-                data_block.write_to(&mut self.file);
+                data_block.write_to(&mut self.file)?;
                 data_block = DataBlock::new();
             }
 
@@ -122,21 +118,21 @@ impl SstableWriter {
             let offset = self.file.stream_position()?;
             let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
             self.index.blocks.push(block_meta);
-            data_block.write_to(&mut self.file);
+            data_block.write_to(&mut self.file)?;
         }
 
         let index_offset = self.file.stream_position()?;
 
-        /// writing blockMeta/index block
+        // writing blockMeta/index block
         // for block in self.index.blocks.iter() {
-        //     let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
-        //     self.file.write_all(&block_meta_bytes_len_as_bytes);
-        //     self.file.write_all(&block_meta_bytes);
-        // }
-        self.index.write_bytes_to(&mut self.file);
+            //     let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
+            //     self.file.write_all(&block_meta_bytes_len_as_bytes);
+            //     self.file.write_all(&block_meta_bytes);
+            // }
+        self.index.write_bytes_to(&mut self.file)?;
 
-        ///writing footer
-        let footer_offset = self.file.stream_position()?;
+        //writing footer
+        let _footer_offset = self.file.stream_position()?;
         let index_len = self.file.stream_position()? - index_offset;
         let footer = Footer::new(index_offset, index_len);
         let (footer_len, footer_byte) = footer.encode();
@@ -148,13 +144,13 @@ impl SstableWriter {
         //     usize::from_le_bytes(footer_len)
         // );
 
-        self.file.flush();
+        self.file.flush()?;
         Ok(last_key.to_owned())
     }
 
     // to verify for now, maybe moved later
     pub fn read(&mut self) -> Result<(), SsTableWriterError> {
-        self.file.seek(io::SeekFrom::Start(0));
+        self.file.seek(io::SeekFrom::Start(0))?;
         let mut buf = [0u8; 8];
         self.file.read_exact(&mut buf)?;
         let data_len = usize::from_le_bytes(buf);

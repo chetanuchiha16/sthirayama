@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write};
 
-use crate::{skiplist::SkipListKV, sstable::errors};
+use crate::sstable::errors;
 
 pub struct DataBlock {
     kv_list_bytes: Vec<u8>,

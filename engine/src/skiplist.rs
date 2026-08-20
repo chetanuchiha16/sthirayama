@@ -1,5 +1,4 @@
 use std::fmt::{Debug, Display, Formatter};
-use std::io::Error;
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 
@@ -7,7 +6,6 @@ use bitcode::{Decode, Encode};
 
 use crate::skiplist_error;
 use crate::traits::{SkipListIterator, TypeSkipListKey, TypeSkipListValue};
-use crate::wal::Wal;
 
 #[derive(Debug, Encode, Decode, Clone)]
 pub struct SkipListKV<K, V> {
