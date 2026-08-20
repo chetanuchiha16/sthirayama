@@ -13,7 +13,7 @@ use crate::{
     tests::{cli, test_block_split, test_sstable_read},
     wal::Wal,
 };
-
+// mod benches;
 mod config;
 mod engine;
 mod engine_error;

@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 bitcode = "0.6.9"
+# criterion = "0.8.2"
 fastrand = "2.4.1"
 tempfile = "3.27.0"
 
