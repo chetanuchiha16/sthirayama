@@ -38,7 +38,7 @@ impl SstableWriter {
         let sstable_path = get_sstable_path();
         // println!("{}", sstable_path.display());
 
-        let sstable_file = sstable_path.join(path);
+        let sstable_file = sstable_path?.join(path);
         let file = OpenOptions::new()
             .create(true)
             .read(true)

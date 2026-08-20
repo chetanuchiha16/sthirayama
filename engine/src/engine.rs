@@ -34,7 +34,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, EngineError> {
-        let path = get_sstable_path().join(&path);
+        let path = get_sstable_path()?.join(&path);
         create_dir_all(&path);
         // let path = path.as_ref().join(".sst");
         // let ssts_path = get_sstable_path().join(&path);
