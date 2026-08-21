@@ -7,22 +7,24 @@ use std::{
 use crate::{
     config::get_sstable_path,
     engine_error::EngineError,
-    memtable::Memtable,
+    memtable::{Memtable, Value},
     sstable::{reader::SstableReader, writer::SstableWriter},
     wal::Wal,
 };
-struct SstableMeta {
-    sstable_no: usize,
-    last_key: Vec<u8>,
-}
-impl SstableMeta {
-    pub fn new(sstable_no: usize, last_key: &Vec<u8>) -> Self {
-        Self {
-            sstable_no,
-            last_key: last_key.clone(),
-        }
-    }
-}
+
+// struct SstableMeta {
+//     sstable_no: usize,
+//     last_key: Vec<u8>,
+// }
+
+// impl SstableMeta {
+//     pub fn new(sstable_no: usize, last_key: &Vec<u8>) -> Self {
+//         Self {
+//             sstable_no,
+//             last_key: last_key.clone(),
+//         }
+//     }
+// }
 
 ///Database Engine
 pub struct Engine {
@@ -33,7 +35,7 @@ pub struct Engine {
     // ssts: File,
     // sstable : SstableWriter
     path: PathBuf,
-    sstable_meta_list: Vec<SstableMeta>,
+    // sstable_meta_list: Vec<SstableMeta>,
 }
 
 impl Engine {
@@ -56,7 +58,7 @@ impl Engine {
             sstable_count: 0,
             // ssts: file,
             path: path,
-            sstable_meta_list: Vec::new(),
+            // sstable_meta_list: Vec::new(),
         })
     }
 
@@ -81,14 +83,15 @@ impl Engine {
         // let sst_count_buf = self.sstable_count.to_le_bytes();
         // self.ssts.write_all(&sst_count_buf);
 
-        let last_key = sstable.write()?;
+        let _ = sstable.write()?;
+        // let _ = sstable.write()?;
         // let last_key_len = last_key.len();
         // self.ssts.write_all(&last_key_len.to_le_bytes())?;
         // self.ssts.write_all(&last_key)?;
         // self.ssts.flush()?;
         // println!("flusing");
-        let sstable_meta = SstableMeta::new(self.sstable_count, &last_key);
-        self.sstable_meta_list.push(sstable_meta);
+        // let sstable_meta = SstableMeta::new(self.sstable_count, &last_key);
+        // self.sstable_meta_list.push(sstable_meta);
         self.sstable_count += 1;
         Ok(())
     }
@@ -119,37 +122,69 @@ impl Engine {
     //     Ok(last_keys_count)
     // }
 
-    fn get_key_file_path(&mut self, key: &Vec<u8>) -> Result<Option<usize>, EngineError> {
-        // let last_keys_count = self.get_count_last_key()?;
-        let last_keys_count = &self.sstable_meta_list;
-        let idx = last_keys_count.partition_point(|meta| meta.last_key.as_slice() < key);
-        if idx < last_keys_count.len() {
-            // let key = last_keys_count[idx].clone();
-            // let val = count_last_key.get(&key).cloned();
-            // let (key, val) = &last_keys_count[idx];
-            let x = &last_keys_count[idx];
-            Ok(Some(x.sstable_no))
-        } else {
-            Ok(None)
-        }
-    }
+    // fn get_key_file_path(&mut self, key: &Vec<u8>) -> Result<Option<usize>, EngineError> {
+    //     // let last_keys_count = self.get_count_last_key()?;
+    //     let last_keys_count = &self.sstable_meta_list;
+    //     let idx = last_keys_count.partition_point(|meta| meta.last_key.as_slice() < key);
+    //     if idx < last_keys_count.len() {
+    //         // let key = last_keys_count[idx].clone();
+    //         // let val = count_last_key.get(&key).cloned();
+    //         // let (key, val) = &last_keys_count[idx];
+    //         let x = &last_keys_count[idx];
+    //         Ok(Some(x.sstable_no))
+    //     } else {
+    //         Ok(None)
+    //     }
+    // }
 
     pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.extract(key)? {
-            Some(value) => {
-                // println!("from memtable");
-                Ok(Some(value))
+            Value::Data(data) => {
+                //println!("from memtable");
+                return Ok(Some(data));
             }
-            None => {
-                let Some(sstable_no) = self.get_key_file_path(&key)? else {
-                    return Ok(None);
-                };
-                let path = self.path.join(format!("{:06}.sst", sstable_no));
-                let mut sstable = SstableReader::new(path)?;
-                // println!("from sstable {}", sstable_no);
+            Value::Tombstone => return Ok(None),
+            Value::None => {
+                // let Some(i) = self.get_key_file_path(&key)? else {
+                //     return Ok(None);
+                // };
+                for i in (0..self.sstable_count).rev() {
 
-                Ok(sstable.binary_search_data(&key)?)
-            }
+                    let path = self.path.join(format!("{:06}.sst", i));
+                    let mut sstable = SstableReader::new(path)?;
+                    
+                    if let Some(res) = sstable.binary_search_data(&key)? {
+                        //println!("from sstable {}", i);
+                        return Ok(Some(res));
+                    }
+                }
+
+                Ok(None)
+            } // Some(value) => {
+              //     match value {
+              //         Value::Tombstone => return Ok(None),
+              //         Value::Data(data) => return Ok(Some(data)),
+              //         Value::None => return Ok(None)
+              //     }
+              //     // return Ok(Some(value))
+              // }
+              // None => {
+              //     let Some(i) = self.get_key_file_path(&key)? else {
+              //         return Ok(None);
+              //     };
+              //     // let mut res = None;
+              //     // for i in (0..self.sstable_count).rev() {
+              //     let path = self.path.join(format!("{:06}.sst", i));
+              //     let mut sstable = SstableReader::new(path)?;
+
+              //     if let Some(res) = sstable.binary_search_data(&key)? {
+              //         println!("from sstable {}", i);
+              //         return Ok(Some(res));
+              //     }
+              //     // }
+
+              //     Ok(None)
+              // }
         }
     }
 

@@ -1,6 +1,6 @@
 use std::hint::black_box;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use engine::engine::Engine;
 
 fn benchmark_set(c: &mut Criterion) {
@@ -14,9 +14,7 @@ fn benchmark_set(c: &mut Criterion) {
                 (engine, key, value)
             },
             |(mut engine, key, value)| {
-                engine
-                    .set(black_box(&key), black_box(value))
-                    .unwrap();
+                engine.set(black_box(&key), black_box(value)).unwrap();
             },
             criterion::BatchSize::SmallInput,
         );
@@ -41,7 +39,6 @@ fn benchmark_get_memtable(c: &mut Criterion) {
         });
     });
 }
-
 
 fn benchmark_get_sstable(c: &mut Criterion) {
     let mut engine = Engine::new("bench_get_sstable").unwrap();

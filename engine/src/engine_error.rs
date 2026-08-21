@@ -12,8 +12,14 @@ pub enum EngineError {
     SsTableReaderError(SsTableReaderError),
     FromutfError(FromUtf8Error),
     IoError(io::Error),
+    BitcodeError(bitcode::Error),
 }
 
+impl From<bitcode::Error> for EngineError {
+    fn from(value: bitcode::Error) -> Self {
+        EngineError::BitcodeError(value)
+    }
+}
 impl From<SkipListError> for EngineError {
     fn from(value: SkipListError) -> Self {
         EngineError::SkipListError(value)
