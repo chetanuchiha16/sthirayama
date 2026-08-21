@@ -12,19 +12,19 @@ use crate::{
     wal::Wal,
 };
 
-struct SstableMeta {
-    sstable_no: usize,
-    last_key: Vec<u8>,
-}
+// struct SstableMeta {
+//     sstable_no: usize,
+//     last_key: Vec<u8>,
+// }
 
-impl SstableMeta {
-    pub fn new(sstable_no: usize, last_key: &Vec<u8>) -> Self {
-        Self {
-            sstable_no,
-            last_key: last_key.clone(),
-        }
-    }
-}
+// impl SstableMeta {
+//     pub fn new(sstable_no: usize, last_key: &Vec<u8>) -> Self {
+//         Self {
+//             sstable_no,
+//             last_key: last_key.clone(),
+//         }
+//     }
+// }
 
 ///Database Engine
 pub struct Engine {
@@ -35,7 +35,7 @@ pub struct Engine {
     // ssts: File,
     // sstable : SstableWriter
     path: PathBuf,
-    sstable_meta_list: Vec<SstableMeta>,
+    // sstable_meta_list: Vec<SstableMeta>,
 }
 
 impl Engine {
@@ -58,7 +58,7 @@ impl Engine {
             sstable_count: 0,
             // ssts: file,
             path: path,
-            sstable_meta_list: Vec::new(),
+            // sstable_meta_list: Vec::new(),
         })
     }
 
@@ -83,15 +83,15 @@ impl Engine {
         // let sst_count_buf = self.sstable_count.to_le_bytes();
         // self.ssts.write_all(&sst_count_buf);
 
-        let last_key = sstable.write()?;
+        let _ = sstable.write()?;
         // let _ = sstable.write()?;
         // let last_key_len = last_key.len();
         // self.ssts.write_all(&last_key_len.to_le_bytes())?;
         // self.ssts.write_all(&last_key)?;
         // self.ssts.flush()?;
         // println!("flusing");
-        let sstable_meta = SstableMeta::new(self.sstable_count, &last_key);
-        self.sstable_meta_list.push(sstable_meta);
+        // let sstable_meta = SstableMeta::new(self.sstable_count, &last_key);
+        // self.sstable_meta_list.push(sstable_meta);
         self.sstable_count += 1;
         Ok(())
     }
@@ -122,25 +122,25 @@ impl Engine {
     //     Ok(last_keys_count)
     // }
 
-    fn get_key_file_path(&mut self, key: &Vec<u8>) -> Result<Option<usize>, EngineError> {
-        // let last_keys_count = self.get_count_last_key()?;
-        let last_keys_count = &self.sstable_meta_list;
-        let idx = last_keys_count.partition_point(|meta| meta.last_key.as_slice() < key);
-        if idx < last_keys_count.len() {
-            // let key = last_keys_count[idx].clone();
-            // let val = count_last_key.get(&key).cloned();
-            // let (key, val) = &last_keys_count[idx];
-            let x = &last_keys_count[idx];
-            Ok(Some(x.sstable_no))
-        } else {
-            Ok(None)
-        }
-    }
+    // fn get_key_file_path(&mut self, key: &Vec<u8>) -> Result<Option<usize>, EngineError> {
+    //     // let last_keys_count = self.get_count_last_key()?;
+    //     let last_keys_count = &self.sstable_meta_list;
+    //     let idx = last_keys_count.partition_point(|meta| meta.last_key.as_slice() < key);
+    //     if idx < last_keys_count.len() {
+    //         // let key = last_keys_count[idx].clone();
+    //         // let val = count_last_key.get(&key).cloned();
+    //         // let (key, val) = &last_keys_count[idx];
+    //         let x = &last_keys_count[idx];
+    //         Ok(Some(x.sstable_no))
+    //     } else {
+    //         Ok(None)
+    //     }
+    // }
 
     pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.extract(key)? {
             Value::Data(data) => {
-                println!("from memtable");
+                //println!("from memtable");
                 return Ok(Some(data));
             }
             Value::Tombstone => return Ok(None),
@@ -154,7 +154,7 @@ impl Engine {
                     let mut sstable = SstableReader::new(path)?;
                     
                     if let Some(res) = sstable.binary_search_data(&key)? {
-                        println!("from sstable {}", i);
+                        //println!("from sstable {}", i);
                         return Ok(Some(res));
                     }
                 }
