@@ -6,6 +6,7 @@ use crate::{skiplist::SkipList, skiplist_error::SkipListError};
 pub enum Value {
     Data(Vec<u8>),
     Tombstone,
+    None,
 }
 
 impl Value {
@@ -39,7 +40,7 @@ impl Memtable {
         Ok(())
     }
 
-    pub fn extract(&self, key: &Vec<u8>) -> Result<Option<Value>, SkipListError> {
+    pub fn extract(&self, key: &Vec<u8>) -> Result<Value, SkipListError> {
         // println!("extract memtable");
         let bytes = self.skiplist.search(key.to_vec());
         match bytes {
@@ -52,9 +53,9 @@ impl Memtable {
                 //     Tombstone =>  Ok(None),
                 // }
                 // Ok(Some(bytes))
-                Ok(Some(k))
+                Ok(k)
             }
-            None => Ok(None),
+            None => Ok(Value::None),
         }
         // Ok(bytes)
     }

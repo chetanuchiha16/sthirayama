@@ -19998,5 +19998,4 @@ from memtable
 finding 9998, Some(Ok("19996")) from main
 from memtable
 finding 9999, Some(Ok("19998")) from main
-from memtable
 Not found

@@ -152,6 +152,7 @@ impl SstableReader {
                 match y {
                     Value::Data(data) => Some(data),
                     Value::Tombstone => None,
+                    Value::None => None,
                 }
 
                 // Some(data_block[key_idx].value.clone())
