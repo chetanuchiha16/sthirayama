@@ -1,6 +1,6 @@
 use bitcode::{Decode, Encode};
 
-use crate::{memtable::Value::Tombstone, skiplist::SkipList, skiplist_error::SkipListError};
+use crate::{skiplist::SkipList, skiplist_error::SkipListError};
 
 #[derive(Debug, Clone, Encode, Decode)]
 pub enum Value {
@@ -39,23 +39,24 @@ impl Memtable {
         Ok(())
     }
 
-    pub fn extract(&self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, SkipListError> {
+    pub fn extract(&self, key: &Vec<u8>) -> Result<Option<Value>, SkipListError> {
         // println!("extract memtable");
         let bytes = self.skiplist.search(key.to_vec());
-        // match bytes {
-        //     Some(bytes) => {
-        //         // println!("found in memtable");
-        //         let k = Value::from_bytes(&bytes)?;
-        //         // println!("{:?}", k);
-        //         match k {
-        //             Value::Data(val) =>  Ok(Some(val)),
-        //             Tombstone =>  Ok(None),
-        //         }
-        //         // Ok(Some(bytes))
-        //     }
-        //     None =>  Ok(None),
-        // }
-        Ok(bytes)
+        match bytes {
+            Some(bytes) => {
+                // println!("found in memtable");
+                let k = Value::from_bytes(&bytes)?;
+                // println!("{:?}", k);
+                // match k {
+                //     Value::Data(val) =>  Ok(Some(val)),
+                //     Tombstone =>  Ok(None),
+                // }
+                // Ok(Some(bytes))
+                Ok(Some(k))
+            }
+            None => Ok(None),
+        }
+        // Ok(bytes)
     }
 
     pub fn delete(&mut self, key: &Vec<u8>) {

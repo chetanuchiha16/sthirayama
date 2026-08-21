@@ -141,7 +141,7 @@ impl Engine {
         match self.memtable.extract(key)? {
             Some(value) => {
                 println!("from memtable");
-                match Value::from_bytes(&value)? {
+                match value {
                     Value::Tombstone => return Ok(None),
                     Value::Data(data) => return Ok(Some(data)),
                 }
@@ -153,13 +153,13 @@ impl Engine {
                 };
                 // let mut res = None;
                 // for i in (0..self.sstable_count).rev() {
-                    let path = self.path.join(format!("{:06}.sst", i));
-                    let mut sstable = SstableReader::new(path)?;
+                let path = self.path.join(format!("{:06}.sst", i));
+                let mut sstable = SstableReader::new(path)?;
 
-                    if let Some(res) = sstable.binary_search_data(&key)? {
-                        println!("from sstable {}", i);
-                        return Ok(Some(res));
-                    }
+                if let Some(res) = sstable.binary_search_data(&key)? {
+                    println!("from sstable {}", i);
+                    return Ok(Some(res));
+                }
                 // }
 
                 Ok(None)
