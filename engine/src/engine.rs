@@ -7,14 +7,16 @@ use std::{
 use crate::{
     config::get_sstable_path,
     engine_error::EngineError,
-    memtable::Memtable,
+    memtable::{Memtable, Value},
     sstable::{reader::SstableReader, writer::SstableWriter},
     wal::Wal,
 };
+
 struct SstableMeta {
     sstable_no: usize,
     last_key: Vec<u8>,
 }
+
 impl SstableMeta {
     pub fn new(sstable_no: usize, last_key: &Vec<u8>) -> Self {
         Self {
@@ -82,6 +84,7 @@ impl Engine {
         // self.ssts.write_all(&sst_count_buf);
 
         let last_key = sstable.write()?;
+        // let _ = sstable.write()?;
         // let last_key_len = last_key.len();
         // self.ssts.write_all(&last_key_len.to_le_bytes())?;
         // self.ssts.write_all(&last_key)?;
@@ -137,18 +140,29 @@ impl Engine {
     pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.extract(key)? {
             Some(value) => {
-                // println!("from memtable");
-                Ok(Some(value))
+                println!("from memtable");
+                // match Value::from_bytes(&value)? {
+                //     Value::Tombstone => return Ok(None),
+                //     Value::Data(data) => return Ok(Some(data)),
+                // }
+                return Ok(Some(value))
             }
             None => {
-                let Some(sstable_no) = self.get_key_file_path(&key)? else {
+                let Some(i) = self.get_key_file_path(&key)? else {
                     return Ok(None);
                 };
-                let path = self.path.join(format!("{:06}.sst", sstable_no));
-                let mut sstable = SstableReader::new(path)?;
-                // println!("from sstable {}", sstable_no);
+                // let mut res = None;
+                // for i in (0..self.sstable_count).rev() {
+                    let path = self.path.join(format!("{:06}.sst", i));
+                    let mut sstable = SstableReader::new(path)?;
 
-                Ok(sstable.binary_search_data(&key)?)
+                    if let Some(res) = sstable.binary_search_data(&key)? {
+                        println!("from sstable {}", i);
+                        return Ok(Some(res));
+                    }
+                // }
+
+                Ok(None)
             }
         }
     }

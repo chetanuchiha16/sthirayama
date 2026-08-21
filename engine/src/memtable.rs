@@ -40,20 +40,26 @@ impl Memtable {
     }
 
     pub fn extract(&self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, SkipListError> {
+        // println!("extract memtable");
         let bytes = self.skiplist.search(key.to_vec());
         match bytes {
             Some(bytes) => {
+                // println!("found in memtable");
                 let k = Value::from_bytes(&bytes)?;
+                // println!("{:?}", k);
                 match k {
-                    Value::Data(val) => Ok(Some(val)),
-                    Tombstone => Ok(None),
+                    Value::Data(val) =>  Ok(Some(val)),
+                    Tombstone =>  Ok(None),
                 }
+                // Ok(Some(bytes))
             }
-            None => Ok(None),
+            None =>  Ok(None),
         }
+        // Ok(bytes)
     }
 
     pub fn delete(&mut self, key: &Vec<u8>) {
-        self.skiplist.insert(key.clone(), Value::Tombstone.to_bytes());
+        self.skiplist
+            .insert(key.clone(), Value::Tombstone.to_bytes());
     }
 }
