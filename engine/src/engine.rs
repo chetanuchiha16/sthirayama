@@ -141,11 +141,11 @@ impl Engine {
         match self.memtable.extract(key)? {
             Some(value) => {
                 println!("from memtable");
-                // match Value::from_bytes(&value)? {
-                //     Value::Tombstone => return Ok(None),
-                //     Value::Data(data) => return Ok(Some(data)),
-                // }
-                return Ok(Some(value))
+                match Value::from_bytes(&value)? {
+                    Value::Tombstone => return Ok(None),
+                    Value::Data(data) => return Ok(Some(data)),
+                }
+                // return Ok(Some(value))
             }
             None => {
                 let Some(i) = self.get_key_file_path(&key)? else {
