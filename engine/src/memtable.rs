@@ -52,4 +52,8 @@ impl Memtable {
             None => Ok(None),
         }
     }
+
+    pub fn delete(&mut self, key: &Vec<u8>) {
+        self.skiplist.insert(key.clone(), Value::Tombstone.to_bytes());
+    }
 }

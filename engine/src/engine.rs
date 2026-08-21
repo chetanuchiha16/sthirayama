@@ -152,4 +152,9 @@ impl Engine {
             }
         }
     }
+
+    pub fn del(&mut self, key: &Vec<u8>) {
+        // self.wal.append(key, value)
+        self.memtable.delete(key);
+    }
 }
