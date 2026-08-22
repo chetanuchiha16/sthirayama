@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write};
+use std::io::Write;
 
 use bitcode::{Decode, Encode};
 
@@ -43,7 +43,7 @@ impl IndexBlock {
         (bytes_len, bytes)
     }
 
-    pub fn write_bytes_to(&self, file: &mut File) -> Result<(), SsTableWriterError> {
+    pub fn write_bytes_to(&self, file: &mut impl Write) -> Result<(), SsTableWriterError> {
         let (bytes_len, bytes) = self.encode();
         file.write_all(&bytes_len)?;
         file.write_all(&bytes)?;

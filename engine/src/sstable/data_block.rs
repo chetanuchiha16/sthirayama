@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write};
+use std::io::Write;
 
 use crate::sstable::errors;
 
@@ -34,7 +34,7 @@ impl DataBlock {
         self.size + entry_size < 4000
     }
 
-    pub fn write_to(&self, file: &mut File) -> Result<(), errors::SsTableWriterError> {
+    pub fn write_to(&self, file: &mut impl Write) -> Result<(), errors::SsTableWriterError> {
         // let len = self.size.to_le_bytes();
         // file.write_all(&len);
         file.write_all(&self.kv_list_bytes)?;

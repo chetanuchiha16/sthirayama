@@ -1,6 +1,6 @@
 use std::{
     fs::{File, OpenOptions},
-    io::{self, Read, Seek, Write},
+    io::{self, Seek, Write},
     path::Path,
 };
 
@@ -17,147 +17,81 @@ use crate::{
 };
 
 pub struct SstableWriter {
-    // path: PathBuf,
     file: File,
     memtable: Memtable,
-    // skiplist: SkipList<Vec<u8>, Vec<u8>>,
     index: IndexBlock,
+    bytes: Vec<u8>,
 }
 
 impl SstableWriter {
-    pub fn new<T: AsRef<Path>>(
-        path: T,
-        // skiplist: SkipList<Vec<u8>, Vec<u8>>,
-        memtable: Memtable,
-    ) -> Result<Self, SsTableWriterError> {
-        // let sstable_root = PathBuf::from("../sstable");
+    pub fn new<T: AsRef<Path>>(path: T, memtable: Memtable) -> Result<Self, SsTableWriterError> {
         let sstable_path = get_sstable_path();
-        // println!("{}", sstable_path.display());
 
         let sstable_file = sstable_path?.join(path);
         let file = OpenOptions::new()
             .create(true)
             .read(true)
-            // .append(true)
             .write(true)
             .truncate(true)
             .open(&sstable_file)?;
         let index = IndexBlock::new();
-        // println!("{}", sstable_file.display());
         Ok(Self {
-            // path: path.as_ref().to_path_buf(),
-            // path: sstable_file,
             file,
-            // skiplist,
             memtable,
             index,
+            bytes: Vec::new(),
         })
     }
-
-    pub fn write(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
-        self.file.seek(io::SeekFrom::Start(0))?;
-
+    pub fn build(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
         // writing data block
-        // let mut size = 0usize;
-        // let mut offset = 0usize;
-        // ver 1 encode print, encode print, when 4kb create new block meta
-        // for kv in self.skiplist.iter() {
-        //     let last_key = &kv.key;
-        //     let (encoded_data_len, encoded_data) = kv.encode();
-
-        //     size += encoded_data.len() + encoded_data_len.len();
-        //     println!("{}", size);
-
-        //     if size > 4000 {
-        //         let block = BlockMeta::new(size, offset, last_key.clone());
-        //         self.index.push(block);
-        //         offset = size;
-        //         size = 0;
-        //     }
-
-        //     // println!(
-        //         //     "{} : {}",
-        //         //     String::from_utf8(kv.key).unwrap(),
-        //         //     String::from_utf8(kv.value).unwrap()
-        //         // );
-        // }
-
-        //ver 2 build upto 4kb print
-        let _size = 0usize;
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
+        let mut offset = 0;
         for SkipListKV { key, value } in self.memtable.skiplist.iter() {
-            // if key == b"99" {
-            //     println!("found 99")
-            // }
-            // let (len_byte, data_byte) = kv.encode();
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
 
             let entry_size = key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len();
 
             if !data_block.can_fit(entry_size) {
-                let offset = self.file.stream_position()?;
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
-                // println!("{:?}", str::from_utf8(&block_meta.last_key));
                 self.index.blocks.push(block_meta);
-                // println!("index written: {:?}", self.index.blocks);
-                data_block.write_to(&mut self.file)?;
+                let initial = self.bytes.len() as u64;
+                data_block.write_to(&mut self.bytes)?;
+                offset += self.bytes.len() as u64 - initial;
                 data_block = DataBlock::new();
             }
 
             data_block.add(key, value);
             last_key = &key;
-
-            // self.file.write_all(&len_byte);
-            // self.file.write_all(&data_byte);
         }
 
         if data_block.size > 0 {
-            let offset = self.file.stream_position()?;
             let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
             self.index.blocks.push(block_meta);
-            data_block.write_to(&mut self.file)?;
+            let initial = self.bytes.len() as u64;
+            data_block.write_to(&mut self.bytes)?;
+            offset += self.bytes.len() as u64 - initial;
         }
 
-        let index_offset = self.file.stream_position()?;
+        let index_offset = offset;
 
         // writing blockMeta/index block
-        // for block in self.index.blocks.iter() {
-        //     let (block_meta_bytes_len_as_bytes, block_meta_bytes) = block.encode();
-        //     self.file.write_all(&block_meta_bytes_len_as_bytes);
-        //     self.file.write_all(&block_meta_bytes);
-        // }
-        self.index.write_bytes_to(&mut self.file)?;
+        self.index.write_bytes_to(&mut self.bytes)?;
 
         //writing footer
-        let _footer_offset = self.file.stream_position()?;
-        let index_len = self.file.stream_position()? - index_offset;
+        let index_len = self.bytes.len() as u64 - index_offset;
         let footer = Footer::new(index_offset, index_len);
-        let (footer_len, footer_byte) = footer.encode();
-        self.file.write_all(&footer_byte)?;
-        self.file.write_all(&footer_len)?;
-        // println!(
-        //     "footer written: {:?}, footer len written: {}",
-        //     footer,
-        //     usize::from_le_bytes(footer_len)
-        // );
+        footer.write_to(&mut self.bytes)?;
 
-        self.file.flush()?;
         Ok(last_key.to_owned())
     }
 
-    // to verify for now, maybe moved later
-    pub fn read(&mut self) -> Result<(), SsTableWriterError> {
+    pub fn write(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
+        let last_key = self.build()?;
         self.file.seek(io::SeekFrom::Start(0))?;
-        let mut buf = [0u8; 8];
-        self.file.read_exact(&mut buf)?;
-        let data_len = usize::from_le_bytes(buf);
-
-        let mut buf = vec![0u8; data_len];
-        self.file.read_exact(&mut buf)?;
-        let data: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&buf)?;
-        println!("{:?}", data);
-        Ok(())
+        self.file.write_all(&self.bytes)?;
+        self.file.flush()?;
+        Ok(last_key)
     }
 }
