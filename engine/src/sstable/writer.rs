@@ -22,6 +22,7 @@ pub struct SstableWriter {
     memtable: Memtable,
     // skiplist: SkipList<Vec<u8>, Vec<u8>>,
     index: IndexBlock,
+    bytes: Vec<u8>,
 }
 
 impl SstableWriter {
@@ -51,12 +52,10 @@ impl SstableWriter {
             // skiplist,
             memtable,
             index,
+            bytes: Vec::new(),
         })
     }
-
-    pub fn write(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
-        self.file.seek(io::SeekFrom::Start(0))?;
-
+    pub fn build(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
         // writing data block
         // let mut size = 0usize;
         // let mut offset = 0usize;
@@ -86,6 +85,7 @@ impl SstableWriter {
         let _size = 0usize;
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
+        let mut offset = 0;
         for SkipListKV { key, value } in self.memtable.skiplist.iter() {
             // if key == b"99" {
             //     println!("found 99")
@@ -97,12 +97,15 @@ impl SstableWriter {
             let entry_size = key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len();
 
             if !data_block.can_fit(entry_size) {
-                let offset = self.file.stream_position()?;
+                // let offset = self.file.stream_position()?;
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
                 // println!("{:?}", str::from_utf8(&block_meta.last_key));
                 self.index.blocks.push(block_meta);
                 // println!("index written: {:?}", self.index.blocks);
-                data_block.write_to(&mut self.file)?;
+                // data_block.write_to(&mut self.file)?;
+                let initial = self.bytes.len() as u64;
+                data_block.write_to(&mut self.bytes)?;
+                offset += self.bytes.len() as u64 - initial;
                 data_block = DataBlock::new();
             }
 
@@ -114,13 +117,15 @@ impl SstableWriter {
         }
 
         if data_block.size > 0 {
-            let offset = self.file.stream_position()?;
             let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
             self.index.blocks.push(block_meta);
-            data_block.write_to(&mut self.file)?;
+            // data_block.write_to(&mut self.file)?;
+            let initial = self.bytes.len() as u64;
+            data_block.write_to(&mut self.bytes)?;
+            offset += self.bytes.len() as u64 - initial;
         }
 
-        let index_offset = self.file.stream_position()?;
+        let index_offset = offset;
 
         // writing blockMeta/index block
         // for block in self.index.blocks.iter() {
@@ -128,23 +133,33 @@ impl SstableWriter {
         //     self.file.write_all(&block_meta_bytes_len_as_bytes);
         //     self.file.write_all(&block_meta_bytes);
         // }
-        self.index.write_bytes_to(&mut self.file)?;
+        // self.index.write_bytes_to(&mut self.file)?;
+        self.index.write_bytes_to(&mut self.bytes)?;
 
         //writing footer
-        let _footer_offset = self.file.stream_position()?;
-        let index_len = self.file.stream_position()? - index_offset;
+        // let _footer_offset = self.file.stream_position()?;
+        let index_len = self.bytes.len() as u64 - index_offset;
         let footer = Footer::new(index_offset, index_len);
-        let (footer_len, footer_byte) = footer.encode();
-        self.file.write_all(&footer_byte)?;
-        self.file.write_all(&footer_len)?;
+
+        // let (footer_len, footer_byte) = footer.encode();
+        // self.file.write_all(&footer_byte)?;
+        // self.file.write_all(&footer_len)?;
+        footer.write_to(&mut self.bytes)?;
         // println!(
         //     "footer written: {:?}, footer len written: {}",
         //     footer,
         //     usize::from_le_bytes(footer_len)
         // );
 
-        self.file.flush()?;
         Ok(last_key.to_owned())
+    }
+
+    pub fn write(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
+        let last_key = self.build()?;
+        self.file.seek(io::SeekFrom::Start(0))?;
+        self.file.write_all(&self.bytes)?;
+        self.file.flush()?;
+        Ok(last_key)
     }
 
     // to verify for now, maybe moved later

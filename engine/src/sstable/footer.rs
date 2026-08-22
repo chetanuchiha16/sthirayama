@@ -1,4 +1,8 @@
+use std::io::Write;
+
 use bitcode::{Decode, Encode};
+
+use crate::sstable::errors;
 
 #[derive(Debug, Encode, Decode)]
 pub struct Footer {
@@ -24,5 +28,12 @@ impl Footer {
         // println!("ioblb {}", usize::from_le_bytes(index_offset_byte_len_byte));
 
         (footer_byte_len_byte, footer_byte)
+    }
+
+    pub fn write_to(&self, file: &mut impl Write) -> Result<(), errors::SsTableWriterError> {
+        let (footer_len, footer_byte) = self.encode();
+        file.write_all(&footer_byte)?;
+        file.write_all(&footer_len)?;
+        Ok(())
     }
 }

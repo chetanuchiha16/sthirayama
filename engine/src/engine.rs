@@ -149,10 +149,9 @@ impl Engine {
                 //     return Ok(None);
                 // };
                 for i in (0..self.sstable_count).rev() {
-
                     let path = self.path.join(format!("{:06}.sst", i));
                     let mut sstable = SstableReader::new(path)?;
-                    
+
                     if let Some(res) = sstable.binary_search_data(&key)? {
                         //println!("from sstable {}", i);
                         return Ok(Some(res));
