@@ -2,7 +2,7 @@ use tempfile::NamedTempFile;
 
 use crate::{
     engine_error::EngineError,
-    memtable::Memtable,
+    memtable::{Memtable, Value},
     sstable::{reader::SstableReader, writer::SstableWriter},
 };
 
@@ -36,7 +36,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
 
         let actual = reader.binary_search_data(&key)?;
 
-        assert_eq!(actual, Some(expected));
+        assert_eq!(actual, Value::Data(expected));
     }
 
     Ok(())
@@ -73,7 +73,7 @@ fn test_first_key() -> Result<(), EngineError> {
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
-        Some(b"value0".to_vec())
+        Value::Data(b"value0".to_vec())
     );
 
     Ok(())
@@ -89,7 +89,7 @@ fn test_last_key() -> Result<(), EngineError> {
 
     assert_eq!(
         reader.binary_search_data(&b"0999".to_vec())?,
-        Some(b"value999".to_vec())
+        Value::Data(b"value999".to_vec())
     );
 
     Ok(())
@@ -105,7 +105,7 @@ fn test_middle_key() -> Result<(), EngineError> {
 
     assert_eq!(
         reader.binary_search_data(&b"0500".to_vec())?,
-        Some(b"value500".to_vec())
+        Value::Data(b"value500".to_vec())
     );
 
     Ok(())
@@ -119,7 +119,7 @@ fn test_key_not_found() -> Result<(), EngineError> {
     build_sstable(path, 1000)?;
     let mut reader = SstableReader::new(path)?;
 
-    assert_eq!(reader.binary_search_data(&b"1500".to_vec())?, None);
+    assert_eq!(reader.binary_search_data(&b"1500".to_vec())?, Value::None);
 
     Ok(())
 }
@@ -132,7 +132,7 @@ fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
     build_sstable(path, 1000)?;
     let mut reader = SstableReader::new(path)?;
 
-    assert_eq!(reader.binary_search_data(&b"-001".to_vec())?, None);
+    assert_eq!(reader.binary_search_data(&b"-001".to_vec())?, Value::None);
 
     Ok(())
 }
@@ -147,10 +147,10 @@ fn test_single_entry() -> Result<(), EngineError> {
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
-        Some(b"value0".to_vec())
+        Value::Data(b"value0".to_vec())
     );
 
-    assert_eq!(reader.binary_search_data(&b"0001".to_vec())?, None);
+    assert_eq!(reader.binary_search_data(&b"0001".to_vec())?, Value::None);
 
     Ok(())
 }
@@ -176,7 +176,7 @@ fn test_update() -> Result<(), EngineError> {
 
     assert_eq!(
         reader.binary_search_data(&key)?,
-        Some(b"new_value".to_vec())
+        Value::Data(b"new_value".to_vec())
     );
 
     Ok(())

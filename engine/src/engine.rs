@@ -140,7 +140,7 @@ impl Engine {
     pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.extract(key)? {
             Value::Data(data) => {
-                //println!("from memtable");
+                println!("from memtable");
                 return Ok(Some(data));
             }
             Value::Tombstone => return Ok(None),
@@ -152,9 +152,17 @@ impl Engine {
                     let path = self.path.join(format!("{:06}.sst", i));
                     let mut sstable = SstableReader::new(path)?;
 
-                    if let Some(res) = sstable.binary_search_data(&key)? {
-                        //println!("from sstable {}", i);
-                        return Ok(Some(res));
+                    // if let Some(res) = sstable.binary_search_data(&key)? {
+                    //     println!("from sstable {}", i);
+                    //     return Ok(Some(res));
+                    // }
+                    match sstable.binary_search_data(&key)? {
+                        Value::Data(val) => {
+                            println!("from sstable {}", i);
+                            return Ok(Some(val));
+                        }
+                        Value::Tombstone => return Ok(None),
+                        Value::None => continue,
                     }
                 }
 
@@ -189,6 +197,7 @@ impl Engine {
 
     pub fn del(&mut self, key: &Vec<u8>) {
         // self.wal.append(key, value)
+        println!("delete {}", str::from_utf8(key).unwrap());
         self.memtable.delete(key);
     }
 }

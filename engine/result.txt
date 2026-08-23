@@ -1,5 +1,5 @@
-from sstable 0
-finding 0000, Some(Ok("0000")) from main
+delete 0000
+finding 0000, None from main
 from sstable 0
 finding 0001, Some(Ok("0002")) from main
 from sstable 0

@@ -172,14 +172,9 @@ fn test_delete_from_memtable() {
 
     let key = b"0001".to_vec();
 
-    engine
-        .set(&key, b"value1".to_vec())
-        .unwrap();
+    engine.set(&key, b"value1".to_vec()).unwrap();
 
-    assert_eq!(
-        engine.get(&key).unwrap(),
-        Some(b"value1".to_vec())
-    );
+    assert_eq!(engine.get(&key).unwrap(), Some(b"value1".to_vec()));
 
     engine.del(&key);
 
@@ -192,9 +187,7 @@ fn test_delete_after_flush() {
 
     let key = b"0001".to_vec();
 
-    engine
-        .set(&key, b"value1".to_vec())
-        .unwrap();
+    engine.set(&key, b"value1".to_vec()).unwrap();
 
     // Force the value into an SSTable.
     for i in 0..1000 {
@@ -204,10 +197,7 @@ fn test_delete_after_flush() {
         engine.set(&key, value).unwrap();
     }
 
-    assert_eq!(
-        engine.get(&key).unwrap(),
-        Some(b"value1".to_vec())
-    );
+    assert_eq!(engine.get(&key).unwrap(), Some(b"value1".to_vec()));
 
     // Tombstone goes into the newer MemTable.
     engine.del(&key);
@@ -221,9 +211,7 @@ fn test_delete_survives_flush() {
 
     let key = b"0001".to_vec();
 
-    engine
-        .set(&key, b"value1".to_vec())
-        .unwrap();
+    engine.set(&key, b"value1".to_vec()).unwrap();
 
     // Flush original value.
     for i in 0..1000 {
@@ -233,10 +221,7 @@ fn test_delete_survives_flush() {
         engine.set(&key, value).unwrap();
     }
 
-    assert_eq!(
-        engine.get(&key).unwrap(),
-        Some(b"value1".to_vec())
-    );
+    assert_eq!(engine.get(&key).unwrap(), Some(b"value1".to_vec()));
 
     // Write tombstone.
     engine.del(&key);

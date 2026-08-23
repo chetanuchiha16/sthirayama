@@ -8,9 +8,9 @@ pub mod sstable;
 #[cfg(test)]
 pub mod test_engine;
 #[cfg(test)]
-pub mod test_skiplist;
-#[cfg(test)]
 pub mod test_memtable;
+#[cfg(test)]
+pub mod test_skiplist;
 #[cfg(test)]
 pub mod test_sstable;
 pub mod tests;

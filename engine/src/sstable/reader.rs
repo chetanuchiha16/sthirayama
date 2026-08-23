@@ -4,6 +4,8 @@ use std::{
     path::Path,
 };
 
+#[cfg(not(feature = "use-legacy-search"))]
+use crate::memtable::Value;
 use crate::{
     config::get_sstable_path,
     skiplist::SkipListKV,
@@ -135,12 +137,9 @@ impl SstableReader {
     }
 
     #[cfg(not(feature = "use-legacy-search"))]
-    pub fn binary_search_data(
-        &mut self,
-        key: &Vec<u8>,
-    ) -> Result<Option<Vec<u8>>, SsTableReaderError> {
+    pub fn binary_search_data(&mut self, key: &Vec<u8>) -> Result<Value, SsTableReaderError> {
         let Some(data_block) = self.read_data_block(key)? else {
-            return Ok(None);
+            return Ok(Value::None);
         };
 
         let x = match data_block.binary_search_by_key(key, |data| data.key.clone()) {
@@ -148,16 +147,16 @@ impl SstableReader {
                 use crate::memtable::Value::{self};
 
                 let x = data_block[key_idx].value.clone();
-                let y = Value::from_bytes(&x)?;
-                match y {
-                    Value::Data(data) => Some(data),
-                    Value::Tombstone => None,
-                    Value::None => None,
-                }
+                Value::from_bytes(&x)?
+                // match y {
+                //     Value::Data(data) => Some(data),
+                //     Value::Tombstone => None,
+                //     Value::None => None,
+                // }
 
                 // Some(data_block[key_idx].value.clone())
             }
-            Err(_) => None,
+            Err(_) => Value::None,
         };
 
         Ok(x)

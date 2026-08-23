@@ -2,7 +2,7 @@ use bitcode::{Decode, Encode};
 
 use crate::{skiplist::SkipList, skiplist_error::SkipListError};
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq)]
 pub enum Value {
     Data(Vec<u8>),
     Tombstone,

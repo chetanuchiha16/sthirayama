@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     engine_error,
-    memtable::Memtable,
+    memtable::{Memtable, Value},
     skiplist::{SkipList, SkipListKV, SkipListNode},
     skiplist_error,
     sstable::{reader::SstableReader, writer::SstableWriter},
@@ -152,10 +152,16 @@ pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
     let key = num.to_string().as_bytes().to_vec();
     // sstable_reader.binary_search_index(&key);
     // sstable_reader.read_data_block(&key)?;
-    let value = sstable_reader.binary_search_data(&key)?.unwrap();
-    let key_val = str::from_utf8(&key).unwrap();
-    let value_val = str::from_utf8(&value).unwrap();
+    let value = sstable_reader.binary_search_data(&key)?;
+    match value {
+        Value::Data(data) => {
+            let value_val = str::from_utf8(&data).unwrap();
 
-    println!("found value {} for the key {}", value_val, key_val);
+            let key_val = str::from_utf8(&key).unwrap();
+            println!("found value {} for the key {}", value_val, key_val);
+        }
+        _ => println!("not found in test_sstable_read()"),
+    }
+
     Ok(())
 }
