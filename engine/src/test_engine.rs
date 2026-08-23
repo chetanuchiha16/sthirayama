@@ -249,3 +249,32 @@ fn test_delete_missing_key() {
 
     assert_eq!(engine.get(&key).unwrap(), None);
 }
+
+#[test]
+fn test_overwrite_across_multiple_flushes() {
+    let mut engine = Engine::new("test_overwrite_across_multiple_flushes").unwrap();
+
+    let key = b"0001".to_vec();
+
+    // Set key to "first_value" and flush to SSTable 0.
+    engine.set(&key, b"first_value".to_vec()).unwrap();
+    for i in 0..1000 {
+        let k = format!("{:04}", i + 10).into_bytes();
+        let v = format!("value{:04}", i + 10).into_bytes();
+        engine.set(&k, v).unwrap();
+    }
+
+    assert_eq!(engine.get(&key).unwrap(), Some(b"first_value".to_vec()));
+
+    // Overwrite key with "second_value" and flush to SSTable 1.
+    engine.set(&key, b"second_value".to_vec()).unwrap();
+    for i in 0..1000 {
+        let k = format!("{:04}", i + 2000).into_bytes();
+        let v = format!("value{:04}", i + 2000).into_bytes();
+        engine.set(&k, v).unwrap();
+    }
+
+    // Newer SSTable value should override older SSTable value.
+    assert_eq!(engine.get(&key).unwrap(), Some(b"second_value".to_vec()));
+}
+
