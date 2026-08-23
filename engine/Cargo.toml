@@ -8,6 +8,8 @@ bitcode = "0.6.9"
 # criterion = "0.8.2"
 fastrand = "2.4.1"
 tempfile = "3.27.0"
+tokio = { version = "1", features = ["full"] }
+
 
 [features]
 default = []

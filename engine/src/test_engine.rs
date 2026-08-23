@@ -165,3 +165,102 @@ fn test_update_after_flush() {
 
     assert_eq!(engine.get(&key).unwrap(), Some(b"second".to_vec()));
 }
+
+#[test]
+fn test_delete_from_memtable() {
+    let mut engine = Engine::new("test_delete_from_memtable").unwrap();
+
+    let key = b"0001".to_vec();
+
+    engine
+        .set(&key, b"value1".to_vec())
+        .unwrap();
+
+    assert_eq!(
+        engine.get(&key).unwrap(),
+        Some(b"value1".to_vec())
+    );
+
+    engine.del(&key);
+
+    assert_eq!(engine.get(&key).unwrap(), None);
+}
+
+#[test]
+fn test_delete_after_flush() {
+    let mut engine = Engine::new("test_delete_after_flush").unwrap();
+
+    let key = b"0001".to_vec();
+
+    engine
+        .set(&key, b"value1".to_vec())
+        .unwrap();
+
+    // Force the value into an SSTable.
+    for i in 0..1000 {
+        let key = format!("{:04}", i + 10).into_bytes();
+        let value = format!("value{:04}", i + 10).into_bytes();
+
+        engine.set(&key, value).unwrap();
+    }
+
+    assert_eq!(
+        engine.get(&key).unwrap(),
+        Some(b"value1".to_vec())
+    );
+
+    // Tombstone goes into the newer MemTable.
+    engine.del(&key);
+
+    assert_eq!(engine.get(&key).unwrap(), None);
+}
+
+#[test]
+fn test_delete_survives_flush() {
+    let mut engine = Engine::new("test_delete_survives_flush").unwrap();
+
+    let key = b"0001".to_vec();
+
+    engine
+        .set(&key, b"value1".to_vec())
+        .unwrap();
+
+    // Flush original value.
+    for i in 0..1000 {
+        let key = format!("{:04}", i + 10).into_bytes();
+        let value = format!("value{:04}", i + 10).into_bytes();
+
+        engine.set(&key, value).unwrap();
+    }
+
+    assert_eq!(
+        engine.get(&key).unwrap(),
+        Some(b"value1".to_vec())
+    );
+
+    // Write tombstone.
+    engine.del(&key);
+
+    // Force tombstone into an SSTable too.
+    for i in 0..1000 {
+        let key = format!("{:04}", i + 2000).into_bytes();
+        let value = format!("value{:04}", i + 2000).into_bytes();
+
+        engine.set(&key, value).unwrap();
+    }
+
+    assert_eq!(engine.get(&key).unwrap(), None);
+}
+
+#[test]
+fn test_delete_missing_key() {
+    let mut engine = Engine::new("test_delete_missing_key").unwrap();
+
+    let key = b"9999".to_vec();
+
+    assert_eq!(engine.get(&key).unwrap(), None);
+
+    engine.del(&key);
+
+    assert_eq!(engine.get(&key).unwrap(), None);
+}
