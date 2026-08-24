@@ -18,11 +18,11 @@ fn main() -> Result<(), EngineError> {
     let mut engine = Engine::new("main")?;
     let key = format!("{:04}", 0).into_bytes();
     let value = format!("{:04}", 0 * 2).into_bytes();
-    engine.set(&key, value)?;
+    engine.set(&key, &value)?;
     for i in (1..5000) {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(&key, value)?;
+        engine.set(&key, &value)?;
     }
 
     let key = format!("{:04}", 0).into_bytes();
@@ -31,7 +31,7 @@ fn main() -> Result<(), EngineError> {
     for i in (5000..10000) {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(&key, value)?;
+        engine.set(&key, &value)?;
     }
 
     for i in (0..10000) {

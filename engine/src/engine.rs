@@ -7,7 +7,10 @@ use std::{
 use crate::{
     config::get_sstable_path,
     engine_error::EngineError,
-    memtable::{Memtable, Value},
+    memtable::{
+        Memtable,
+        Value::{self, Data, Tombstone},
+    },
     sstable::{reader::SstableReader, writer::SstableWriter},
     wal::Wal,
 };
@@ -75,9 +78,9 @@ impl Engine {
         })
     }
 
-    pub fn set(&mut self, key: &Vec<u8>, value: Vec<u8>) -> Result<(), EngineError> {
-        self.wal.append(key, &value)?;
-        self.memtable.insert(key, value)?;
+    pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
+        self.wal.append(key, Data(value.clone()))?;
+        self.memtable.insert(key, value.clone())?;
         let limit = 4 * 1024;
         if self.memtable.size > limit {
             // println!("memtable size reached 4kb");
@@ -208,9 +211,10 @@ impl Engine {
         }
     }
 
-    pub fn del(&mut self, key: &Vec<u8>) {
-        // self.wal.append(key, value)
+    pub fn del(&mut self, key: &Vec<u8>) -> Result<(), EngineError> {
+        self.wal.append(key, Tombstone)?;
         println!("delete {}", str::from_utf8(key).unwrap());
         self.memtable.delete(key);
+        Ok(())
     }
 }

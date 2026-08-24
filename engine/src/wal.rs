@@ -7,9 +7,9 @@ use std::{
 use bitcode::{DecodeOwned, Encode};
 
 use crate::{
+    memtable::Value,
     skiplist::{SkipList, SkipListKV},
     skiplist_error,
-    traits::{TypeSkipListKey, TypeSkipListValue},
 };
 
 #[derive(Debug)]
@@ -38,11 +38,7 @@ impl Wal {
         })
     }
     /// append the entry to the wal file after every insert to the skiplist
-    pub fn append<K: TypeSkipListKey, V: TypeSkipListValue>(
-        &mut self,
-        key: &K,
-        value: &V,
-    ) -> std::io::Result<()> {
+    pub fn append(&mut self, key: &Vec<u8>, value: Value) -> std::io::Result<()> {
         // let key_len_bytes = size_of::<K>().to_le_bytes();
         // let value_len_bytes = size_of::<V>().to_le_bytes();
         let data = SkipListKV::new(key.clone(), value.clone());

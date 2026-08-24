@@ -14,7 +14,7 @@ fn benchmark_set(c: &mut Criterion) {
                 (engine, key, value)
             },
             |(mut engine, key, value)| {
-                engine.set(black_box(&key), black_box(value)).unwrap();
+                engine.set(black_box(&key), black_box(&value)).unwrap();
             },
             criterion::BatchSize::SmallInput,
         );
@@ -27,7 +27,7 @@ fn benchmark_get_memtable(c: &mut Criterion) {
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{:04}", i).into_bytes();
-        engine.set(&key, value).unwrap();
+        engine.set(&key, &value).unwrap();
     }
 
     // "0999" was inserted last and remains in the active Memtable
@@ -48,7 +48,7 @@ fn benchmark_get_sstable(c: &mut Criterion) {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{:04}", i).into_bytes();
 
-        engine.set(&key, value).unwrap();
+        engine.set(&key, &value).unwrap();
     }
 
     let key = b"0500".to_vec();
@@ -67,7 +67,7 @@ fn benchmark_get_missing(c: &mut Criterion) {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{:04}", i).into_bytes();
 
-        engine.set(&key, value).unwrap();
+        engine.set(&key, &value).unwrap();
     }
 
     let key = b"9999".to_vec();
@@ -88,7 +88,7 @@ fn benchmark_flush(c: &mut Criterion) {
                     let key = format!("{:04}", i).into_bytes();
                     let value = format!("value{:04}", i).into_bytes();
 
-                    engine.set(&key, value).unwrap();
+                    engine.set(&key, &value).unwrap();
                 }
 
                 black_box(engine);
