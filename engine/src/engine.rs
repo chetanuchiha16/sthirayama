@@ -1,5 +1,5 @@
 use std::{
-    fs::create_dir_all,
+    fs::{self, create_dir_all},
     mem,
     path::{Path, PathBuf},
 };
@@ -51,11 +51,24 @@ impl Engine {
         //     .append(true)
         //     .create(true)
         //     .open(ssts_path)?;
+        let mut sstable_count = 0usize;
+        for entry in fs::read_dir(&path)? {
+            let entry = entry?;
+            if let Some(ext) = entry.path().extension() {
+                if ext == "sst" {
+                    if let Some(file_name) = entry.path().file_stem() {
+                        if let Some(file_name_str) = file_name.to_str() {
+                            sstable_count = file_name_str.parse()?;
+                        }
+                    }
+                }
+            }
+        }
         Ok(Self {
             memtable: Memtable::new(),
             // immutable_memtable: None,
             wal: Wal::new()?,
-            sstable_count: 0,
+            sstable_count,
             // ssts: file,
             path: path,
             // sstable_meta_list: Vec::new(),

@@ -278,3 +278,27 @@ fn test_overwrite_across_multiple_flushes() {
     assert_eq!(engine.get(&key).unwrap(), Some(b"second_value".to_vec()));
 }
 
+#[test]
+fn test_engine_reopen_persistence() {
+    let db_path = "test_engine_reopen_persistence";
+
+    let key = b"0001".to_vec();
+    let value = b"persistent_value".to_vec();
+
+    {
+        let mut engine = Engine::new(db_path).unwrap();
+        engine.set(&key, value.clone()).unwrap();
+
+        // Flush to SSTable.
+        for i in 0..1000 {
+            let k = format!("{:04}", i + 10).into_bytes();
+            let v = format!("value{:04}", i + 10).into_bytes();
+            engine.set(&k, v).unwrap();
+        }
+        assert_eq!(engine.get(&key).unwrap(), Some(value.clone()));
+    }
+
+    // Re-open Engine at the same directory.
+    let mut reopened_engine = Engine::new(db_path).unwrap();
+    assert_eq!(reopened_engine.get(&key).unwrap(), Some(value));
+}

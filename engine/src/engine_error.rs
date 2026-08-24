@@ -1,4 +1,4 @@
-use std::{io, str::Utf8Error, string::FromUtf8Error};
+use std::{io, num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
 
 use crate::{
     skiplist_error::{self, SkipListError},
@@ -13,6 +13,13 @@ pub enum EngineError {
     FromutfError(FromUtf8Error),
     IoError(io::Error),
     BitcodeError(bitcode::Error),
+    ParseIntError(ParseIntError),
+}
+
+impl From<ParseIntError> for EngineError {
+    fn from(value: ParseIntError) -> Self {
+        EngineError::ParseIntError(value)
+    }
 }
 
 impl From<bitcode::Error> for EngineError {
