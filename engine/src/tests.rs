@@ -1,6 +1,6 @@
 use std::{
     io::{Write, stdin, stdout},
-    time::Instant,
+    // time::Instant,
 };
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
     skiplist::{SkipList, SkipListKV, SkipListNode},
     skiplist_error,
     sstable::{reader::SstableReader, writer::SstableWriter},
-    wal::Wal,
+    // wal::Wal,
 };
 
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
@@ -29,26 +29,26 @@ pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     Ok(())
 }
 
-pub fn try_wal() -> Result<(), skiplist_error::SkipListError> {
-    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
-    let start = Instant::now();
+// pub fn try_wal() -> Result<(), skiplist_error::SkipListError> {
+//     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
+//     let start = Instant::now();
 
-    // Call the function you are testing
-    println!("----before recovering the skiplist----");
-    println!("{}", skip_list);
-    println!("recovering......");
-    let mut wal = Wal::new()?;
-    // wal.append(5, 6).unwrap();
-    wal.recover::<i32, i32>(&mut skip_list)?;
-    println!("----after recovering the skiplist----");
-    println!("{}", skip_list);
+//     // Call the function you are testing
+//     println!("----before recovering the skiplist----");
+//     println!("{}", skip_list);
+//     println!("recovering......");
+//     let mut wal = Wal::new()?;
+//     // wal.append(5, 6).unwrap();
+//     wal.recover::<i32, i32>(&mut skip_list)?;
+//     println!("----after recovering the skiplist----");
+//     println!("{}", skip_list);
 
-    // Calculate elapsed time
-    let duration = start.elapsed();
+//     // Calculate elapsed time
+//     let duration = start.elapsed();
 
-    println!("recovering took: {:?}", duration);
-    Ok(())
-}
+//     println!("recovering took: {:?}", duration);
+//     Ok(())
+// }
 
 pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);

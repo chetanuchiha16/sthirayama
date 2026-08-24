@@ -1,5 +1,5 @@
 use std::{
-    fmt::{Debug, Display},
+    fmt::Debug,
     fs::{File, OpenOptions},
     io::{Error, ErrorKind, Read, Seek, SeekFrom, Write},
 };
@@ -41,7 +41,7 @@ impl Wal {
     pub fn append(&mut self, key: &Vec<u8>, value: Value) -> std::io::Result<()> {
         // let key_len_bytes = size_of::<K>().to_le_bytes();
         // let value_len_bytes = size_of::<V>().to_le_bytes();
-        let data = SkipListKV::new(key.clone(), value.clone());
+        let data = SkipListKV::new(key.clone(), value.to_bytes());
         let data_bytes = bitcode::encode(&data);
         let data_len_bytes = data_bytes.len().to_le_bytes();
         self.file.write_all(&data_len_bytes)?;
@@ -67,11 +67,11 @@ impl Wal {
 
     ///recover the skip list from the wal file if crashed
     pub fn recover<
-        K: DecodeOwned + Clone + Debug + Encode + PartialOrd + Display,
-        V: DecodeOwned + Clone + Debug + Encode + Display,
+        K: DecodeOwned + Clone + Debug + Encode + PartialOrd,
+        V: DecodeOwned + Clone + Debug + Encode,
     >(
         &mut self,
-        skiplist: &mut SkipList<K, V>,
+        skiplist: &mut SkipList<Vec<u8>, Vec<u8>>,
     ) -> Result<(), skiplist_error::SkipListError> {
         // let skiplist = SkipList::new(5, -1, -1).unwrap();
 
@@ -101,8 +101,14 @@ impl Wal {
 
             let mut data_buffer = vec![0u8; data_len];
             self.file.read_exact(&mut data_buffer)?;
-            let data: SkipListKV<K, V> = bitcode::decode(&data_buffer)?;
-            println!("{} : {}", data.key, data.value);
+            let data: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&data_buffer)?;
+            if let Value::Data(val) = Value::from_bytes(&data.value)? {
+                println!(
+                    "{:?} : {:?}",
+                    str::from_utf8(&data.key),
+                    str::from_utf8(&val)
+                );
+            }
             skiplist.insert(data.key, data.value);
         }
         // println!("{}", skiplist);

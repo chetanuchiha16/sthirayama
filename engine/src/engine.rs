@@ -67,10 +67,13 @@ impl Engine {
                 }
             }
         }
+        let mut memtable = Memtable::new();
+        let mut wal = Wal::new()?;
+        wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)?;
         Ok(Self {
-            memtable: Memtable::new(),
+            memtable,
             // immutable_memtable: None,
-            wal: Wal::new()?,
+            wal,
             sstable_count,
             // ssts: file,
             path: path,
@@ -79,7 +82,7 @@ impl Engine {
     }
 
     pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
-        self.wal.append(key, Data(value.clone()))?;
+        self.wal.append(key, Data(value.to_vec()))?;
         self.memtable.insert(key, value.clone())?;
         let limit = 4 * 1024;
         if self.memtable.size > limit {
