@@ -1,7 +1,8 @@
 use std::{
     fmt::Debug,
-    fs::{File, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::{Error, ErrorKind, Read, Seek, SeekFrom, Write},
+    mem,
 };
 
 use bitcode::{DecodeOwned, Encode};
@@ -9,7 +10,7 @@ use bitcode::{DecodeOwned, Encode};
 use crate::{
     memtable::Value,
     skiplist::{SkipList, SkipListKV},
-    skiplist_error,
+    skiplist_error::{self, SkipListError},
 };
 
 #[derive(Debug)]
@@ -142,6 +143,20 @@ impl Wal {
         // // let mut buf = [0u8; 8];
         // // self.file.read_exact(&mut buf)?;
         // // println!("{:?} is the buf", buf);
+        Ok(())
+    }
+
+    pub fn recycle(&mut self) -> Result<(), SkipListError> {
+        fs::rename("wal/file.wal", "wal/old_file.wal")?;
+        let new_file = OpenOptions::new()
+            .read(true)
+            .append(true)
+            .create(true)
+            .open("wal/file.wal")?;
+        let old_wal = mem::replace(&mut self.file, new_file);
+        drop(old_wal);
+        fs::remove_file("wal/old_file.wal")?;
+
         Ok(())
     }
 }

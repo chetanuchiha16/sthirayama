@@ -88,6 +88,7 @@ impl Engine {
         if self.memtable.size > limit {
             // println!("memtable size reached 4kb");
             self.flush()?;
+            self.wal.recycle()?;
             // self.ssts.flush()?;
         }
         Ok(())

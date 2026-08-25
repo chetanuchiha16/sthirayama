@@ -13,6 +13,8 @@ pub mod test_memtable;
 pub mod test_skiplist;
 #[cfg(test)]
 pub mod test_sstable;
+#[cfg(test)]
+pub mod test_wal;
 pub mod tests;
 pub mod traits;
 pub mod wal;
