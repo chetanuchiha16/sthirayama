@@ -146,6 +146,7 @@ impl Wal {
         Ok(())
     }
 
+    ///replace the old wal with new wal and delete the old wal
     pub fn recycle(&mut self) -> Result<(), SkipListError> {
         fs::rename("wal/file.wal", "wal/old_file.wal")?;
         let new_file = OpenOptions::new()
