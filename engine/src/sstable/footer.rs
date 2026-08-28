@@ -29,7 +29,7 @@ impl Footer {
 
         (footer_byte_len_byte, footer_byte)
     }
-
+    ///write to anything that implements Write trait
     pub fn write_to(&self, file: &mut impl Write) -> Result<(), errors::SsTableWriterError> {
         let (footer_len, footer_byte) = self.encode();
         file.write_all(&footer_byte)?;
