@@ -22,6 +22,7 @@ impl Footer {
         }
     }
 
+    ///encode footer to byted
     pub fn encode(&self) -> ([u8; 8], Vec<u8>) {
         let footer_byte = bitcode::encode(self);
         let footer_byte_len_byte = footer_byte.len().to_le_bytes();
@@ -29,6 +30,7 @@ impl Footer {
 
         (footer_byte_len_byte, footer_byte)
     }
+
     ///write to anything that implements Write trait
     pub fn write_to(&self, file: &mut impl Write) -> Result<(), errors::SsTableWriterError> {
         let (footer_len, footer_byte) = self.encode();
