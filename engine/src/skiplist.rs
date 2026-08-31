@@ -123,7 +123,7 @@ where
     pub fn random_level(&self) -> usize {
         fastrand::usize(1..=self.max_level)
     }
-
+    /// search the skiplist for key
     pub fn search(&self, key: K) -> Option<V> {
         let mut current: NonNull<SkipListNode<K, V>> = self.head; //caused having reference to temp
         for level in (0..self.max_level).rev() {
