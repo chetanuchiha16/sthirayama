@@ -25,8 +25,8 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
 
     let path = file.path();
 
-    let mut writer = SstableWriter::new(path, memtable)?;
-    writer.write()?;
+    let mut writer = SstableWriter::new(path)?;
+    writer.write(memtable)?;
 
     let mut reader = SstableReader::new(path)?;
 
@@ -56,8 +56,8 @@ fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineErro
         memtable.insert(&key, value)?;
     }
 
-    let mut writer = SstableWriter::new(path, memtable)?;
-    writer.write()?;
+    let mut writer = SstableWriter::new(path)?;
+    writer.write(memtable)?;
 
     Ok(())
 }
@@ -169,8 +169,8 @@ fn test_update() -> Result<(), EngineError> {
     // Update the same key.
     memtable.insert(&key, b"new_value".to_vec())?;
 
-    let mut writer = SstableWriter::new(path, memtable)?;
-    writer.write()?;
+    let mut writer = SstableWriter::new(path)?;
+    writer.write(memtable)?;
 
     let mut reader = SstableReader::new(path)?;
 

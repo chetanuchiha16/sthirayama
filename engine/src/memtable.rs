@@ -65,3 +65,5 @@ impl Memtable {
             .insert(key.clone(), Value::Tombstone.to_bytes());
     }
 }
+
+unsafe impl Send for Memtable {}

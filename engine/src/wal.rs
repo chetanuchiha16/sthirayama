@@ -3,6 +3,7 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{Error, ErrorKind, Read, Seek, SeekFrom, Write},
     mem,
+    path::{Path, PathBuf},
 };
 
 use bitcode::{DecodeOwned, Encode};
@@ -20,21 +21,26 @@ pub struct Wal {
     // value_len: usize,
     // value: V,
     file: File,
-    // _marker: PhantomData<(K, V)>,
+    path: PathBuf, // _marker: PhantomData<(K, V)>,
 }
 
 impl Wal {
-    pub fn new() -> Result<Self, Error> {
+    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, Error> {
+        fs::create_dir_all(&path)?;
+
+        let wal_path = path.as_ref().join("file.wal");
+        println!("{}", wal_path.display());
         let file = OpenOptions::new()
             .read(true)
             .append(true)
             .create(true)
-            .open("wal/file.wal")?;
+            .open(&wal_path)?;
 
         Ok(Self {
             // key_len: size_of::<K>(),
             // value_len: size_of::<V>(),
             file,
+            path: wal_path,
             // _marker: PhantomData,
         })
     }
@@ -103,13 +109,13 @@ impl Wal {
             let mut data_buffer = vec![0u8; data_len];
             self.file.read_exact(&mut data_buffer)?;
             let data: SkipListKV<Vec<u8>, Vec<u8>> = bitcode::decode(&data_buffer)?;
-            if let Value::Data(val) = Value::from_bytes(&data.value)? {
-                println!(
-                    "{:?} : {:?}",
-                    str::from_utf8(&data.key),
-                    str::from_utf8(&val)
-                );
-            }
+            // if let Value::Data(val) = Value::from_bytes(&data.value)? {
+            //     println!(
+            //         "{:?} : {:?}",
+            //         str::from_utf8(&data.key),
+            //         str::from_utf8(&val)
+            //     );
+            // }
             skiplist.insert(data.key, data.value);
         }
         // println!("{}", skiplist);
@@ -148,15 +154,23 @@ impl Wal {
 
     ///replace the old wal with new wal and delete the old wal
     pub fn recycle(&mut self) -> Result<(), SkipListError> {
-        fs::rename("wal/file.wal", "wal/old_file.wal")?;
-        let new_file = OpenOptions::new()
-            .read(true)
-            .append(true)
-            .create(true)
-            .open("wal/file.wal")?;
-        let old_wal = mem::replace(&mut self.file, new_file);
-        drop(old_wal);
-        fs::remove_file("wal/old_file.wal")?;
+        let old_path = &self.path;
+        if let Some(old_path_parent) = old_path.parent() {
+            let new_path = old_path_parent
+                .join("old")
+                .join(old_path.file_name().unwrap());
+            println!("{}", new_path.display());
+            fs::create_dir_all(&new_path.parent().unwrap())?;
+            fs::rename(old_path, &new_path)?;
+            let new_file = OpenOptions::new()
+                .read(true)
+                .append(true)
+                .create(true)
+                .open(old_path)?;
+            let old_wal = mem::replace(&mut self.file, new_file);
+            drop(old_wal);
+            fs::remove_file(new_path)?;
+        }
 
         Ok(())
     }

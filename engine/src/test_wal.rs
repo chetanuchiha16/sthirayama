@@ -6,8 +6,9 @@ use crate::{
 #[test]
 fn test_wal_append_and_recover() {
     let _ = std::fs::create_dir_all("wal");
-
-    let mut wal = Wal::new().unwrap();
+    let tmpfile = tempfile::NamedTempFile::new().unwrap();
+    let path = tmpfile.path();
+    let mut wal = Wal::new(path.parent().unwrap()).unwrap();
     let _ = wal.recycle();
 
     let key1 = b"wal_key1".to_vec();
@@ -19,7 +20,8 @@ fn test_wal_append_and_recover() {
     wal.append(&key2, val2).unwrap();
 
     let mut memtable = Memtable::new();
-    wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist).unwrap();
+    wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)
+        .unwrap();
 
     match memtable.extract(&key1).unwrap() {
         Value::Data(v) => assert_eq!(v, b"wal_val1".to_vec()),
@@ -35,8 +37,9 @@ fn test_wal_append_and_recover() {
 #[test]
 fn test_wal_recycle() {
     let _ = std::fs::create_dir_all("wal");
-
-    let mut wal = Wal::new().unwrap();
+    let tmpfile = tempfile::NamedTempFile::new().unwrap();
+    let path = tmpfile.path();
+    let mut wal = Wal::new(path.parent().unwrap()).unwrap();
     let _ = wal.recycle();
 
     let key = b"recycle_key".to_vec();
@@ -47,7 +50,8 @@ fn test_wal_recycle() {
     wal.recycle().unwrap();
 
     let mut memtable = Memtable::new();
-    wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist).unwrap();
+    wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)
+        .unwrap();
 
     match memtable.extract(&key).unwrap() {
         Value::None => (),

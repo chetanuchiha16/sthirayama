@@ -2,6 +2,7 @@ use std::{
     fs::{self, create_dir_all},
     mem,
     path::{Path, PathBuf},
+    time::Instant,
 };
 
 use crate::{
@@ -68,7 +69,7 @@ impl Engine {
             }
         }
         let mut memtable = Memtable::new();
-        let mut wal = Wal::new()?;
+        let mut wal = Wal::new(path.join("wal"))?;
         wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)?;
         Ok(Self {
             memtable,
@@ -82,28 +83,40 @@ impl Engine {
     }
 
     pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
+        let start = Instant::now();
         self.wal.append(key, Data(value.to_vec()))?;
         self.memtable.insert(key, value.clone())?;
         let limit = 4 * 1024;
+
         if self.memtable.size > limit {
             // println!("memtable size reached 4kb");
-            self.flush()?;
+            let frozen = mem::replace(&mut self.memtable, Memtable::new());
+            //because you need new sstable for a new frozen memtable anyway
+            let sstable_no = self.sstable_count;
+            self.sstable_count += 1;
+            let path = self.path.join(format!("{:06}.sst", sstable_no));
+
+            self.flush(frozen, path)?;
             self.wal.recycle()?;
             // self.ssts.flush()?;
+            println!("flushed");
         }
+        println!(
+            "set {} in {:?}",
+            str::from_utf8(&key)?,
+            Instant::now() - start
+        );
         Ok(())
     }
 
-    fn flush(&mut self) -> Result<(), EngineError> {
-        let frozen = mem::replace(&mut self.memtable, Memtable::new());
-        //because you need new sstable for a new frozen memtable anyway
-        let path = self.path.join(format!("{:06}.sst", self.sstable_count));
-        let mut sstable = SstableWriter::new(path, frozen)?;
+    fn flush(&mut self, frozen: Memtable, path: PathBuf) -> Result<(), EngineError> {
+        // tokio::task::spawn(async move {
+        let mut sstable = SstableWriter::new(path)?;
 
         // let sst_count_buf = self.sstable_count.to_le_bytes();
         // self.ssts.write_all(&sst_count_buf);
 
-        let _ = sstable.write()?;
+        let _ = sstable.write(frozen)?;
         // let _ = sstable.write()?;
         // let last_key_len = last_key.len();
         // self.ssts.write_all(&last_key_len.to_le_bytes())?;
@@ -112,7 +125,8 @@ impl Engine {
         // println!("flusing");
         // let sstable_meta = SstableMeta::new(self.sstable_count, &last_key);
         // self.sstable_meta_list.push(sstable_meta);
-        self.sstable_count += 1;
+        //     Ok::<(), EngineError>(())
+        // });
         Ok(())
     }
 
@@ -160,7 +174,7 @@ impl Engine {
     pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.extract(key)? {
             Value::Data(data) => {
-                println!("from memtable");
+                // println!("from memtable");
                 return Ok(Some(data));
             }
             Value::Tombstone => return Ok(None),
@@ -178,7 +192,7 @@ impl Engine {
                     // }
                     match sstable.binary_search_data(&key)? {
                         Value::Data(val) => {
-                            println!("from sstable {}", i);
+                            // println!("from sstable {}", i);
                             return Ok(Some(val));
                         }
                         Value::Tombstone => return Ok(None),

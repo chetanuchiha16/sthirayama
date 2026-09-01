@@ -69,10 +69,7 @@ impl SstableReader {
     }
 
     #[cfg(not(feature = "use-legacy-search"))]
-    pub fn binary_search_index(
-        &mut self,
-        key: &Vec<u8>,
-    ) -> Result<Option<usize>, SsTableReaderError> {
+    pub fn binary_search_index(&mut self, key: &[u8]) -> Result<Option<usize>, SsTableReaderError> {
         let index_block = &self.read_index_block()?.blocks;
         let idx = index_block.partition_point(|block_meta| block_meta.last_key.as_slice() < key);
 

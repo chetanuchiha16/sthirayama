@@ -138,8 +138,8 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let data = SkipListKV::new(key, value);
     memtable.insert(&data.key.clone(), data.value.clone())?;
 
-    let mut s = SstableWriter::new("sstable.sst", memtable)?;
-    s.write()?;
+    let mut s = SstableWriter::new("sstable.sst")?;
+    s.write(memtable)?;
     // s.read();
     Ok(())
 }

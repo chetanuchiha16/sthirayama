@@ -18,13 +18,13 @@ use crate::{
 
 pub struct SstableWriter {
     file: File,
-    memtable: Memtable,
+    // memtable: Memtable,
     index: IndexBlock,
     bytes: Vec<u8>,
 }
 
 impl SstableWriter {
-    pub fn new<T: AsRef<Path>>(path: T, memtable: Memtable) -> Result<Self, SsTableWriterError> {
+    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, SsTableWriterError> {
         let sstable_path = get_sstable_path();
 
         let sstable_file = sstable_path?.join(path);
@@ -37,17 +37,17 @@ impl SstableWriter {
         let index = IndexBlock::new();
         Ok(Self {
             file,
-            memtable,
+            // memtable,
             index,
             bytes: Vec::new(),
         })
     }
-    pub fn build(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
+    pub fn build(&mut self, memtable: Memtable) -> Result<Vec<u8>, SsTableWriterError> {
         // writing data block
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
         let mut offset = 0;
-        for SkipListKV { key, value } in self.memtable.skiplist.iter() {
+        for SkipListKV { key, value } in memtable.skiplist.iter() {
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
 
@@ -87,8 +87,8 @@ impl SstableWriter {
         Ok(last_key.to_owned())
     }
 
-    pub fn write(&mut self) -> Result<Vec<u8>, SsTableWriterError> {
-        let last_key = self.build()?;
+    pub fn write(&mut self, memtable: Memtable) -> Result<Vec<u8>, SsTableWriterError> {
+        let last_key = self.build(memtable)?;
         self.file.seek(io::SeekFrom::Start(0))?;
         self.file.write_all(&self.bytes)?;
         self.file.flush()?;
