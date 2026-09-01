@@ -59,7 +59,7 @@ impl Memtable {
         }
         // Ok(bytes)
     }
-    ///deletes a key, ie marks the key as tombstone 
+    ///deletes a key, ie marks the key as tombstone
     pub fn delete(&mut self, key: &Vec<u8>) {
         self.skiplist
             .insert(key.clone(), Value::Tombstone.to_bytes());

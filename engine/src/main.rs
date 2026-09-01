@@ -7,8 +7,8 @@ use std::{
 
 use engine::{engine::Engine, engine_error::EngineError};
 
-// #[tokio::main]
-fn main() -> Result<(), EngineError> {
+#[tokio::main]
+async fn main() -> Result<(), EngineError> {
     // pring_skiplist_details()?;
     // try_new_skiplist()?;
     // try_wal()?;

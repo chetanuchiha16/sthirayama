@@ -29,7 +29,6 @@ impl Wal {
         fs::create_dir_all(&path)?;
 
         let wal_path = path.as_ref().join("file.wal");
-        println!("{}", wal_path.display());
         let file = OpenOptions::new()
             .read(true)
             .append(true)
@@ -159,7 +158,6 @@ impl Wal {
             let new_path = old_path_parent
                 .join("old")
                 .join(old_path.file_name().unwrap());
-            println!("{}", new_path.display());
             fs::create_dir_all(&new_path.parent().unwrap())?;
             fs::rename(old_path, &new_path)?;
             let new_file = OpenOptions::new()

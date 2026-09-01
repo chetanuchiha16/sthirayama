@@ -95,11 +95,15 @@ impl Engine {
             let sstable_no = self.sstable_count;
             self.sstable_count += 1;
             let path = self.path.join(format!("{:06}.sst", sstable_no));
-
-            self.flush(frozen, path)?;
+            // let wal = self.wal.c;
+            tokio::task::spawn_blocking(move || {
+                Self::flush(frozen, path)?;
+                println!("flushed");
+                Ok::<(), EngineError>(())
+            });
             self.wal.recycle()?;
+            println!("recycled");
             // self.ssts.flush()?;
-            println!("flushed");
         }
         println!(
             "set {} in {:?}",
@@ -109,7 +113,7 @@ impl Engine {
         Ok(())
     }
 
-    fn flush(&mut self, frozen: Memtable, path: PathBuf) -> Result<(), EngineError> {
+    fn flush(frozen: Memtable, path: PathBuf) -> Result<(), EngineError> {
         // tokio::task::spawn(async move {
         let mut sstable = SstableWriter::new(path)?;
 
