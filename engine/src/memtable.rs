@@ -1,7 +1,7 @@
 use bitcode::{Decode, Encode};
 
 use crate::{skiplist::SkipList, skiplist_error::SkipListError};
-
+///tells if value exists or not or deleted 
 #[derive(Debug, Clone, Encode, Decode, PartialEq)]
 pub enum Value {
     Data(Vec<u8>),
