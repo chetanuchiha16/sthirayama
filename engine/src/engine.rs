@@ -232,7 +232,7 @@ impl Engine {
               // }
         }
     }
-
+    ///delete key
     pub fn del(&mut self, key: &Vec<u8>) -> Result<(), EngineError> {
         self.wal.append(key, Tombstone)?;
         println!("delete {}", str::from_utf8(key).unwrap());
