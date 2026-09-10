@@ -9,7 +9,8 @@ fn test_wal_append_and_recover() {
     let tmpfile = tempfile::NamedTempFile::new().unwrap();
     let path = tmpfile.path();
     let mut wal = Wal::new(path.parent().unwrap()).unwrap();
-    let _ = wal.recycle();
+    let (old_wal, archived_path) = wal.rotate().unwrap();
+    let _ = Wal::recycle(old_wal, archived_path);
 
     let key1 = b"wal_key1".to_vec();
     let val1 = Value::Data(b"wal_val1".to_vec());
@@ -40,14 +41,16 @@ fn test_wal_recycle() {
     let tmpfile = tempfile::NamedTempFile::new().unwrap();
     let path = tmpfile.path();
     let mut wal = Wal::new(path.parent().unwrap()).unwrap();
-    let _ = wal.recycle();
+    let (old_wal, archived_path) = wal.rotate().unwrap();
+    let _ = Wal::recycle(old_wal, archived_path);
 
     let key = b"recycle_key".to_vec();
     let val = Value::Data(b"recycle_val".to_vec());
     wal.append(&key, val).unwrap();
 
     // Recycle clears existing log
-    wal.recycle().unwrap();
+    let (old_wal, archived_path) = wal.rotate().unwrap();
+    Wal::recycle(old_wal, archived_path).unwrap();
 
     let mut memtable = Memtable::new();
     wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)

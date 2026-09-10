@@ -151,25 +151,28 @@ impl Wal {
         Ok(())
     }
 
-    ///replace the old wal with new wal and delete the old wal
-    pub fn recycle(&mut self) -> Result<(), SkipListError> {
-        let old_path = &self.path;
-        if let Some(old_path_parent) = old_path.parent() {
-            let new_path = old_path_parent
-                .join("old")
-                .join(old_path.file_name().unwrap());
-            fs::create_dir_all(&new_path.parent().unwrap())?;
-            fs::rename(old_path, &new_path)?;
-            let new_file = OpenOptions::new()
-                .read(true)
-                .append(true)
-                .create(true)
-                .open(old_path)?;
-            let old_wal = mem::replace(&mut self.file, new_file);
-            drop(old_wal);
-            fs::remove_file(new_path)?;
-        }
+    /// Switch `self` to a new empty WAL file. Returns the old file and the
+    /// path it was moved to so a flush task can `recycle` it later.
+    pub fn rotate(&mut self) -> Result<(File, PathBuf), SkipListError> {
+        let Some(parent) = self.path.parent() else {
+            return Err(Error::new(ErrorKind::InvalidInput, "WAL path has no parent").into());
+        };
+        let archived_path = parent.join("old").join(self.path.file_name().unwrap());
+        fs::create_dir_all(archived_path.parent().unwrap())?;
+        fs::rename(&self.path, &archived_path)?;
+        let new_file = OpenOptions::new()
+            .read(true)
+            .append(true)
+            .create(true)
+            .open(&self.path)?;
+        let old_wal = mem::replace(&mut self.file, new_file);
+        Ok((old_wal, archived_path))
+    }
 
+    /// Drop the retired WAL file handle and delete its archived path.
+    pub fn recycle(old_wal: File, archived_path: PathBuf) -> Result<(), SkipListError> {
+        drop(old_wal);
+        fs::remove_file(archived_path)?;
         Ok(())
     }
 }

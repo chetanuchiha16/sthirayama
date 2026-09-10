@@ -36,8 +36,8 @@ fn test_get_missing_key() {
 //     );
 // }
 
-#[test]
-fn test_flush_and_get_from_sstable() {
+#[tokio::test]
+async fn test_flush_and_get_from_sstable() {
     let mut engine = Engine::new("test_flush_and_get_from_sstable").unwrap();
 
     // Make the memtable exceed 4 KB.
@@ -59,8 +59,8 @@ fn test_flush_and_get_from_sstable() {
     assert_eq!(engine.get(&key).unwrap(), Some(b"value0999".to_vec()));
 }
 
-#[test]
-fn test_flush_multiple_sstables() {
+#[tokio::test]
+async fn test_flush_multiple_sstables() {
     let mut engine = Engine::new("test_flush_multiple_sstables").unwrap();
 
     // Enough data to create multiple SSTables.
@@ -90,8 +90,8 @@ fn test_flush_multiple_sstables() {
     );
 }
 
-#[test]
-fn test_key_not_found_after_flush() {
+#[tokio::test]
+async fn test_key_not_found_after_flush() {
     let mut engine = Engine::new("test_key_not_found_after_flush").unwrap();
 
     for i in 0..1000 {
@@ -104,8 +104,8 @@ fn test_key_not_found_after_flush() {
     assert_eq!(engine.get(&b"9999".to_vec()).unwrap(), None);
 }
 
-#[test]
-fn test_keys_across_multiple_flushes() {
+#[tokio::test]
+async fn test_keys_across_multiple_flushes() {
     let mut engine = Engine::new("test_keys_across_multiple_flushes").unwrap();
 
     for i in 0..10000 {
@@ -143,8 +143,8 @@ fn test_set_overwrites_value() {
     assert_eq!(engine.get(&key).unwrap(), Some(b"second".to_vec()));
 }
 
-#[test]
-fn test_update_after_flush() {
+#[tokio::test]
+async fn test_update_after_flush() {
     let mut engine = Engine::new("test_update_after_flush").unwrap();
 
     let key = b"0001".to_vec();
@@ -166,8 +166,8 @@ fn test_update_after_flush() {
     assert_eq!(engine.get(&key).unwrap(), Some(b"second".to_vec()));
 }
 
-#[test]
-fn test_delete_from_memtable() {
+#[tokio::test]
+async fn test_delete_from_memtable() {
     let mut engine = Engine::new("test_delete_from_memtable").unwrap();
 
     let key = b"0001".to_vec();
@@ -181,8 +181,8 @@ fn test_delete_from_memtable() {
     assert_eq!(engine.get(&key).unwrap(), None);
 }
 
-#[test]
-fn test_delete_after_flush() {
+#[tokio::test]
+async fn test_delete_after_flush() {
     let mut engine = Engine::new("test_delete_after_flush").unwrap();
 
     let key = b"0001".to_vec();
@@ -205,8 +205,8 @@ fn test_delete_after_flush() {
     assert_eq!(engine.get(&key).unwrap(), None);
 }
 
-#[test]
-fn test_delete_survives_flush() {
+#[tokio::test]
+async fn test_delete_survives_flush() {
     let mut engine = Engine::new("test_delete_survives_flush").unwrap();
 
     let key = b"0001".to_vec();
@@ -250,8 +250,8 @@ fn test_delete_missing_key() {
     assert_eq!(engine.get(&key).unwrap(), None);
 }
 
-#[test]
-fn test_overwrite_across_multiple_flushes() {
+#[tokio::test]
+async fn test_overwrite_across_multiple_flushes() {
     let mut engine = Engine::new("test_overwrite_across_multiple_flushes").unwrap();
 
     let key = b"0001".to_vec();
@@ -278,8 +278,8 @@ fn test_overwrite_across_multiple_flushes() {
     assert_eq!(engine.get(&key).unwrap(), Some(b"second_value".to_vec()));
 }
 
-#[test]
-fn test_engine_reopen_persistence() {
+#[tokio::test]
+async fn test_engine_reopen_persistence() {
     let db_path = "test_engine_reopen_persistence";
 
     let key = b"0001".to_vec();
