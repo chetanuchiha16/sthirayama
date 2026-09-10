@@ -124,7 +124,7 @@ where
         fastrand::usize(1..=self.max_level)
     }
     /// search the skiplist for key
-    pub fn search(&self, key: K) -> Option<V> {
+    pub fn search(&self, key: &K) -> Option<V> {
         let mut current: NonNull<SkipListNode<K, V>> = self.head; //caused having reference to temp
         for level in (0..self.max_level).rev() {
             while let Some(node) = SkipListNode::get_forward(&current)[level]
@@ -133,9 +133,9 @@ where
                 current = node;
             }
         }
-        let cur_k = SkipListNode::get_key(&current).to_owned();
-        let cur_v = SkipListNode::get_value(&current).to_owned();
-        if cur_k == key { Some(cur_v) } else { None }
+        let cur_k = SkipListNode::get_key(&current);
+        let cur_v = SkipListNode::get_value(&current);
+        if cur_k == key { Some(cur_v.to_owned()) } else { None }
     }
 
     pub fn insert(&mut self, key: K, value: V) {

@@ -1,6 +1,6 @@
 use std::hint::black_box;
 
-use criterion::{Criterion, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group};
 use engine::engine::Engine;
 
 fn benchmark_set(c: &mut Criterion) {
@@ -107,4 +107,10 @@ criterion_group!(
     benchmark_flush
 );
 
-criterion_main!(benches);
+fn main() {
+    // Engine::set uses tokio::task::spawn_blocking on flush; Criterion has no
+    // runtime of its own.
+    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let _enter = rt.enter();
+    benches();
+}

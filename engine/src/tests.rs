@@ -21,11 +21,11 @@ pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     skip_list.insert(15, 150);
     println!("{}", skip_list);
 
-    println!("{:?}", skip_list.search(5)); // Some(50)
-    println!("{:?}", skip_list.search(10)); // Some(100)
-    println!("{:?}", skip_list.search(15)); // Some(150)
-    println!("{:?}", skip_list.search(20)); // Some(200)
-    println!("{:?}", skip_list.search(99)); // None
+    println!("{:?}", skip_list.search(&5)); // Some(50)
+    println!("{:?}", skip_list.search(&10)); // Some(100)
+    println!("{:?}", skip_list.search(&15)); // Some(150)
+    println!("{:?}", skip_list.search(&20)); // Some(200)
+    println!("{:?}", skip_list.search(&99)); // None
     Ok(())
 }
 
@@ -65,7 +65,7 @@ pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     println!("{:?}", head.data.value);
     println!("{:?}", head.level);
     // head.forward[0] = SkipListNode::new(2, &5, 6);
-    println!("{:?}", skip_list.search(6));
+    println!("{:?}", skip_list.search(&6));
     Ok(())
 }
 
@@ -98,7 +98,7 @@ pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error:
                 );
             }
             "get" => {
-                if let Some(val) = skiplist.search(command[1].as_bytes().to_vec()) {
+                if let Some(val) = skiplist.search(&&command[1].as_bytes().to_vec()) {
                     println!("{}", String::from_utf8(val)?);
                 } else {
                     println!("key does not exist");

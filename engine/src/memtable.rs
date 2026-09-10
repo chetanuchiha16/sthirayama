@@ -42,7 +42,7 @@ impl Memtable {
 
     pub fn extract(&self, key: &Vec<u8>) -> Result<Value, SkipListError> {
         // println!("extract memtable");
-        let bytes = self.skiplist.search(key.to_vec());
+        let bytes = self.skiplist.search(key);
         match bytes {
             Some(bytes) => {
                 // println!("found in memtable");

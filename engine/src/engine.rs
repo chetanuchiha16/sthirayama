@@ -2,7 +2,7 @@ use std::{
     fs::{self, create_dir_all},
     mem,
     path::{Path, PathBuf},
-    time::Instant,
+    // time::Instant,
 };
 
 use crate::{
@@ -83,7 +83,7 @@ impl Engine {
     }
 
     pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
-        let start = Instant::now();
+        // let start = Instant::now();
         self.wal.append(key, Data(value.to_vec()))?;
         self.memtable.insert(key, value.clone())?;
         let limit = 4 * 1024;
@@ -98,18 +98,18 @@ impl Engine {
             let (old_wal, archived_path) = self.wal.rotate()?;
             tokio::task::spawn_blocking(move || {
                 Self::flush(frozen, path)?;
-                println!("flushed");
+                // println!("flushed");
                 Wal::recycle(old_wal, archived_path)?;
-                println!("recycled");
+                // println!("recycled");
                 Ok::<(), EngineError>(())
             });
             // self.ssts.flush()?;
         }
-        println!(
-            "set {} in {:?}",
-            str::from_utf8(&key)?,
-            Instant::now() - start
-        );
+        // println!(
+        //     "set {} in {:?}",
+        //     str::from_utf8(&key)?,
+        //     Instant::now() - start
+        // );
         Ok(())
     }
 
