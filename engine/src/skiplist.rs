@@ -135,7 +135,11 @@ where
         }
         let cur_k = SkipListNode::get_key(&current);
         let cur_v = SkipListNode::get_value(&current);
-        if cur_k == key { Some(cur_v.to_owned()) } else { None }
+        if cur_k == key {
+            Some(cur_v.to_owned())
+        } else {
+            None
+        }
     }
 
     pub fn insert(&mut self, key: K, value: V) {

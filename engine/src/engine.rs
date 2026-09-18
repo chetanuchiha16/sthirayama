@@ -62,7 +62,8 @@ impl Engine {
                 if ext == "sst" {
                     if let Some(file_name) = entry.path().file_stem() {
                         if let Some(file_name_str) = file_name.to_str() {
-                            sstable_count = file_name_str.parse()?;
+                            let num: usize = file_name_str.parse()?;
+                            sstable_count = sstable_count.max(num + 1);
                         }
                     }
                 }
