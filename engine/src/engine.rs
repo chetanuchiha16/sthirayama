@@ -97,13 +97,13 @@ impl Engine {
             self.sstable_count += 1;
             let path = self.path.join(format!("{:06}.sst", sstable_no));
             let (old_wal, archived_path) = self.wal.rotate()?;
-            tokio::task::spawn_blocking(move || {
+            // tokio::task::spawn_blocking(move || {
                 Self::flush(frozen, path)?;
                 // println!("flushed");
                 Wal::recycle(old_wal, archived_path)?;
                 // println!("recycled");
-                Ok::<(), EngineError>(())
-            });
+                // Ok::<(), EngineError>(())
+            // });
             // self.ssts.flush()?;
         }
         // println!(
