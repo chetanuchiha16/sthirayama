@@ -1,6 +1,15 @@
-use std::io::Write;
+use std::{
+    fs::File,
+    io::{Read, Seek, Write},
+};
 
-use crate::sstable::errors;
+use crate::{
+    skiplist::SkipListKV,
+    sstable::{
+        errors::{self, SsTableReaderError},
+        index::BlockMeta,
+    },
+};
 
 pub struct DataBlock {
     kv_list_bytes: Vec<u8>,
@@ -33,7 +42,51 @@ impl DataBlock {
     pub fn can_fit(&self, entry_size: usize) -> bool {
         self.size + entry_size < 4000
     }
+    
+    pub fn read(
+        file: &mut File,
+        block_meta: &BlockMeta,
+    ) -> Result<Option<Vec<SkipListKV<Vec<u8>, Vec<u8>>>>, SsTableReaderError> {
+        let data_block_offset = block_meta.offset;
+        let data_block_len = block_meta.len;
 
+        file.seek(std::io::SeekFrom::Start(data_block_offset))?;
+        let mut kv_list: Vec<SkipListKV<Vec<u8>, Vec<u8>>> = Vec::new();
+        let mut i = 0;
+        // println!("{:?}", block_meta);
+        while i < data_block_len {
+            let mut k_len_buffer = [0u8; 8];
+            file.read_exact(&mut k_len_buffer)?;
+            let k_len = usize::from_le_bytes(k_len_buffer);
+
+            let mut k_bytes = vec![0u8; k_len];
+            file.read_exact(&mut k_bytes)?;
+            let _k = str::from_utf8(&k_bytes)?;
+
+            let mut v_len_bytes = [0u8; 8];
+            file.read_exact(&mut v_len_bytes)?;
+            let v_len = usize::from_le_bytes(v_len_bytes);
+
+            let mut v_bytes = vec![0u8; v_len];
+            file.read_exact(&mut v_bytes)?;
+            let _v = str::from_utf8(&v_bytes)?;
+
+            let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone());
+
+            kv_list.push(kv);
+            i += k_len_buffer.len() + v_len_bytes.len() + k_bytes.len() + v_bytes.len();
+
+            // let kv = &kv_list[0];
+            // println!("{:?}", kv);
+            // println!(
+            //     "finding {} found {}",
+            //     str::from_utf8(key)?,
+            //     str::from_utf8(&kv.0)?
+            // );
+        }
+        // println!("{:?}", kv_list);
+        Ok(Some(kv_list))
+    }
     pub fn write_to(&self, file: &mut impl Write) -> Result<(), errors::SsTableWriterError> {
         // let len = self.size.to_le_bytes();
         // file.write_all(&len);
