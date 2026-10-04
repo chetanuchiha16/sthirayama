@@ -2,7 +2,7 @@ use std::{
     fs::{self, create_dir_all},
     mem,
     path::{Path, PathBuf},
-    // time::Instant,
+    str::from_utf8,
 };
 
 use crate::{
@@ -83,6 +83,17 @@ impl Engine {
         })
     }
 
+    pub fn run(&self) -> Result<(), EngineError> {
+        let path = self.path.join(format!("{:06}.sst", 1));
+        let mut sstable = SstableReader::new(path)?;
+        for kv in sstable.iter()? {
+            let key = kv.key;
+            let value = Value::from_bytes(&kv.value).unwrap();
+            println!("{} -> {:?}", from_utf8(&key).unwrap(), value)
+        }
+        Ok(())
+    }
+
     pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
         // let start = Instant::now();
         self.wal.append(key, Data(value.to_vec()))?;
@@ -98,11 +109,11 @@ impl Engine {
             let path = self.path.join(format!("{:06}.sst", sstable_no));
             let (old_wal, archived_path) = self.wal.rotate()?;
             // tokio::task::spawn_blocking(move || {
-                Self::flush(frozen, path)?;
-                // println!("flushed");
-                Wal::recycle(old_wal, archived_path)?;
-                // println!("recycled");
-                // Ok::<(), EngineError>(())
+            Self::flush(frozen, path)?;
+            // println!("flushed");
+            Wal::recycle(old_wal, archived_path)?;
+            // println!("recycled");
+            // Ok::<(), EngineError>(())
             // });
             // self.ssts.flush()?;
         }

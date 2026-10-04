@@ -11,6 +11,7 @@ use crate::{
     skiplist::SkipListKV,
     sstable::{
         data_block::DataBlock, errors::SsTableReaderError, footer::Footer, index::IndexBlock,
+        iterator::SstableIterator,
     },
 };
 
@@ -33,7 +34,17 @@ impl SstableReader {
             file,
         })
     }
-
+    pub fn iter(&mut self) -> Result<SstableIterator<'_>, SsTableReaderError> {
+        let index = self.read_index_block()?;
+        let file = &mut self.file;
+        Ok(SstableIterator {
+            file,
+            index,
+            current_entry: 0,
+            current_block: 0,
+            // data_block:DataBlock::read(file, &index.blocks[0])?,
+        })
+    }
     pub fn read_footer(&mut self) -> Result<Footer, SsTableReaderError> {
         self.file.seek(std::io::SeekFrom::End(-8))?;
         let mut buf = [0u8; 8];
@@ -92,7 +103,8 @@ impl SstableReader {
 
         let index_block = self.read_index_block()?.blocks;
         let block_meta = &index_block[block_idx];
-        DataBlock::read(&mut self.file, block_meta)
+        let kv_list = DataBlock::read(&mut self.file, block_meta)?;
+        Ok(Some(kv_list))
     }
 
     #[cfg(not(feature = "use-legacy-search"))]

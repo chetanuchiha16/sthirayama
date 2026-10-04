@@ -23,6 +23,10 @@ impl<K: TypeSkipListKey, V: TypeSkipListValue> SkipListKV<K, V> {
         let kv_bytes_len_as_bytes = kv_as_bytes.len().to_le_bytes();
         (kv_bytes_len_as_bytes, kv_as_bytes)
     }
+
+    // pub fn to_string(&self) -> String {
+    //     let
+    // }
 }
 
 #[derive(Debug)]

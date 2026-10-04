@@ -1,11 +1,12 @@
 #![allow(unused)]
 use std::{
     error::{self, Error},
+    fs::OpenOptions,
     io::{Write, stdin, stdout},
     time::Instant,
 };
 
-use engine::{engine::Engine, engine_error::EngineError};
+use engine::{engine::Engine, engine_error::EngineError, sstable::iterator::SstableIterator};
 
 #[tokio::main]
 async fn main() -> Result<(), EngineError> {
@@ -17,23 +18,25 @@ async fn main() -> Result<(), EngineError> {
     // cli(skiplist)
 
     let mut engine = Engine::new("main")?;
-    let key = format!("{:04}", 0).into_bytes();
-    let value = format!("{:04}", 0 * 2).into_bytes();
-    engine.set(&key, &value)?;
-    for i in (1..5000) {
-        let key = format!("{:04}", i).into_bytes();
-        let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(&key, &value)?;
-    }
+    // let key = format!("{:04}", 0).into_bytes();
+    // let value = format!("{:04}", 0 * 2).into_bytes();
+    // engine.set(&key, &value)?;
+    // for i in (1..5000) {
+    //     let key = format!("{:04}", i).into_bytes();
+    //     let value = format!("{:04}", i * 2).into_bytes();
+    //     engine.set(&key, &value)?;
+    // }
 
-    let key = format!("{:04}", 0).into_bytes();
-    engine.del(&key);
+    // let key = format!("{:04}", 0).into_bytes();
+    // engine.del(&key);
 
-    for i in (5000..10000) {
-        let key = format!("{:04}", i).into_bytes();
-        let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(&key, &value)?;
-    }
+    // for i in (5000..10000) {
+    //     let key = format!("{:04}", i).into_bytes();
+    //     let value = format!("{:04}", i * 2).into_bytes();
+    //     engine.set(&key, &value)?;
+    // }
+
+    engine.run()?;
 
     // for i in (0..10000) {
     //     let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort

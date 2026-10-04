@@ -42,11 +42,11 @@ impl DataBlock {
     pub fn can_fit(&self, entry_size: usize) -> bool {
         self.size + entry_size < 4000
     }
-    
+
     pub fn read(
         file: &mut File,
         block_meta: &BlockMeta,
-    ) -> Result<Option<Vec<SkipListKV<Vec<u8>, Vec<u8>>>>, SsTableReaderError> {
+    ) -> Result<Vec<SkipListKV<Vec<u8>, Vec<u8>>>, SsTableReaderError> {
         let data_block_offset = block_meta.offset;
         let data_block_len = block_meta.len;
 
@@ -85,7 +85,7 @@ impl DataBlock {
             // );
         }
         // println!("{:?}", kv_list);
-        Ok(Some(kv_list))
+        Ok(kv_list)
     }
     pub fn write_to(&self, file: &mut impl Write) -> Result<(), errors::SsTableWriterError> {
         // let len = self.size.to_le_bytes();
