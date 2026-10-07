@@ -86,12 +86,13 @@ impl Engine {
     }
 
     pub fn run(&self) -> Result<(), EngineError> {
-        let path = self.path.join(format!("{:06}.sst", 1));
+        let path = self.path.join(format!("{:06}.sst", 0));
         let mut sstable = SstableReader::new(path)?;
         for kv in sstable.iter()? {
             let key = kv.key;
             let value = Value::from_bytes(&kv.value).unwrap();
-            println!("{} -> {:?}", from_utf8(&key).unwrap(), value)
+            let seq = usize::from_le_bytes(kv.sequence.try_into().unwrap());
+            println!("{} -> {:?} sequence {}", from_utf8(&key).unwrap(), value, seq)
         }
         Ok(())
     }

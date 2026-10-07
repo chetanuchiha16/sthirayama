@@ -56,7 +56,8 @@ impl SstableWriter {
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
 
-            let entry_size = key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len();
+            let seq_len_bytes = sequence.len().to_le_bytes();
+            let entry_size = key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len() + seq_len_bytes.len() + sequence.len();
 
             if !data_block.can_fit(entry_size) {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());

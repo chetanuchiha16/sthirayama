@@ -40,7 +40,7 @@ impl DataBlock {
         self.kv_list_bytes.extend_from_slice(&sequence_len_bytes);
         self.kv_list_bytes.extend_from_slice(&sequence);
 
-        self.size += key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len();
+        self.size += key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len() + sequence.len() + sequence_len_bytes.len();
     }
 
     pub fn can_fit(&self, entry_size: usize) -> bool {
@@ -82,7 +82,7 @@ impl DataBlock {
 
             let mut s_bytes = vec![0u8; s_len];
             file.read_exact(&mut s_bytes)?;
-            let _s = str::from_utf8(&s_bytes)?;
+            let _s = usize::from_le_bytes(s_bytes.clone().try_into().unwrap());
 
             
 
