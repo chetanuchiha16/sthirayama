@@ -10,12 +10,17 @@ use crate::traits::{SkipListIterator, TypeSkipListKey, TypeSkipListValue};
 pub struct SkipListKV<K, V> {
     pub key: K,
     pub value: V,
+    pub sequence: Vec<u8>,
 }
 
 impl<K: TypeSkipListKey, V: TypeSkipListValue> SkipListKV<K, V> {
-    pub fn new(key: K, value: V) -> Self {
+    pub fn new(key: K, value: V, sequence: Vec<u8>) -> Self {
         // Self { key, value }
-        Self { key, value }
+        Self {
+            key,
+            value,
+            sequence: sequence,
+        }
     }
 
     pub fn encode(&self) -> ([u8; 8], Vec<u8>) {
@@ -41,10 +46,10 @@ where
     K: TypeSkipListKey,
     V: TypeSkipListValue,
 {
-    pub fn new(level: usize, key: K, value: V) -> NonNull<Self> {
+    pub fn new(level: usize, key: K, value: V, sequence: Vec<u8>) -> NonNull<Self> {
         let node = unsafe {
             NonNull::new_unchecked(Box::into_raw(Box::new(Self {
-                data: SkipListKV::new(key, value),
+                data: SkipListKV::new(key, value, sequence),
                 forward: (0..=level).map(|_| None).collect(),
                 level,
             })))
@@ -92,7 +97,12 @@ where
 {
     /// create a new skiplist with a sentinel head
     pub fn new(max_level: usize, dummy_k: K, dummy_v: V) -> Self {
-        let head = SkipListNode::new(max_level, dummy_k.clone(), dummy_v.clone());
+        let head = SkipListNode::new(
+            max_level,
+            dummy_k.clone(),
+            dummy_v.clone(),
+            0usize.to_le_bytes().to_vec(),
+        );
         Self {
             max_level,
             head: head,
@@ -146,10 +156,15 @@ where
         }
     }
 
-    pub fn insert(&mut self, key: K, value: V) {
-        let data = &SkipListKV::new(key, value);
+    pub fn insert(&mut self, key: K, value: V, sequence: Vec<u8>) {
+        let data = &SkipListKV::new(key, value, sequence);
         let new_node_level = self.random_level();
-        let mut new_node = SkipListNode::new(new_node_level, data.key.clone(), data.value.clone());
+        let mut new_node = SkipListNode::new(
+            new_node_level,
+            data.key.clone(),
+            data.value.clone(),
+            data.sequence.clone(),
+        );
         let mut update: Vec<NonNull<SkipListNode<K, V>>> = vec![self.head; self.max_level];
         let mut current = self.head; //caused having reference to temp
         for level in (0..self.max_level).rev() {

@@ -14,11 +14,11 @@ fn test_wal_append_and_recover() {
 
     let key1 = b"wal_key1".to_vec();
     let val1 = Value::Data(b"wal_val1".to_vec());
-    wal.append(&key1, val1).unwrap();
+    wal.append(&key1, val1, 0).unwrap();
 
     let key2 = b"wal_key2".to_vec();
     let val2 = Value::Tombstone;
-    wal.append(&key2, val2).unwrap();
+    wal.append(&key2, val2, 0).unwrap();
 
     let mut memtable = Memtable::new();
     wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)
@@ -46,7 +46,7 @@ fn test_wal_recycle() {
 
     let key = b"recycle_key".to_vec();
     let val = Value::Data(b"recycle_val".to_vec());
-    wal.append(&key, val).unwrap();
+    wal.append(&key, val, 0).unwrap();
 
     // Recycle clears existing log
     let (old_wal, archived_path) = wal.rotate().unwrap();

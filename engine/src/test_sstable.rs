@@ -19,7 +19,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        memtable.insert(&key, value)?;
+        memtable.insert(&key, value, 0)?;
     }
     let file = NamedTempFile::new()?;
 
@@ -53,7 +53,7 @@ fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineErro
     for i in 0..count {
         let key = format!("{:04}", i).into_bytes();
         let value = format!("value{}", i).into_bytes();
-        memtable.insert(&key, value)?;
+        memtable.insert(&key, value, 0)?;
     }
 
     let mut writer = SstableWriter::new(path)?;
@@ -164,10 +164,10 @@ fn test_update() -> Result<(), EngineError> {
 
     // Insert original value.
     let key = b"0001".to_vec();
-    memtable.insert(&key, b"old_value".to_vec())?;
+    memtable.insert(&key, b"old_value".to_vec(), 0)?;
 
     // Update the same key.
-    memtable.insert(&key, b"new_value".to_vec())?;
+    memtable.insert(&key, b"new_value".to_vec(), 0)?;
 
     let mut writer = SstableWriter::new(path)?;
     writer.write(memtable)?;

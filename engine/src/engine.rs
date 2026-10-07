@@ -40,6 +40,7 @@ pub struct Engine {
     // sstable : SstableWriter
     path: PathBuf,
     // sstable_meta_list: Vec<SstableMeta>,
+    sequence: usize,
 }
 
 impl Engine {
@@ -80,6 +81,7 @@ impl Engine {
             // ssts: file,
             path: path,
             // sstable_meta_list: Vec::new(),
+            sequence: 0,
         })
     }
 
@@ -96,8 +98,9 @@ impl Engine {
 
     pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
         // let start = Instant::now();
-        self.wal.append(key, Data(value.to_vec()))?;
-        self.memtable.insert(key, value.clone())?;
+        self.sequence += 1;
+        self.wal.append(key, Data(value.to_vec()), self.sequence)?;
+        self.memtable.insert(key, value.clone(), self.sequence)?;
         let limit = 4 * 1024;
 
         if self.memtable.size > limit {
@@ -246,9 +249,10 @@ impl Engine {
     }
     ///delete key
     pub fn del(&mut self, key: &Vec<u8>) -> Result<(), EngineError> {
-        self.wal.append(key, Tombstone)?;
+        self.sequence += 1;
+        self.wal.append(key, Tombstone, self.sequence)?;
         println!("delete {}", str::from_utf8(key).unwrap());
-        self.memtable.delete(key);
+        self.memtable.delete(key, self.sequence);
         Ok(())
     }
 }

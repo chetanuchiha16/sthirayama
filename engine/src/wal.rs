@@ -44,10 +44,10 @@ impl Wal {
         })
     }
     /// append the entry to the wal file after every insert to the skiplist
-    pub fn append(&mut self, key: &Vec<u8>, value: Value) -> std::io::Result<()> {
+    pub fn append(&mut self, key: &Vec<u8>, value: Value, sequence: usize) -> std::io::Result<()> {
         // let key_len_bytes = size_of::<K>().to_le_bytes();
         // let value_len_bytes = size_of::<V>().to_le_bytes();
-        let data = SkipListKV::new(key.clone(), value.to_bytes());
+        let data = SkipListKV::new(key.clone(), value.to_bytes(), sequence.to_le_bytes().to_vec());
         let data_bytes = bitcode::encode(&data);
         let data_len_bytes = data_bytes.len().to_le_bytes();
         self.file.write_all(&data_len_bytes)?;
@@ -115,7 +115,7 @@ impl Wal {
             //         str::from_utf8(&val)
             //     );
             // }
-            skiplist.insert(data.key, data.value);
+            skiplist.insert(data.key, data.value, data.sequence);
         }
         // println!("{}", skiplist);
         // let mut buf = [0u8; 8];

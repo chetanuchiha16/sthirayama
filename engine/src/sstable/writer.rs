@@ -47,7 +47,12 @@ impl SstableWriter {
         let mut data_block = DataBlock::new();
         let mut last_key = &Vec::new();
         let mut offset = 0;
-        for SkipListKV { key, value } in memtable.skiplist.iter() {
+        for SkipListKV {
+            key,
+            value,
+            sequence,
+        } in memtable.skiplist.iter()
+        {
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
 
@@ -62,7 +67,7 @@ impl SstableWriter {
                 data_block = DataBlock::new();
             }
 
-            data_block.add(key, value);
+            data_block.add(key, value, sequence);
             last_key = &key;
         }
 

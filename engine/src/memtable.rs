@@ -31,12 +31,17 @@ impl Memtable {
         }
     }
 
-    pub fn insert(&mut self, key: &Vec<u8>, value: Vec<u8>) -> Result<(), SkipListError> {
+    pub fn insert(
+        &mut self,
+        key: &Vec<u8>,
+        value: Vec<u8>,
+        sequence: usize,
+    ) -> Result<(), SkipListError> {
         let val = Value::Data(value.to_vec()).to_bytes();
         // let val_bytes = val.to_bytes();
         self.size += key.len() + value.len();
         // println!("{}", self.size);
-        self.skiplist.insert(key.clone(), val);
+        self.skiplist.insert(key.clone(), val, sequence.to_le_bytes().to_vec());
         Ok(())
     }
 
@@ -60,9 +65,9 @@ impl Memtable {
         // Ok(bytes)
     }
     ///deletes a key, ie marks the key as tombstone
-    pub fn delete(&mut self, key: &Vec<u8>) {
+    pub fn delete(&mut self, key: &Vec<u8>, sequence: usize) {
         self.skiplist
-            .insert(key.clone(), Value::Tombstone.to_bytes());
+            .insert(key.clone(), Value::Tombstone.to_bytes(), sequence.to_le_bytes().to_vec());
     }
 }
 

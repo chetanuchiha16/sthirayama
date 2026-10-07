@@ -43,24 +43,22 @@ impl<'a> Iterator for SstableIterator<'a> {
     type Item = SkipListKV<Vec<u8>, Vec<u8>>;
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-
             // println!("block {}", self.current_block);
-            if self.current_block >= self.index.blocks.len() 
-            // || self.current_entry >= data_block.len() 
+            if self.current_block >= self.index.blocks.len()
+            // || self.current_entry >= data_block.len()
             {
-            return None;
-        }
-        let block_meta = &self.index.blocks[self.current_block];
-        let data_block =
-        DataBlock::read(&mut self.file, block_meta).unwrap();
-        println!("data block size : {}", data_block.len());
-        // if self.current_entry > block_len {
+                return None;
+            }
+            let block_meta = &self.index.blocks[self.current_block];
+            let data_block = DataBlock::read(&mut self.file, block_meta).unwrap();
+            println!("data block size : {}", data_block.len());
+            // if self.current_entry > block_len {
             if self.current_entry >= data_block.len() {
                 println!("Block {}", self.current_block);
                 self.current_block += 1;
                 // self.data_block =
                 self.current_entry = 0;
-                continue
+                continue;
             }
             self.current_entry += 1;
             return Some(data_block[self.current_entry - 1].clone());
