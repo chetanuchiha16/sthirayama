@@ -5,14 +5,14 @@ use crate::{
 
 #[test]
 fn test_new_skiplistkv() {
-    let skiplist_kv = SkipListKV::new(6, 7);
+    let skiplist_kv = SkipListKV::new(6, 7, 0usize.to_le_bytes().to_vec());
     assert_eq!(skiplist_kv.key, 6);
     assert_eq!(skiplist_kv.value, 7);
 }
 
 #[test]
 fn test_new_skiplist_node() {
-    let skiplist_node = SkipListNode::new(5, 6, 7);
+    let skiplist_node = SkipListNode::new(5, 6, 7, 0usize.to_le_bytes().to_vec());
     let key = SkipListNode::get_key(&skiplist_node);
     let value = SkipListNode::get_value(&skiplist_node);
     assert_eq!(key, &6);
@@ -34,7 +34,7 @@ fn test_new_skiplist() -> Result<(), SkipListError> {
 #[test]
 fn test_insert_and_search() -> Result<(), SkipListError> {
     let mut skiplist = SkipList::new(5, -1, -1);
-    skiplist.insert(6, 7);
+    skiplist.insert(6, 7, 0usize.to_le_bytes().to_vec());
     assert_eq!(skiplist.search(&6), Some(7));
     assert_eq!(skiplist.search(&7), None);
     Ok(())
@@ -44,11 +44,11 @@ fn test_insert_and_search() -> Result<(), SkipListError> {
 fn test_insert_and_update() -> Result<(), SkipListError> {
     let mut skiplist = SkipList::new(5, -1, -1);
 
-    skiplist.insert(6, 7);
+    skiplist.insert(6, 7, 0usize.to_le_bytes().to_vec());
     assert_eq!(skiplist.search(&6), Some(7));
 
     // Same key, new value
-    skiplist.insert(6, 10);
+    skiplist.insert(6, 10, 0usize.to_le_bytes().to_vec());
 
     assert_eq!(skiplist.search(&6), Some(10));
 

@@ -15,10 +15,10 @@ use crate::{
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     println!("creating new skiplist...");
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
-    skip_list.insert(10, 100);
-    skip_list.insert(20, 200);
-    skip_list.insert(5, 50);
-    skip_list.insert(15, 150);
+    skip_list.insert(10, 100, 0usize.to_le_bytes().to_vec());
+    skip_list.insert(20, 200, 0usize.to_le_bytes().to_vec());
+    skip_list.insert(5, 50, 0usize.to_le_bytes().to_vec());
+    skip_list.insert(15, 150, 0usize.to_le_bytes().to_vec());
     println!("{}", skip_list);
 
     println!("{:?}", skip_list.search(&5)); // Some(50)
@@ -52,8 +52,8 @@ pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
 
 pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
-    skip_list.insert(6, 6);
-    let skip_list_node = unsafe { SkipListNode::new(5, 5, 5).as_ref() };
+    skip_list.insert(6, 6, 0usize.to_le_bytes().to_vec());
+    let skip_list_node = unsafe { SkipListNode::new(5, 5, 5, 0usize.to_le_bytes().to_vec()).as_ref() };
     println!("{:?}", skip_list);
     println!("{:?}", skip_list.random_level());
     println!("{:?}", skip_list.max_level);
@@ -95,6 +95,7 @@ pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error:
                 skiplist.insert(
                     command[1].as_bytes().to_vec(),
                     command[2].as_bytes().to_vec(),
+                    0usize.to_le_bytes().to_vec(),
                 );
             }
             "get" => {
@@ -121,8 +122,8 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     while size <= 8000 {
         let key = fastrand::usize(1..=1000).to_string().as_bytes().to_vec();
         let value = fastrand::usize(1..=4000).to_string().as_bytes().to_vec();
-        let data = SkipListKV::new(key, value);
-        memtable.insert(&data.key.clone(), data.value.clone())?;
+        let data = SkipListKV::new(key, value, 0usize.to_le_bytes().to_vec());
+        memtable.insert(&data.key.clone(), data.value.clone(), 0)?;
 
         let data_bytes = bitcode::encode(&data);
         let data_len = data_bytes.len();
@@ -135,8 +136,8 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
 
     let key = 99.to_string().as_bytes().to_vec();
     let value = 6.to_string().as_bytes().to_vec();
-    let data = SkipListKV::new(key, value);
-    memtable.insert(&data.key.clone(), data.value.clone())?;
+    let data = SkipListKV::new(key, value, 0usize.to_le_bytes().to_vec());
+    memtable.insert(&data.key.clone(), data.value.clone(), 0)?;
 
     let mut s = SstableWriter::new("sstable.sst")?;
     s.write(memtable)?;

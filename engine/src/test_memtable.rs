@@ -12,7 +12,7 @@ fn test_memtable_insert_and_extract() {
     let key = b"key1".to_vec();
     let value = b"value1".to_vec();
 
-    memtable.insert(&key, value.clone()).unwrap();
+    memtable.insert(&key, value.clone(), 0).unwrap();
 
     match memtable.extract(&key).unwrap() {
         Value::Data(extracted_val) => assert_eq!(extracted_val, value),
@@ -36,8 +36,8 @@ fn test_memtable_update_value() {
     let mut memtable = Memtable::new();
     let key = b"key1".to_vec();
 
-    memtable.insert(&key, b"initial_val".to_vec()).unwrap();
-    memtable.insert(&key, b"updated_val".to_vec()).unwrap();
+    memtable.insert(&key, b"initial_val".to_vec(), 0).unwrap();
+    memtable.insert(&key, b"updated_val".to_vec(), 0).unwrap();
 
     match memtable.extract(&key).unwrap() {
         Value::Data(extracted_val) => assert_eq!(extracted_val, b"updated_val".to_vec()),
@@ -51,8 +51,8 @@ fn test_memtable_delete() {
     let key = b"key1".to_vec();
     let value = b"value1".to_vec();
 
-    memtable.insert(&key, value).unwrap();
-    memtable.delete(&key);
+    memtable.insert(&key, value, 0).unwrap();
+    memtable.delete(&key, 0);
 
     match memtable.extract(&key).unwrap() {
         Value::Tombstone => (),
@@ -65,7 +65,7 @@ fn test_memtable_delete_non_existent_key() {
     let mut memtable = Memtable::new();
     let key = b"non_existent".to_vec();
 
-    memtable.delete(&key);
+    memtable.delete(&key, 0);
 
     match memtable.extract(&key).unwrap() {
         Value::Tombstone => (),
@@ -80,12 +80,12 @@ fn test_memtable_size_tracking() {
 
     let key1 = b"k1".to_vec(); // len 2
     let val1 = b"v1".to_vec(); // len 2
-    memtable.insert(&key1, val1).unwrap();
+    memtable.insert(&key1, val1, 0).unwrap();
     assert_eq!(memtable.size, 4);
 
     let key2 = b"key2".to_vec(); // len 4
     let val2 = b"value2".to_vec(); // len 6
-    memtable.insert(&key2, val2).unwrap();
+    memtable.insert(&key2, val2, 0).unwrap();
     assert_eq!(memtable.size, 14);
 }
 
