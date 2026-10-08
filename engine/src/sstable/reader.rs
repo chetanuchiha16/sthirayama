@@ -34,9 +34,9 @@ impl SstableReader {
             file,
         })
     }
-    pub fn iter(&mut self) -> Result<SstableIterator<'_>, SsTableReaderError> {
+    pub fn iter(mut self) -> Result<SstableIterator, SsTableReaderError> {
         let index = self.read_index_block()?;
-        let file = &mut self.file;
+        let file = self.file;
         Ok(SstableIterator {
             file,
             index,

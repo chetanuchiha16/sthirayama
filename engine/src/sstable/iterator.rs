@@ -5,8 +5,8 @@ use crate::{
     sstable::{data_block::DataBlock, index::IndexBlock},
 };
 
-pub struct SstableIterator<'a> {
-    pub file: &'a mut File,
+pub struct SstableIterator {
+    pub file: File,
     pub index: IndexBlock,
     pub current_entry: usize,
     pub current_block: usize,
@@ -39,7 +39,7 @@ pub struct SstableIterator<'a> {
 // }
 // }
 
-impl<'a> Iterator for SstableIterator<'a> {
+impl<'a> Iterator for SstableIterator {
     type Item = SkipListKV<Vec<u8>, Vec<u8>>;
     fn next(&mut self) -> Option<Self::Item> {
         loop {

@@ -53,7 +53,8 @@ pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
 pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
     skip_list.insert(6, 6, 0usize.to_le_bytes().to_vec());
-    let skip_list_node = unsafe { SkipListNode::new(5, 5, 5, 0usize.to_le_bytes().to_vec()).as_ref() };
+    let skip_list_node =
+        unsafe { SkipListNode::new(5, 5, 5, 0usize.to_le_bytes().to_vec()).as_ref() };
     println!("{:?}", skip_list);
     println!("{:?}", skip_list.random_level());
     println!("{:?}", skip_list.max_level);

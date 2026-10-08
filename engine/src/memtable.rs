@@ -41,7 +41,8 @@ impl Memtable {
         // let val_bytes = val.to_bytes();
         self.size += key.len() + value.len();
         // println!("{}", self.size);
-        self.skiplist.insert(key.clone(), val, sequence.to_le_bytes().to_vec());
+        self.skiplist
+            .insert(key.clone(), val, sequence.to_le_bytes().to_vec());
         Ok(())
     }
 
@@ -66,8 +67,11 @@ impl Memtable {
     }
     ///deletes a key, ie marks the key as tombstone
     pub fn delete(&mut self, key: &Vec<u8>, sequence: usize) {
-        self.skiplist
-            .insert(key.clone(), Value::Tombstone.to_bytes(), sequence.to_le_bytes().to_vec());
+        self.skiplist.insert(
+            key.clone(),
+            Value::Tombstone.to_bytes(),
+            sequence.to_le_bytes().to_vec(),
+        );
     }
 }
 
