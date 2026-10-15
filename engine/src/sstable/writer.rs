@@ -54,7 +54,7 @@ impl SstableWriter {
         for kv in memtable {
             let key = &kv.borrow().key;
             let value = &kv.borrow().value;
-            let sequence = &kv.borrow().value;
+            let sequence = &kv.borrow().sequence;
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
 
