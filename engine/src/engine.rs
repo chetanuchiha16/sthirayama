@@ -87,7 +87,7 @@ impl Engine {
     }
 
     pub fn run(&self) -> Result<(), EngineError> {
-        let path = self.path.join(format!("{:06}.sst", 0));
+        let path = self.path.join(format!("{:06}.sst", 11));
         let sstable = SstableReader::new(path)?;
         for kv in sstable.iter()? {
             let key = kv.key;
@@ -142,7 +142,7 @@ impl Engine {
         // let sst_count_buf = self.sstable_count.to_le_bytes();
         // self.ssts.write_all(&sst_count_buf);
 
-        let _ = sstable.write(frozen)?;
+        let _ = sstable.write(frozen.skiplist.iter())?;
         // let _ = sstable.write()?;
         // let last_key_len = last_key.len();
         // self.ssts.write_all(&last_key_len.to_le_bytes())?;
@@ -153,6 +153,17 @@ impl Engine {
         // self.sstable_meta_list.push(sstable_meta);
         //     Ok::<(), EngineError>(())
         // });
+        Ok(())
+    }
+
+    pub fn compact(&mut self) -> Result<(), EngineError> {
+        let sstable_no = self.sstable_count;
+        self.sstable_count += 1;
+        let path = self.path.join(format!("{:06}.sst", sstable_no));
+        let sstable = SstableWriter::new(path)?;
+        let sstable_iters = self.get_sst_iters(0, 5)?;
+        let mut comp = Compaction { writer: sstable };
+        comp.compact(sstable_iters)?;
         Ok(())
     }
 
@@ -167,10 +178,9 @@ impl Engine {
         Ok(vec)
     }
 
-    pub fn print_iters(&self) -> Result<(), EngineError> {
+    pub fn print_iters(&mut self) -> Result<(), EngineError> {
         let iter_vec = self.get_sst_iters(0, 4)?;
-        let comp = Compaction {};
-        let merged = comp.merge_iterators(iter_vec);
+        let merged = Compaction::merge_iterators(iter_vec);
         for m in merged {
             println!("{}", str::from_utf8(&m.key)?);
         }

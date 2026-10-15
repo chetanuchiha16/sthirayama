@@ -1,4 +1,5 @@
 use std::{
+    borrow::Borrow,
     fs::{File, OpenOptions},
     io::{self, Seek, Write},
     path::Path,
@@ -6,7 +7,6 @@ use std::{
 
 use crate::{
     config::get_sstable_path,
-    memtable::Memtable,
     skiplist::SkipListKV,
     sstable::{
         data_block::DataBlock,
@@ -42,17 +42,19 @@ impl SstableWriter {
             bytes: Vec::new(),
         })
     }
-    pub fn build(&mut self, memtable: Memtable) -> Result<Vec<u8>, SsTableWriterError> {
+    pub fn build<I, T>(&mut self, memtable: I) -> Result<Vec<u8>, SsTableWriterError>
+    where
+        I: Iterator<Item = T>,
+        T: Borrow<SkipListKV<Vec<u8>, Vec<u8>>>,
+    {
         // writing data block
         let mut data_block = DataBlock::new();
-        let mut last_key = &Vec::new();
+        let mut last_key = Vec::new();
         let mut offset = 0;
-        for SkipListKV {
-            key,
-            value,
-            sequence,
-        } in memtable.skiplist.iter()
-        {
+        for kv in memtable {
+            let key = &kv.borrow().key;
+            let value = &kv.borrow().value;
+            let sequence = &kv.borrow().value;
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
 
@@ -73,8 +75,8 @@ impl SstableWriter {
                 data_block = DataBlock::new();
             }
 
-            data_block.add(key, value, sequence);
-            last_key = &key;
+            data_block.add(key.as_slice(), value.as_slice(), sequence.as_slice());
+            last_key = key.to_vec();
         }
 
         if data_block.size > 0 {
@@ -98,7 +100,11 @@ impl SstableWriter {
         Ok(last_key.to_owned())
     }
 
-    pub fn write(&mut self, memtable: Memtable) -> Result<Vec<u8>, SsTableWriterError> {
+    pub fn write<I, T>(&mut self, memtable: I) -> Result<Vec<u8>, SsTableWriterError>
+    where
+        I: Iterator<Item = T>,
+        T: Borrow<SkipListKV<Vec<u8>, Vec<u8>>>,
+    {
         let last_key = self.build(memtable)?;
         self.file.seek(io::SeekFrom::Start(0))?;
         self.file.write_all(&self.bytes)?;

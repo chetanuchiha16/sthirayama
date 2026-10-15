@@ -141,7 +141,7 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     memtable.insert(&data.key.clone(), data.value.clone(), 0)?;
 
     let mut s = SstableWriter::new("sstable.sst")?;
-    s.write(memtable)?;
+    s.write(memtable.skiplist.iter())?;
     // s.read();
     Ok(())
 }

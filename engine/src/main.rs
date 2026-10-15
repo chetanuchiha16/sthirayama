@@ -36,7 +36,7 @@ async fn main() -> Result<(), EngineError> {
     //     engine.set(&key, &value)?;
     // }
 
-    // engine.run()?;
+    engine.run()?;
 
     // for i in (0..10000) {
     //     let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort
@@ -57,7 +57,7 @@ async fn main() -> Result<(), EngineError> {
     //     }
     //     None => println!("Not found"),
     // }
-    engine.print_iters();
+    // engine.compact()?;
 
     Ok(())
 }

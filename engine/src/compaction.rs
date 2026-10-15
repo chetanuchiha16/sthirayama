@@ -1,8 +1,11 @@
 use std::{collections::BinaryHeap, iter};
 
-use crate::{skiplist::SkipListKV, sstable::iterator::SstableIterator};
+use crate::{
+    engine_error::EngineError,
+    skiplist::SkipListKV,
+    sstable::{iterator::SstableIterator, writer::SstableWriter},
+};
 
-pub struct Compaction {}
 struct HeapItem<I: Iterator> {
     next_item: I::Item,
     iter: I,
@@ -32,10 +35,12 @@ impl PartialOrd for HeapItem<SstableIterator> {
         )
     }
 }
+pub struct Compaction {
+    pub writer: SstableWriter,
+}
 
 impl Compaction {
-    pub fn merge_iterators(
-        &self,
+    pub fn merge_iterators<'a>(
         iter_vec: Vec<SstableIterator>,
     ) -> impl Iterator<Item = SkipListKV<Vec<u8>, Vec<u8>>> {
         let mut heap = BinaryHeap::new();
@@ -53,5 +58,11 @@ impl Compaction {
             }
             Some(item)
         })
+    }
+
+    pub fn compact(&mut self, iter_vec: Vec<SstableIterator>) -> Result<(), EngineError> {
+        let merged = Self::merge_iterators(iter_vec);
+        self.writer.write(merged)?;
+        Ok(())
     }
 }
