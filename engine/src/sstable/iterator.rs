@@ -51,7 +51,7 @@ impl<'a> Iterator for SstableIterator {
             }
             let block_meta = &self.index.blocks[self.current_block];
             let data_block = DataBlock::read(&mut self.file, block_meta).unwrap();
-            println!("data block size : {}", data_block.len());
+            // println!("data block size : {}", data_block.len());
             // if self.current_entry > block_len {
             if self.current_entry >= data_block.len() {
                 println!("Block {}", self.current_block);
@@ -60,8 +60,9 @@ impl<'a> Iterator for SstableIterator {
                 self.current_entry = 0;
                 continue;
             }
+            let item = data_block[self.current_entry].clone();
             self.current_entry += 1;
-            return Some(data_block[self.current_entry - 1].clone());
+            return Some(item);
         }
     }
 }

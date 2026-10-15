@@ -6,13 +6,14 @@ use std::{
 };
 
 use crate::{
+    compaction::Compaction,
     config::get_sstable_path,
     engine_error::EngineError,
     memtable::{
         Memtable,
         Value::{self, Data, Tombstone},
     },
-    sstable::{reader::SstableReader, writer::SstableWriter},
+    sstable::{iterator::SstableIterator, reader::SstableReader, writer::SstableWriter},
     wal::Wal,
 };
 
@@ -87,12 +88,17 @@ impl Engine {
 
     pub fn run(&self) -> Result<(), EngineError> {
         let path = self.path.join(format!("{:06}.sst", 0));
-        let mut sstable = SstableReader::new(path)?;
+        let sstable = SstableReader::new(path)?;
         for kv in sstable.iter()? {
             let key = kv.key;
             let value = Value::from_bytes(&kv.value).unwrap();
             let seq = usize::from_le_bytes(kv.sequence.try_into().unwrap());
-            println!("{} -> {:?} sequence {}", from_utf8(&key).unwrap(), value, seq)
+            println!(
+                "{} -> {:?} sequence {}",
+                from_utf8(&key).unwrap(),
+                value,
+                seq
+            )
         }
         Ok(())
     }
@@ -147,6 +153,27 @@ impl Engine {
         // self.sstable_meta_list.push(sstable_meta);
         //     Ok::<(), EngineError>(())
         // });
+        Ok(())
+    }
+
+    fn get_sst_iters(&self, start: usize, end: usize) -> Result<Vec<SstableIterator>, EngineError> {
+        let mut vec = Vec::new();
+        for i in start..end {
+            let path = self.path.join(format!("{:06}.sst", i));
+            let sstable = SstableReader::new(path)?;
+            let iterator = sstable.iter()?;
+            vec.push(iterator);
+        }
+        Ok(vec)
+    }
+
+    pub fn print_iters(&self) -> Result<(), EngineError> {
+        let iter_vec = self.get_sst_iters(0, 4)?;
+        let comp = Compaction {};
+        let merged = comp.merge_iterators(iter_vec);
+        for m in merged {
+            println!("{}", str::from_utf8(&m.key)?);
+        }
         Ok(())
     }
 
