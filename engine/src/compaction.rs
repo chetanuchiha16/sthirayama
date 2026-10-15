@@ -13,25 +13,25 @@ struct HeapItem<I: Iterator> {
 
 impl Ord for HeapItem<SstableIterator> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.next_item
+        other.next_item
             .key
-            .cmp(&other.next_item.key)
-            .then_with(|| other.next_item.sequence.cmp(&self.next_item.sequence))
+            .cmp(&self.next_item.key)
+            .then_with(|| self.next_item.sequence.cmp(&other.next_item.sequence))
     }
 }
 impl Eq for HeapItem<SstableIterator> {}
 impl PartialEq for HeapItem<SstableIterator> {
     fn eq(&self, other: &Self) -> bool {
-        self.next_item.key == other.next_item.key
+        other.next_item.key == self.next_item.key
     }
 }
 impl PartialOrd for HeapItem<SstableIterator> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(
-            self.next_item
+            other.next_item
                 .key
-                .cmp(&other.next_item.key)
-                .then_with(|| other.next_item.sequence.cmp(&self.next_item.sequence)),
+                .cmp(&self.next_item.key)
+                .then_with(|| self.next_item.sequence.cmp(&other.next_item.sequence)),
         )
     }
 }
