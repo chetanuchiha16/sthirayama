@@ -36,26 +36,25 @@ async fn main() -> Result<(), EngineError> {
         engine.set(&key, &value)?;
     }
 
-    // for i in (0..10000) {
-    //     let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort
-    //     let val = engine.get(&key)?;
-    //
-    //     println!(
-    //         "finding {}, {:?} from main",
-    //         String::from_utf8(key.to_vec())?,
-    //         val.map(|x| { String::from_utf8(x.to_vec()) })
-    //     );
-    // }
-    // let key = format!("{:04}", 0).into_bytes();
-    // engine.del(&key);
-    // let val = engine.get(&key)?;
-    // match val {
-    //     Some(val) => {
-    //         println!("{:?}", str::from_utf8(&val)?);
-    //     }
-    //     None => println!("Not found"),
-    // }
-    // engine.compact()?;
+    for i in (0..10000) {
+        let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort
+        let val = engine.get(&key)?;
+
+        println!(
+            "finding {}, {:?} from main",
+            String::from_utf8(key.to_vec())?,
+            val.map(|x| { String::from_utf8(x.to_vec()) })
+        );
+    }
+    let key = format!("{:04}", 0).into_bytes();
+    engine.del(&key);
+    let val = engine.get(&key)?;
+    match val {
+        Some(val) => {
+            println!("{:?}", str::from_utf8(&val)?);
+        }
+        None => println!("Not found"),
+    }
     // engine.run()?;
 
     Ok(())

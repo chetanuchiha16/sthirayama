@@ -1,5 +1,5 @@
 use std::{
-    fs::{self, create_dir_all},
+    fs::{self, create_dir_all, remove_file},
     mem,
     path::{Path, PathBuf},
     str::from_utf8,
@@ -37,6 +37,7 @@ pub struct Engine {
     // immutable_memtable: Option<Memtable>,
     wal: Wal,
     sstable_count: usize,
+    active_sstables: Vec<usize>,
     // ssts: File,
     // sstable : SstableWriter
     path: PathBuf,
@@ -79,6 +80,7 @@ impl Engine {
             // immutable_memtable: None,
             wal,
             sstable_count,
+            active_sstables: Vec::new(),
             // ssts: file,
             path: path,
             // sstable_meta_list: Vec::new(),
@@ -114,10 +116,14 @@ impl Engine {
             let frozen = mem::replace(&mut self.memtable, Memtable::new());
             //because you need new sstable for a new frozen memtable anyway
             let sstable_no = self.sstable_count;
+            self.active_sstables.push(sstable_no);
             self.sstable_count += 1;
             let (old_wal, archived_path) = self.wal.rotate()?;
             // tokio::task::spawn_blocking(move || {
             Self::flush(frozen, self.path.clone(), sstable_no)?;
+            if self.active_sstables.len() > 4 {
+                self.compact()?;
+            }
             // println!("flushed");
             Wal::recycle(old_wal, archived_path)?;
             // println!("recycled");
@@ -155,18 +161,30 @@ impl Engine {
     }
 
     pub fn compact(&mut self) -> Result<(), EngineError> {
+        if self.active_sstables.len() <= 4 {
+            return Ok(());
+        }
+        let to_compact = self.active_sstables[..4].to_vec();
         let sstable_no = self.sstable_count;
+        // self.active_sstables.push(sstable_no);
         self.sstable_count += 1;
         let sstable = SstableWriter::new(self.path.clone(), sstable_no)?;
-        let sstable_iters = self.get_sst_iters(0, 5)?;
+        let sstable_iters = self.get_sst_iters(&to_compact)?;
         let mut comp = Compaction { writer: sstable };
         comp.compact(sstable_iters)?;
+        for &i in to_compact.iter() {
+            let path = self.path.join(format!("{:06}.sst", i));
+            remove_file(path)?;
+        }
+        // self.active_sstables = self.active_sstables[4..].to_vec();
+        self.active_sstables.drain(..4);
+        self.active_sstables.insert(0, sstable_no);
         Ok(())
     }
 
-    fn get_sst_iters(&self, start: usize, end: usize) -> Result<Vec<SstableIterator>, EngineError> {
+    fn get_sst_iters(&self, to_compact: &[usize]) -> Result<Vec<SstableIterator>, EngineError> {
         let mut vec = Vec::new();
-        for i in start..end {
+        for &i in to_compact.into_iter() {
             let sstable = SstableReader::new(self.path.clone(), i)?;
             let iterator = sstable.iter()?;
             vec.push(iterator);
@@ -174,8 +192,8 @@ impl Engine {
         Ok(vec)
     }
 
-    pub fn print_iters(&mut self) -> Result<(), EngineError> {
-        let iter_vec = self.get_sst_iters(0, 4)?;
+    pub fn print_iters(&mut self, to_compact: &[usize]) -> Result<(), EngineError> {
+        let iter_vec = self.get_sst_iters(to_compact)?;
         let merged = Compaction::merge_iterators(iter_vec);
         for m in merged {
             println!("{}", str::from_utf8(&m.key)?);
@@ -235,7 +253,7 @@ impl Engine {
                 // let Some(i) = self.get_key_file_path(&key)? else {
                 //     return Ok(None);
                 // };
-                for i in (0..self.sstable_count).rev() {
+                for &i in self.active_sstables.iter().rev() {
                     let mut sstable = SstableReader::new(self.path.clone(), i)?;
 
                     // if let Some(res) = sstable.binary_search_data(&key)? {
