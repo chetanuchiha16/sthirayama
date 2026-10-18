@@ -140,14 +140,15 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     let data = SkipListKV::new(key, value, 0usize.to_le_bytes().to_vec());
     memtable.insert(&data.key.clone(), data.value.clone(), 0)?;
 
-    let mut s = SstableWriter::new("sstable.sst")?;
+    let sstable_path = crate::config::get_sstable_path()?;
+    let mut s = SstableWriter::new(sstable_path, 0)?;
     s.write(memtable.skiplist.iter())?;
     // s.read();
     Ok(())
 }
 
 pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
-    let mut sstable_reader = SstableReader::new("sstable.sst")?;
+    let mut sstable_reader = SstableReader::new("000000.sst")?;
     // sstable_reader.read_footer();
     // sstable_reader.read_index()?;
     let num = 99;

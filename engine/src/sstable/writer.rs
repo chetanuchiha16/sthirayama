@@ -1,12 +1,11 @@
 use std::{
     borrow::Borrow,
-    fs::{File, OpenOptions},
+    fs::{File, OpenOptions, rename},
     io::{self, Seek, Write},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use crate::{
-    config::get_sstable_path,
     skiplist::SkipListKV,
     sstable::{
         data_block::DataBlock,
@@ -21,25 +20,31 @@ pub struct SstableWriter {
     // memtable: Memtable,
     index: IndexBlock,
     bytes: Vec<u8>,
+    temp_path: PathBuf,
+    final_path: PathBuf,
 }
 
 impl SstableWriter {
-    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, SsTableWriterError> {
-        let sstable_path = get_sstable_path();
+    pub fn new<T: AsRef<Path>>(path: T, file_no: usize) -> Result<Self, SsTableWriterError> {
+        // let sstable_path = get_sstable_path();//sstable/main/filename
+        let final_path = path.as_ref().join(format!("{:06}.sst", file_no));
 
-        let sstable_file = sstable_path?.join(path);
+        let temp_path = path.as_ref().join(format!("{:06}.tmp", file_no));
+        // let sstable_file = sstable_path?.join(path);
         let file = OpenOptions::new()
             .create(true)
             .read(true)
             .write(true)
             .truncate(true)
-            .open(&sstable_file)?;
+            .open(&temp_path)?;
         let index = IndexBlock::new();
         Ok(Self {
             file,
             // memtable,
             index,
             bytes: Vec::new(),
+            temp_path,
+            final_path,
         })
     }
     pub fn build<I, T>(&mut self, memtable: I) -> Result<Vec<u8>, SsTableWriterError>
@@ -109,6 +114,7 @@ impl SstableWriter {
         self.file.seek(io::SeekFrom::Start(0))?;
         self.file.write_all(&self.bytes)?;
         self.file.flush()?;
+        rename(&self.temp_path, &self.final_path)?;
         Ok(last_key)
     }
 }

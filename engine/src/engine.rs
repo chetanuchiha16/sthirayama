@@ -46,7 +46,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, EngineError> {
-        let path = get_sstable_path()?.join(&path);
+        let path = get_sstable_path()?.join(&path); //sstable/main
         create_dir_all(&path)?;
         // let path = path.as_ref().join(".sst");
         // let ssts_path = get_sstable_path().join(&path);
@@ -116,10 +116,9 @@ impl Engine {
             //because you need new sstable for a new frozen memtable anyway
             let sstable_no = self.sstable_count;
             self.sstable_count += 1;
-            let path = self.path.join(format!("{:06}.sst", sstable_no));
             let (old_wal, archived_path) = self.wal.rotate()?;
             // tokio::task::spawn_blocking(move || {
-            Self::flush(frozen, path)?;
+            Self::flush(frozen, self.path.clone(), sstable_no)?;
             // println!("flushed");
             Wal::recycle(old_wal, archived_path)?;
             // println!("recycled");
@@ -135,9 +134,9 @@ impl Engine {
         Ok(())
     }
 
-    fn flush(frozen: Memtable, path: PathBuf) -> Result<(), EngineError> {
+    fn flush(frozen: Memtable, path: PathBuf, file_no: usize) -> Result<(), EngineError> {
         // tokio::task::spawn(async move {
-        let mut sstable = SstableWriter::new(path)?;
+        let mut sstable = SstableWriter::new(path, file_no)?;
 
         // let sst_count_buf = self.sstable_count.to_le_bytes();
         // self.ssts.write_all(&sst_count_buf);
@@ -159,8 +158,7 @@ impl Engine {
     pub fn compact(&mut self) -> Result<(), EngineError> {
         let sstable_no = self.sstable_count;
         self.sstable_count += 1;
-        let path = self.path.join(format!("{:06}.sst", sstable_no));
-        let sstable = SstableWriter::new(path)?;
+        let sstable = SstableWriter::new(self.path.clone(), sstable_no)?;
         let sstable_iters = self.get_sst_iters(0, 5)?;
         let mut comp = Compaction { writer: sstable };
         comp.compact(sstable_iters)?;
