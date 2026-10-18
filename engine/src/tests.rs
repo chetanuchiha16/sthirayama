@@ -148,7 +148,8 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
 }
 
 pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
-    let mut sstable_reader = SstableReader::new("000000.sst", 0)?;
+    let sstable_path = crate::config::get_sstable_path()?;
+    let mut sstable_reader = SstableReader::new(sstable_path, 0)?;
     // sstable_reader.read_footer();
     // sstable_reader.read_index()?;
     let num = 99;

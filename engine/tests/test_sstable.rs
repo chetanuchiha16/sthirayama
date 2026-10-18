@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tempfile::tempdir;
 
 use engine::{
@@ -24,8 +24,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     let mut writer = SstableWriter::new(path, file_no)?;
     writer.write(memtable.skiplist.iter())?;
 
-    let sst_path = path.join(format!("{:06}.sst", file_no));
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    let mut reader = SstableReader::new(path, file_no)?;
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -39,7 +38,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     Ok(())
 }
 
-fn build_sstable<T: AsRef<Path>>(dir: T, count: usize) -> Result<PathBuf, EngineError> {
+fn build_sstable<T: AsRef<Path>>(dir: T, count: usize) -> Result<(), EngineError> {
     let mut memtable = Memtable::new();
 
     for i in 0..count {
@@ -52,15 +51,15 @@ fn build_sstable<T: AsRef<Path>>(dir: T, count: usize) -> Result<PathBuf, Engine
     let mut writer = SstableWriter::new(&dir, file_no)?;
     writer.write(memtable.skiplist.iter())?;
 
-    Ok(dir.as_ref().join(format!("{:06}.sst", file_no)))
+    Ok(())
 }
 
 #[test]
 fn test_first_key() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let sst_path = build_sstable(dir.path(), 1000)?;
+    build_sstable(dir.path(), 1000)?;
 
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    let mut reader = SstableReader::new(dir.path(), 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
@@ -73,8 +72,8 @@ fn test_first_key() -> Result<(), EngineError> {
 #[test]
 fn test_last_key() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(dir.path(), 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0999".to_vec())?,
@@ -87,8 +86,8 @@ fn test_last_key() -> Result<(), EngineError> {
 #[test]
 fn test_middle_key() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(dir.path(), 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0500".to_vec())?,
@@ -101,8 +100,8 @@ fn test_middle_key() -> Result<(), EngineError> {
 #[test]
 fn test_key_not_found() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(dir.path(), 0)?;
 
     assert_eq!(reader.binary_search_data(&b"1500".to_vec())?, Value::None);
 
@@ -112,8 +111,8 @@ fn test_key_not_found() -> Result<(), EngineError> {
 #[test]
 fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(dir.path(), 0)?;
 
     assert_eq!(reader.binary_search_data(&b"-001".to_vec())?, Value::None);
 
@@ -123,8 +122,8 @@ fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
 #[test]
 fn test_single_entry() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let sst_path = build_sstable(dir.path(), 1)?;
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    build_sstable(dir.path(), 1)?;
+    let mut reader = SstableReader::new(dir.path(), 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
@@ -154,8 +153,7 @@ fn test_update() -> Result<(), EngineError> {
     let mut writer = SstableWriter::new(path, file_no)?;
     writer.write(memtable.skiplist.iter())?;
 
-    let sst_path = path.join(format!("{:06}.sst", file_no));
-    let mut reader = SstableReader::new(sst_path, 0)?;
+    let mut reader = SstableReader::new(path, file_no)?;
 
     assert_eq!(
         reader.binary_search_data(&key)?,
