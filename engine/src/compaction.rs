@@ -49,14 +49,24 @@ impl Compaction {
                 heap.push(HeapItem { next_item, iter });
             }
         }
+        let mut last: Option<Vec<u8>> = None;
         iter::from_fn(move || {
-            let Some(top) = heap.pop() else { return None };
-            let item = top.next_item;
-            let mut iter = top.iter;
-            if let Some(next_item) = iter.next() {
-                heap.push(HeapItem { next_item, iter });
-            }
-            Some(item)
+            while let Some(top) = heap.pop() {
+
+                let item = top.next_item;
+                let mut iter = top.iter;
+                if let Some(next_item) = iter.next() {
+                    heap.push(HeapItem { next_item, iter });
+                }
+                if let Some(ref last_key) = last {
+                    if last_key == &item.key {
+                        continue;
+                    }
+                }
+                last = Some(item.key.clone());
+                return Some(item)
+            } 
+            return None;
         })
     }
 
