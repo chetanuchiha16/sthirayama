@@ -1,14 +1,12 @@
-use crate::{
+use engine::{
     memtable::{Memtable, Value},
     wal::Wal,
 };
 
 #[test]
 fn test_wal_append_and_recover() {
-    let _ = std::fs::create_dir_all("wal");
-    let tmpfile = tempfile::NamedTempFile::new().unwrap();
-    let path = tmpfile.path();
-    let mut wal = Wal::new(path.parent().unwrap()).unwrap();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let mut wal = Wal::new(temp_dir.path()).unwrap();
     let (old_wal, archived_path) = wal.rotate().unwrap();
     let _ = Wal::recycle(old_wal, archived_path);
 
@@ -37,10 +35,8 @@ fn test_wal_append_and_recover() {
 
 #[test]
 fn test_wal_recycle() {
-    let _ = std::fs::create_dir_all("wal");
-    let tmpfile = tempfile::NamedTempFile::new().unwrap();
-    let path = tmpfile.path();
-    let mut wal = Wal::new(path.parent().unwrap()).unwrap();
+    let temp_dir = tempfile::tempdir().unwrap();
+    let mut wal = Wal::new(temp_dir.path()).unwrap();
     let (old_wal, archived_path) = wal.rotate().unwrap();
     let _ = Wal::recycle(old_wal, archived_path);
 

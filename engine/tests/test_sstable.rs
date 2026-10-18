@@ -1,6 +1,7 @@
-use tempfile::NamedTempFile;
+use std::path::{Path, PathBuf};
+use tempfile::tempdir;
 
-use crate::{
+use engine::{
     engine_error::EngineError,
     memtable::{Memtable, Value},
     sstable::{reader::SstableReader, writer::SstableWriter},
@@ -8,11 +9,6 @@ use crate::{
 
 #[test]
 fn test_sstable_read_write() -> Result<(), EngineError> {
-    use std::fs;
-
-    let _ = fs::remove_file("table.sst");
-
-    // let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
     let mut memtable = Memtable::new();
 
     // Create multiple blocks
@@ -21,14 +17,15 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
         let value = format!("value{}", i).into_bytes();
         memtable.insert(&key, value, 0)?;
     }
-    let file = NamedTempFile::new()?;
+    let dir = tempdir()?;
+    let path = dir.path();
+    let file_no = 0;
 
-    let path = file.path();
-
-    let mut writer = SstableWriter::new(path)?;
+    let mut writer = SstableWriter::new(path, file_no)?;
     writer.write(memtable.skiplist.iter())?;
 
-    let mut reader = SstableReader::new(path)?;
+    let sst_path = path.join(format!("{:06}.sst", file_no));
+    let mut reader = SstableReader::new(sst_path)?;
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -42,12 +39,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     Ok(())
 }
 
-use std::{fs, path::Path};
-
-fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineError> {
-    let _ = fs::remove_file(&path);
-
-    // let mut skiplist = SkipList::<Vec<u8>, Vec<u8>>::new(5, vec![b'0'], vec![b'0']);
+fn build_sstable<T: AsRef<Path>>(dir: T, count: usize) -> Result<PathBuf, EngineError> {
     let mut memtable = Memtable::new();
 
     for i in 0..count {
@@ -56,20 +48,19 @@ fn build_sstable<T: AsRef<Path>>(path: T, count: usize) -> Result<(), EngineErro
         memtable.insert(&key, value, 0)?;
     }
 
-    let mut writer = SstableWriter::new(path)?;
+    let file_no = 0;
+    let mut writer = SstableWriter::new(&dir, file_no)?;
     writer.write(memtable.skiplist.iter())?;
 
-    Ok(())
+    Ok(dir.as_ref().join(format!("{:06}.sst", file_no)))
 }
 
 #[test]
 fn test_first_key() -> Result<(), EngineError> {
-    let file = NamedTempFile::new()?;
+    let dir = tempdir()?;
+    let sst_path = build_sstable(dir.path(), 1000)?;
 
-    let path = file.path();
-    build_sstable(path, 1000)?;
-
-    let mut reader = SstableReader::new(path)?;
+    let mut reader = SstableReader::new(sst_path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
@@ -81,11 +72,9 @@ fn test_first_key() -> Result<(), EngineError> {
 
 #[test]
 fn test_last_key() -> Result<(), EngineError> {
-    let file = NamedTempFile::new()?;
-
-    let path = file.path();
-    build_sstable(path, 1000)?;
-    let mut reader = SstableReader::new(path)?;
+    let dir = tempdir()?;
+    let sst_path = build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(sst_path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0999".to_vec())?,
@@ -97,11 +86,9 @@ fn test_last_key() -> Result<(), EngineError> {
 
 #[test]
 fn test_middle_key() -> Result<(), EngineError> {
-    let file = NamedTempFile::new()?;
-
-    let path = file.path();
-    build_sstable(path, 1000)?;
-    let mut reader = SstableReader::new(path)?;
+    let dir = tempdir()?;
+    let sst_path = build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(sst_path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0500".to_vec())?,
@@ -113,11 +100,9 @@ fn test_middle_key() -> Result<(), EngineError> {
 
 #[test]
 fn test_key_not_found() -> Result<(), EngineError> {
-    let file = NamedTempFile::new()?;
-
-    let path = file.path();
-    build_sstable(path, 1000)?;
-    let mut reader = SstableReader::new(path)?;
+    let dir = tempdir()?;
+    let sst_path = build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(sst_path)?;
 
     assert_eq!(reader.binary_search_data(&b"1500".to_vec())?, Value::None);
 
@@ -126,11 +111,9 @@ fn test_key_not_found() -> Result<(), EngineError> {
 
 #[test]
 fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
-    let file = NamedTempFile::new()?;
-
-    let path = file.path();
-    build_sstable(path, 1000)?;
-    let mut reader = SstableReader::new(path)?;
+    let dir = tempdir()?;
+    let sst_path = build_sstable(dir.path(), 1000)?;
+    let mut reader = SstableReader::new(sst_path)?;
 
     assert_eq!(reader.binary_search_data(&b"-001".to_vec())?, Value::None);
 
@@ -139,11 +122,9 @@ fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
 
 #[test]
 fn test_single_entry() -> Result<(), EngineError> {
-    let file = NamedTempFile::new()?;
-
-    let path = file.path();
-    build_sstable(path, 1)?;
-    let mut reader = SstableReader::new(path)?;
+    let dir = tempdir()?;
+    let sst_path = build_sstable(dir.path(), 1)?;
+    let mut reader = SstableReader::new(sst_path)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
@@ -157,8 +138,9 @@ fn test_single_entry() -> Result<(), EngineError> {
 
 #[test]
 fn test_update() -> Result<(), EngineError> {
-    let file = NamedTempFile::new()?;
-    let path = file.path();
+    let dir = tempdir()?;
+    let path = dir.path();
+    let file_no = 0;
 
     let mut memtable = Memtable::new();
 
@@ -169,10 +151,11 @@ fn test_update() -> Result<(), EngineError> {
     // Update the same key.
     memtable.insert(&key, b"new_value".to_vec(), 0)?;
 
-    let mut writer = SstableWriter::new(path)?;
+    let mut writer = SstableWriter::new(path, file_no)?;
     writer.write(memtable.skiplist.iter())?;
 
-    let mut reader = SstableReader::new(path)?;
+    let sst_path = path.join(format!("{:06}.sst", file_no));
+    let mut reader = SstableReader::new(sst_path)?;
 
     assert_eq!(
         reader.binary_search_data(&key)?,

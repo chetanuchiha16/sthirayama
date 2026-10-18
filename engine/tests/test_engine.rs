@@ -1,4 +1,4 @@
-use crate::engine::Engine;
+use engine::engine::Engine;
 
 #[test]
 fn test_set_and_get_from_memtable() {
