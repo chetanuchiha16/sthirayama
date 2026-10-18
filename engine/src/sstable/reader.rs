@@ -7,7 +7,6 @@ use std::{
 #[cfg(not(feature = "use-legacy-search"))]
 use crate::memtable::Value;
 use crate::{
-    config::get_sstable_path,
     skiplist::SkipListKV,
     sstable::{
         data_block::DataBlock, errors::SsTableReaderError, footer::Footer, index::IndexBlock,
@@ -21,10 +20,10 @@ pub struct SstableReader {
 }
 
 impl SstableReader {
-    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, SsTableReaderError> {
+    pub fn new<T: AsRef<Path>>(path: T, sstable_no: usize) -> Result<Self, SsTableReaderError> {
         // let sstable_root = PathBuf::from("../sstable");
-        let sstable_path = get_sstable_path();
-        let sstable_file = sstable_path?.join(path);
+
+        let sstable_file = path.as_ref().join(format!("{:06}.sst", sstable_no));
         let file = OpenOptions::new()
             .read(true)
             // .append(true)

@@ -25,7 +25,7 @@ fn test_sstable_read_write() -> Result<(), EngineError> {
     writer.write(memtable.skiplist.iter())?;
 
     let sst_path = path.join(format!("{:06}.sst", file_no));
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -60,7 +60,7 @@ fn test_first_key() -> Result<(), EngineError> {
     let dir = tempdir()?;
     let sst_path = build_sstable(dir.path(), 1000)?;
 
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
@@ -74,7 +74,7 @@ fn test_first_key() -> Result<(), EngineError> {
 fn test_last_key() -> Result<(), EngineError> {
     let dir = tempdir()?;
     let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0999".to_vec())?,
@@ -88,7 +88,7 @@ fn test_last_key() -> Result<(), EngineError> {
 fn test_middle_key() -> Result<(), EngineError> {
     let dir = tempdir()?;
     let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0500".to_vec())?,
@@ -102,7 +102,7 @@ fn test_middle_key() -> Result<(), EngineError> {
 fn test_key_not_found() -> Result<(), EngineError> {
     let dir = tempdir()?;
     let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     assert_eq!(reader.binary_search_data(&b"1500".to_vec())?, Value::None);
 
@@ -113,7 +113,7 @@ fn test_key_not_found() -> Result<(), EngineError> {
 fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
     let dir = tempdir()?;
     let sst_path = build_sstable(dir.path(), 1000)?;
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     assert_eq!(reader.binary_search_data(&b"-001".to_vec())?, Value::None);
 
@@ -124,7 +124,7 @@ fn test_key_smaller_than_smallest() -> Result<(), EngineError> {
 fn test_single_entry() -> Result<(), EngineError> {
     let dir = tempdir()?;
     let sst_path = build_sstable(dir.path(), 1)?;
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     assert_eq!(
         reader.binary_search_data(&b"0000".to_vec())?,
@@ -155,7 +155,7 @@ fn test_update() -> Result<(), EngineError> {
     writer.write(memtable.skiplist.iter())?;
 
     let sst_path = path.join(format!("{:06}.sst", file_no));
-    let mut reader = SstableReader::new(sst_path)?;
+    let mut reader = SstableReader::new(sst_path, 0)?;
 
     assert_eq!(
         reader.binary_search_data(&key)?,

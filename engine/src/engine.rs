@@ -87,8 +87,7 @@ impl Engine {
     }
 
     pub fn run(&self) -> Result<(), EngineError> {
-        let path = self.path.join(format!("{:06}.sst", 11));
-        let sstable = SstableReader::new(path)?;
+        let sstable = SstableReader::new(self.path.clone(), 11)?;
         for kv in sstable.iter()? {
             let key = kv.key;
             let value = Value::from_bytes(&kv.value).unwrap();
@@ -168,8 +167,7 @@ impl Engine {
     fn get_sst_iters(&self, start: usize, end: usize) -> Result<Vec<SstableIterator>, EngineError> {
         let mut vec = Vec::new();
         for i in start..end {
-            let path = self.path.join(format!("{:06}.sst", i));
-            let sstable = SstableReader::new(path)?;
+            let sstable = SstableReader::new(self.path.clone(), i)?;
             let iterator = sstable.iter()?;
             vec.push(iterator);
         }
@@ -238,8 +236,7 @@ impl Engine {
                 //     return Ok(None);
                 // };
                 for i in (0..self.sstable_count).rev() {
-                    let path = self.path.join(format!("{:06}.sst", i));
-                    let mut sstable = SstableReader::new(path)?;
+                    let mut sstable = SstableReader::new(self.path.clone(), i)?;
 
                     // if let Some(res) = sstable.binary_search_data(&key)? {
                     //     println!("from sstable {}", i);
