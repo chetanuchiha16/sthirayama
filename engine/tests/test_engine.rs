@@ -1,8 +1,10 @@
 use engine::engine::Engine;
+use tempfile::tempdir;
 
 #[test]
 fn test_set_and_get_from_memtable() {
-    let mut engine = Engine::new("test_set_and_get_from_memtable").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"0001".to_vec();
     let value = b"value1".to_vec();
@@ -14,31 +16,18 @@ fn test_set_and_get_from_memtable() {
 
 #[test]
 fn test_get_missing_key() {
-    let mut engine = Engine::new("test_get_missing_key").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"9999".to_vec();
 
     assert_eq!(engine.get(&key).unwrap(), None);
 }
 
-// #[test]
-// fn test_set_overwrites_value() {
-//     let mut engine = Engine::new().unwrap();
-
-//     let key = b"0001".to_vec();
-
-//     engine.set(&key, &b"first".to_vec()).unwrap();
-//     engine.set(&key, &b"second".to_vec()).unwrap();
-
-//     assert_eq!(
-//         engine.get(&key).unwrap(),
-//         Some(b"second".to_vec())
-//     );
-// }
-
 #[tokio::test]
 async fn test_flush_and_get_from_sstable() {
-    let mut engine = Engine::new("test_flush_and_get_from_sstable").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     // Make the memtable exceed 4 KB.
     for i in 0..1000 {
@@ -61,7 +50,8 @@ async fn test_flush_and_get_from_sstable() {
 
 #[tokio::test]
 async fn test_flush_multiple_sstables() {
-    let mut engine = Engine::new("test_flush_multiple_sstables").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     // Enough data to create multiple SSTables.
     for i in 0..5000 {
@@ -92,7 +82,8 @@ async fn test_flush_multiple_sstables() {
 
 #[tokio::test]
 async fn test_key_not_found_after_flush() {
-    let mut engine = Engine::new("test_key_not_found_after_flush").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -106,7 +97,8 @@ async fn test_key_not_found_after_flush() {
 
 #[tokio::test]
 async fn test_keys_across_multiple_flushes() {
-    let mut engine = Engine::new("test_keys_across_multiple_flushes").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     for i in 0..10000 {
         let key = format!("{:04}", i).into_bytes();
@@ -130,7 +122,8 @@ async fn test_keys_across_multiple_flushes() {
 
 #[test]
 fn test_set_overwrites_value() {
-    let mut engine = Engine::new("test_set_overwrites_value").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -145,7 +138,8 @@ fn test_set_overwrites_value() {
 
 #[tokio::test]
 async fn test_update_after_flush() {
-    let mut engine = Engine::new("test_update_after_flush").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -168,7 +162,8 @@ async fn test_update_after_flush() {
 
 #[tokio::test]
 async fn test_delete_from_memtable() {
-    let mut engine = Engine::new("test_delete_from_memtable").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -183,7 +178,8 @@ async fn test_delete_from_memtable() {
 
 #[tokio::test]
 async fn test_delete_after_flush() {
-    let mut engine = Engine::new("test_delete_after_flush").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -207,7 +203,8 @@ async fn test_delete_after_flush() {
 
 #[tokio::test]
 async fn test_delete_survives_flush() {
-    let mut engine = Engine::new("test_delete_survives_flush").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -239,7 +236,8 @@ async fn test_delete_survives_flush() {
 
 #[test]
 fn test_delete_missing_key() {
-    let mut engine = Engine::new("test_delete_missing_key").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"9999".to_vec();
 
@@ -252,7 +250,8 @@ fn test_delete_missing_key() {
 
 #[tokio::test]
 async fn test_overwrite_across_multiple_flushes() {
-    let mut engine = Engine::new("test_overwrite_across_multiple_flushes").unwrap();
+    let dir = tempdir().unwrap();
+    let mut engine = Engine::new(dir.path()).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -280,7 +279,8 @@ async fn test_overwrite_across_multiple_flushes() {
 
 #[tokio::test]
 async fn test_engine_reopen_persistence() {
-    let db_path = "test_engine_reopen_persistence";
+    let dir = tempdir().unwrap();
+    let db_path = dir.path();
 
     let key = b"0001".to_vec();
     let value = b"persistent_value".to_vec();

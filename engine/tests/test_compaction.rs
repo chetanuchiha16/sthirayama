@@ -75,7 +75,8 @@ fn test_merge_iterators_deduplication_and_order() -> Result<(), EngineError> {
 
 #[tokio::test]
 async fn test_compaction_guard_less_than_threshold() -> Result<(), EngineError> {
-    let mut engine = Engine::new("test_compaction_guard_less_than_threshold")?;
+    let dir = tempdir()?;
+    let mut engine = Engine::new(dir.path())?;
 
     // Calling compact with fewer than 5 tables should be a harmless no-op
     engine.compact()?;
@@ -101,11 +102,11 @@ async fn test_compaction_guard_less_than_threshold() -> Result<(), EngineError> 
 
 #[tokio::test]
 async fn test_engine_compaction_deletes_old_files_and_preserves_data() -> Result<(), EngineError> {
-    let db_path = "test_engine_compaction_deletes_old_files_and_preserves_data";
+    let dir = tempdir()?;
+    let db_path = dir.path();
     let mut engine = Engine::new(db_path)?;
 
     // Insert enough data to trigger multiple flushes and compaction (> 4 SSTables)
-    // Each 1000 items is ~15-20 KB, exceeding the 4 KB memtable limit
     for i in 0..6000 {
         let k = format!("{:04}", i).into_bytes();
         let v = format!("value{:04}", i).into_bytes();
@@ -125,21 +126,20 @@ async fn test_engine_compaction_deletes_old_files_and_preserves_data() -> Result
     }
 
     // The first 4 tables (000000.sst .. 000003.sst) should have been deleted from disk
-    let sst_dir = engine::config::get_sstable_path()?.join(db_path);
     assert!(
-        !sst_dir.join("000000.sst").exists(),
+        !db_path.join("000000.sst").exists(),
         "000000.sst should have been deleted after compaction"
     );
     assert!(
-        !sst_dir.join("000001.sst").exists(),
+        !db_path.join("000001.sst").exists(),
         "000001.sst should have been deleted after compaction"
     );
     assert!(
-        !sst_dir.join("000002.sst").exists(),
+        !db_path.join("000002.sst").exists(),
         "000002.sst should have been deleted after compaction"
     );
     assert!(
-        !sst_dir.join("000003.sst").exists(),
+        !db_path.join("000003.sst").exists(),
         "000003.sst should have been deleted after compaction"
     );
 
@@ -148,7 +148,8 @@ async fn test_engine_compaction_deletes_old_files_and_preserves_data() -> Result
 
 #[tokio::test]
 async fn test_engine_compaction_with_updates() -> Result<(), EngineError> {
-    let mut engine = Engine::new("test_engine_compaction_with_updates")?;
+    let dir = tempdir()?;
+    let mut engine = Engine::new(dir.path())?;
 
     let target_key = b"target_key".to_vec();
 
@@ -174,7 +175,8 @@ async fn test_engine_compaction_with_updates() -> Result<(), EngineError> {
 
 #[tokio::test]
 async fn test_engine_compaction_with_delete() -> Result<(), EngineError> {
-    let mut engine = Engine::new("test_engine_compaction_with_delete")?;
+    let dir = tempdir()?;
+    let mut engine = Engine::new(dir.path())?;
 
     let target_key = b"delete_target".to_vec();
 
@@ -202,7 +204,8 @@ async fn test_engine_compaction_with_delete() -> Result<(), EngineError> {
 
 #[tokio::test]
 async fn test_compaction_reopen_persistence() -> Result<(), EngineError> {
-    let db_path = "test_compaction_reopen_persistence";
+    let dir = tempdir()?;
+    let db_path = dir.path();
 
     {
         let mut engine = Engine::new(db_path)?;
