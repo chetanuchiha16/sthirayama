@@ -13,7 +13,8 @@ struct HeapItem<I: Iterator> {
 
 impl Ord for HeapItem<SstableIterator> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        other.next_item
+        other
+            .next_item
             .key
             .cmp(&self.next_item.key)
             .then_with(|| self.next_item.sequence.cmp(&other.next_item.sequence))
@@ -28,7 +29,8 @@ impl PartialEq for HeapItem<SstableIterator> {
 impl PartialOrd for HeapItem<SstableIterator> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(
-            other.next_item
+            other
+                .next_item
                 .key
                 .cmp(&self.next_item.key)
                 .then_with(|| self.next_item.sequence.cmp(&other.next_item.sequence)),
@@ -52,7 +54,6 @@ impl Compaction {
         let mut last: Option<Vec<u8>> = None;
         iter::from_fn(move || {
             while let Some(top) = heap.pop() {
-
                 let item = top.next_item;
                 let mut iter = top.iter;
                 if let Some(next_item) = iter.next() {
@@ -64,8 +65,8 @@ impl Compaction {
                     }
                 }
                 last = Some(item.key.clone());
-                return Some(item)
-            } 
+                return Some(item);
+            }
             return None;
         })
     }

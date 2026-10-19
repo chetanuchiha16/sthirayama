@@ -47,11 +47,7 @@ impl Wal {
     pub fn append(&mut self, key: &Vec<u8>, value: Value, sequence: usize) -> std::io::Result<()> {
         // let key_len_bytes = size_of::<K>().to_le_bytes();
         // let value_len_bytes = size_of::<V>().to_le_bytes();
-        let data = SkipListKV::new(
-            key.clone(),
-            value.to_bytes(),
-            sequence.to_le_bytes(),
-        );
+        let data = SkipListKV::new(key.clone(), value.to_bytes(), sequence.to_le_bytes());
         let data_bytes = bitcode::encode(&data);
         let data_len_bytes = data_bytes.len().to_le_bytes();
         self.file.write_all(&data_len_bytes)?;
