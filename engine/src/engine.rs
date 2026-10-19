@@ -59,6 +59,7 @@ impl Engine {
         //     .create(true)
         //     .open(ssts_path)?;
         let mut sstable_count = 0usize;
+        let mut active_sstables = Vec::new();
         for entry in fs::read_dir(&path)? {
             let entry = entry?;
             if let Some(ext) = entry.path().extension() {
@@ -67,11 +68,13 @@ impl Engine {
                         if let Some(file_name_str) = file_name.to_str() {
                             let num: usize = file_name_str.parse()?;
                             sstable_count = sstable_count.max(num + 1);
+                            active_sstables.push(num);
                         }
                     }
                 }
             }
         }
+        active_sstables.sort();
         let mut memtable = Memtable::new();
         let mut wal = Wal::new(path.join("wal"))?;
         wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)?;
@@ -80,7 +83,7 @@ impl Engine {
             // immutable_memtable: None,
             wal,
             sstable_count,
-            active_sstables: Vec::new(),
+            active_sstables,
             // ssts: file,
             path: path,
             // sstable_meta_list: Vec::new(),

@@ -25,3 +25,4 @@ wal
 *.sst
 *.wal
 MANIFEST
+sstable_files/
