@@ -42,7 +42,7 @@ impl Memtable {
         self.size += key.len() + value.len();
         // println!("{}", self.size);
         self.skiplist
-            .insert(key.clone(), val, sequence.to_le_bytes().to_vec());
+            .insert(key.clone(), val, sequence.to_le_bytes());
         Ok(())
     }
 
@@ -70,7 +70,7 @@ impl Memtable {
         self.skiplist.insert(
             key.clone(),
             Value::Tombstone.to_bytes(),
-            sequence.to_le_bytes().to_vec(),
+            sequence.to_le_bytes(),
         );
     }
 }

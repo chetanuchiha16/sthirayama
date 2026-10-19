@@ -78,6 +78,10 @@ impl Engine {
         let mut memtable = Memtable::new();
         let mut wal = Wal::new(path.join("wal"))?;
         wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)?;
+        let mut sequence = 0;
+        if let Some(last) = &memtable.skiplist.iter().last() {
+            sequence = usize::from_le_bytes(last.sequence);
+        }
         Ok(Self {
             memtable,
             // immutable_memtable: None,
@@ -87,7 +91,7 @@ impl Engine {
             // ssts: file,
             path: path,
             // sstable_meta_list: Vec::new(),
-            sequence: 0,
+            sequence,
         })
     }
 

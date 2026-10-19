@@ -82,13 +82,13 @@ impl DataBlock {
 
             let mut s_len_bytes = [0u8; 8];
             file.read_exact(&mut s_len_bytes)?;
-            let s_len = usize::from_le_bytes(s_len_bytes);
+            // let s_len = usize::from_le_bytes(s_len_bytes);
 
-            let mut s_bytes = vec![0u8; s_len];
+            let mut s_bytes = [0u8; 8];
             file.read_exact(&mut s_bytes)?;
             let _s = usize::from_le_bytes(s_bytes.clone().try_into().unwrap());
 
-            let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone(), s_bytes.clone());
+            let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone(), s_bytes);
 
             kv_list.push(kv);
             i += k_len_buffer.len()

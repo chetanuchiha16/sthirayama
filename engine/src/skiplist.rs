@@ -10,11 +10,11 @@ use crate::traits::{SkipListIterator, TypeSkipListKey, TypeSkipListValue};
 pub struct SkipListKV<K, V> {
     pub key: K,
     pub value: V,
-    pub sequence: Vec<u8>,
+    pub sequence: [u8; 8],
 }
 
 impl<K: TypeSkipListKey, V: TypeSkipListValue> SkipListKV<K, V> {
-    pub fn new(key: K, value: V, sequence: Vec<u8>) -> Self {
+    pub fn new(key: K, value: V, sequence: [u8; 8]) -> Self {
         // Self { key, value }
         Self {
             key,
@@ -46,7 +46,7 @@ where
     K: TypeSkipListKey,
     V: TypeSkipListValue,
 {
-    pub fn new(level: usize, key: K, value: V, sequence: Vec<u8>) -> NonNull<Self> {
+    pub fn new(level: usize, key: K, value: V, sequence: [u8; 8]) -> NonNull<Self> {
         let node = unsafe {
             NonNull::new_unchecked(Box::into_raw(Box::new(Self {
                 data: SkipListKV::new(key, value, sequence),
@@ -101,7 +101,7 @@ where
             max_level,
             dummy_k.clone(),
             dummy_v.clone(),
-            0usize.to_le_bytes().to_vec(),
+            0usize.to_le_bytes(),
         );
         Self {
             max_level,
@@ -156,7 +156,7 @@ where
         }
     }
 
-    pub fn insert(&mut self, key: K, value: V, sequence: Vec<u8>) {
+    pub fn insert(&mut self, key: K, value: V, sequence: [u8; 8]) {
         let data = &SkipListKV::new(key, value, sequence);
         let new_node_level = self.random_level();
         let mut new_node = SkipListNode::new(

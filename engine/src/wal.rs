@@ -50,7 +50,7 @@ impl Wal {
         let data = SkipListKV::new(
             key.clone(),
             value.to_bytes(),
-            sequence.to_le_bytes().to_vec(),
+            sequence.to_le_bytes(),
         );
         let data_bytes = bitcode::encode(&data);
         let data_len_bytes = data_bytes.len().to_le_bytes();
