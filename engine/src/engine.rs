@@ -79,8 +79,14 @@ impl Engine {
         let mut wal = Wal::new(path.join("wal"))?;
         wal.recover::<Vec<u8>, Vec<u8>>(&mut memtable.skiplist)?;
         let mut sequence = 0;
-        if let Some(last) = &memtable.skiplist.iter().last() {
+        if let Some(last) = &memtable.skiplist.iter().max_by_key(|x| x.sequence) {
             sequence = usize::from_le_bytes(last.sequence);
+        }
+        for &i in active_sstables.iter().rev() {
+            let reader = SstableReader::new(&path, i)?;
+            if let Some(m) = reader.iter()?.max_by_key(|x| x.sequence) {
+                sequence = sequence.max(usize::from_le_bytes(m.sequence));
+            }
         }
         Ok(Self {
             memtable,
