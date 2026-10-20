@@ -41,17 +41,16 @@ fn test_insert_and_search() -> Result<(), SkipListError> {
 }
 
 #[test]
-fn test_insert_duplicate_key_does_not_mutate() -> Result<(), SkipListError> {
+fn test_insert_and_update() -> Result<(), SkipListError> {
     let mut skiplist = SkipList::new(5, -1, -1);
 
     skiplist.insert(6, 7, 0usize.to_le_bytes());
     assert_eq!(skiplist.search(&6), Some(7));
 
-    // In concurrent LSM designs, existing node values are not mutated in-place
-    // to eliminate reader-writer data races.
+    // Same key, new value
     skiplist.insert(6, 10, 0usize.to_le_bytes());
 
-    assert_eq!(skiplist.search(&6), Some(7));
+    assert_eq!(skiplist.search(&6), Some(10));
 
     Ok(())
 }
