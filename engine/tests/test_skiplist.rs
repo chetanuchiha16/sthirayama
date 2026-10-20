@@ -113,3 +113,40 @@ fn test_skiplist_display() {
     assert!(display_str.contains("SkipList (Height: 4)"));
     assert!(display_str.contains("Level"));
 }
+
+#[test]
+fn test_concurrent_read_write_stress() {
+    use std::sync::{Arc, RwLock};
+    use std::thread;
+
+    let skiplist = Arc::new(RwLock::new(SkipList::new(8, -1, -1)));
+    let mut handles = Vec::new();
+
+    // 1 Writer thread continuously inserting and updating keys
+    let writer_sl = Arc::clone(&skiplist);
+    let writer = thread::spawn(move || {
+        for i in 0..10_000 {
+            let mut sl = writer_sl.write().unwrap();
+            sl.insert(i % 100, i * 2, (i as usize).to_le_bytes());
+        }
+    });
+
+    // 4 Concurrent reader threads continuously searching
+    for _ in 0..4 {
+        let reader_sl = Arc::clone(&skiplist);
+        handles.push(thread::spawn(move || {
+            for i in 0..10_000 {
+                let sl = reader_sl.read().unwrap();
+                let key = i % 100;
+                if let Some(val) = sl.search(&key) {
+                    assert_eq!(val % 2, 0);
+                }
+            }
+        }));
+    }
+
+    writer.join().unwrap();
+    for h in handles {
+        h.join().unwrap();
+    }
+}
