@@ -1,0 +1,5 @@
+package goclient
+
+func main() {
+
+}

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package sthirayama;
+option go_package = "./pb";
 
 service Sthirayama {
   rpc Set(SetRequest) returns (SetResponse);
