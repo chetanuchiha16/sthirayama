@@ -5,8 +5,8 @@ use crate::{
     sstable::{data_block::DataBlock, index::IndexBlock},
 };
 
-pub struct SstableIterator<'a> {
-    pub file: &'a mut File,
+pub struct SstableIterator {
+    pub file: File,
     pub index: IndexBlock,
     pub current_entry: usize,
     pub current_block: usize,
@@ -39,7 +39,7 @@ pub struct SstableIterator<'a> {
 // }
 // }
 
-impl<'a> Iterator for SstableIterator<'a> {
+impl<'a> Iterator for SstableIterator {
     type Item = SkipListKV<Vec<u8>, Vec<u8>>;
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -51,7 +51,7 @@ impl<'a> Iterator for SstableIterator<'a> {
             }
             let block_meta = &self.index.blocks[self.current_block];
             let data_block = DataBlock::read(&mut self.file, block_meta).unwrap();
-            println!("data block size : {}", data_block.len());
+            // println!("data block size : {}", data_block.len());
             // if self.current_entry > block_len {
             if self.current_entry >= data_block.len() {
                 println!("Block {}", self.current_block);
@@ -60,8 +60,9 @@ impl<'a> Iterator for SstableIterator<'a> {
                 self.current_entry = 0;
                 continue;
             }
+            let item = data_block[self.current_entry].clone();
             self.current_entry += 1;
-            return Some(data_block[self.current_entry - 1].clone());
+            return Some(item);
         }
     }
 }

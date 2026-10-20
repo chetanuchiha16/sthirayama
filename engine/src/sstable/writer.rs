@@ -1,12 +1,11 @@
 use std::{
-    fs::{File, OpenOptions},
+    borrow::Borrow,
+    fs::{File, OpenOptions, rename},
     io::{self, Seek, Write},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use crate::{
-    config::get_sstable_path,
-    memtable::Memtable,
     skiplist::SkipListKV,
     sstable::{
         data_block::DataBlock,
@@ -21,43 +20,56 @@ pub struct SstableWriter {
     // memtable: Memtable,
     index: IndexBlock,
     bytes: Vec<u8>,
+    temp_path: PathBuf,
+    final_path: PathBuf,
 }
 
 impl SstableWriter {
-    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, SsTableWriterError> {
-        let sstable_path = get_sstable_path();
+    pub fn new<T: AsRef<Path>>(path: T, file_no: usize) -> Result<Self, SsTableWriterError> {
+        // let sstable_path = get_sstable_path();//sstable/main/filename
+        let final_path = path.as_ref().join(format!("{:06}.sst", file_no));
 
-        let sstable_file = sstable_path?.join(path);
+        let temp_path = path.as_ref().join(format!("{:06}.tmp", file_no));
+        // let sstable_file = sstable_path?.join(path);
         let file = OpenOptions::new()
             .create(true)
             .read(true)
             .write(true)
             .truncate(true)
-            .open(&sstable_file)?;
+            .open(&temp_path)?;
         let index = IndexBlock::new();
         Ok(Self {
             file,
             // memtable,
             index,
             bytes: Vec::new(),
+            temp_path,
+            final_path,
         })
     }
-    pub fn build(&mut self, memtable: Memtable) -> Result<Vec<u8>, SsTableWriterError> {
+    pub fn build<I, T>(&mut self, memtable: I) -> Result<Vec<u8>, SsTableWriterError>
+    where
+        I: Iterator<Item = T>,
+        T: Borrow<SkipListKV<Vec<u8>, Vec<u8>>>,
+    {
         // writing data block
         let mut data_block = DataBlock::new();
-        let mut last_key = &Vec::new();
+        let mut last_key = Vec::new();
         let mut offset = 0;
-        for SkipListKV {
-            key,
-            value,
-            sequence,
-        } in memtable.skiplist.iter()
-        {
+        for kv in memtable {
+            let key = &kv.borrow().key;
+            let value = &kv.borrow().value;
+            let sequence: &[u8; 8] = &kv.borrow().sequence;
             let key_len_bytes = key.len().to_le_bytes();
             let value_len_bytes = value.len().to_le_bytes();
 
             let seq_len_bytes = sequence.len().to_le_bytes();
-            let entry_size = key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len() + seq_len_bytes.len() + sequence.len();
+            let entry_size = key_len_bytes.len()
+                + value_len_bytes.len()
+                + key.len()
+                + value.len()
+                + seq_len_bytes.len()
+                + sequence.len();
 
             if !data_block.can_fit(entry_size) {
                 let block_meta = BlockMeta::new(data_block.size, offset, last_key.to_vec());
@@ -68,8 +80,8 @@ impl SstableWriter {
                 data_block = DataBlock::new();
             }
 
-            data_block.add(key, value, sequence);
-            last_key = &key;
+            data_block.add(key.as_slice(), value.as_slice(), sequence.as_slice());
+            last_key = key.to_vec();
         }
 
         if data_block.size > 0 {
@@ -93,11 +105,16 @@ impl SstableWriter {
         Ok(last_key.to_owned())
     }
 
-    pub fn write(&mut self, memtable: Memtable) -> Result<Vec<u8>, SsTableWriterError> {
+    pub fn write<I, T>(&mut self, memtable: I) -> Result<Vec<u8>, SsTableWriterError>
+    where
+        I: Iterator<Item = T>,
+        T: Borrow<SkipListKV<Vec<u8>, Vec<u8>>>,
+    {
         let last_key = self.build(memtable)?;
         self.file.seek(io::SeekFrom::Start(0))?;
         self.file.write_all(&self.bytes)?;
         self.file.flush()?;
+        rename(&self.temp_path, &self.final_path)?;
         Ok(last_key)
     }
 }

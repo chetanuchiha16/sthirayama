@@ -40,7 +40,12 @@ impl DataBlock {
         self.kv_list_bytes.extend_from_slice(&sequence_len_bytes);
         self.kv_list_bytes.extend_from_slice(&sequence);
 
-        self.size += key_len_bytes.len() + value_len_bytes.len() + key.len() + value.len() + sequence.len() + sequence_len_bytes.len();
+        self.size += key_len_bytes.len()
+            + value_len_bytes.len()
+            + key.len()
+            + value.len()
+            + sequence.len()
+            + sequence_len_bytes.len();
     }
 
     pub fn can_fit(&self, entry_size: usize) -> bool {
@@ -59,7 +64,6 @@ impl DataBlock {
         let mut i = 0;
         // println!("{:?}", block_meta);
         while i < data_block_len {
-
             let mut k_len_buffer = [0u8; 8];
             file.read_exact(&mut k_len_buffer)?;
             let k_len = usize::from_le_bytes(k_len_buffer);
@@ -78,18 +82,21 @@ impl DataBlock {
 
             let mut s_len_bytes = [0u8; 8];
             file.read_exact(&mut s_len_bytes)?;
-            let s_len = usize::from_le_bytes(s_len_bytes);
+            // let s_len = usize::from_le_bytes(s_len_bytes);
 
-            let mut s_bytes = vec![0u8; s_len];
+            let mut s_bytes = [0u8; 8];
             file.read_exact(&mut s_bytes)?;
             let _s = usize::from_le_bytes(s_bytes.clone().try_into().unwrap());
 
-            
-
-            let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone(), s_bytes.clone());
+            let kv = SkipListKV::new(k_bytes.clone(), v_bytes.clone(), s_bytes);
 
             kv_list.push(kv);
-            i += k_len_buffer.len() + v_len_bytes.len() + k_bytes.len() + v_bytes.len() + s_len_bytes.len() + s_bytes.len();
+            i += k_len_buffer.len()
+                + v_len_bytes.len()
+                + k_bytes.len()
+                + v_bytes.len()
+                + s_len_bytes.len()
+                + s_bytes.len();
 
             // let kv = &kv_list[0];
             // println!("{:?}", kv);

@@ -7,56 +7,47 @@ use std::{
 };
 
 use engine::{engine::Engine, engine_error::EngineError, sstable::iterator::SstableIterator};
+use tonic::{Request, Response, Status, transport::Server};
 
+use crate::sthirayama::{
+    DelRequest, DelResponse, GetRequest, GetResponse, SetRequest, SetResponse,
+    sthirayama_server::{Sthirayama, SthirayamaServer},
+};
+// use sthirayama::
+
+pub mod sthirayama {
+    tonic::include_proto!("sthirayama");
+}
+#[derive(Default, Debug)]
+pub struct MySthirayama {}
+#[tonic::async_trait]
+impl Sthirayama for MySthirayama {
+    async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetResponse>, Status> {
+        let key = request.into_inner().key;
+        let reply = SetResponse { ok: true };
+        Ok(Response::new(reply))
+    }
+    async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetResponse>, Status> {
+        let key = request.into_inner().key;
+        let reply = GetResponse {
+            val: "val".to_string(),
+        };
+        Ok(Response::new(reply))
+    }
+    async fn del(&self, request: Request<DelRequest>) -> Result<Response<DelResponse>, Status> {
+        let key = request.into_inner().key;
+        let reply = DelResponse { ok: true };
+        Ok(Response::new(reply))
+    }
+}
 #[tokio::main]
-async fn main() -> Result<(), EngineError> {
-    // pring_skiplist_details()?;
-    // try_new_skiplist()?;
-    // try_wal()?;
-    // test_block_split()?;
-    // test_sstable_read()?;
-    // cli(skiplist)
-
-    let mut engine = Engine::new("main")?;
-    let key = format!("{:04}", 0).into_bytes();
-    let value = format!("{:04}", 0 * 2).into_bytes();
-    engine.set(&key, &value)?;
-    for i in (1..5000) {
-        let key = format!("{:04}", i).into_bytes();
-        let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(&key, &value)?;
-    }
-
-    let key = format!("{:04}", 0).into_bytes();
-    engine.del(&key);
-
-    for i in (5000..10000) {
-        let key = format!("{:04}", i).into_bytes();
-        let value = format!("{:04}", i * 2).into_bytes();
-        engine.set(&key, &value)?;
-    }
-
-    engine.run()?;
-
-    for i in (0..10000) {
-        let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort
-        let val = engine.get(&key)?;
-
-        println!(
-            "finding {}, {:?} from main",
-            String::from_utf8(key.to_vec())?,
-            val.map(|x| { String::from_utf8(x.to_vec()) })
-        );
-    }
-    let key = format!("{:04}", 0).into_bytes();
-    engine.del(&key);
-    let val = engine.get(&key)?;
-    match val {
-        Some(val) => {
-            println!("{:?}", str::from_utf8(&val)?);
-        }
-        None => println!("Not found"),
-    }
-
+async fn main() -> Result<(), Box<dyn Error>> {
+    let addr = "127.0.0.1:50051".parse()?;
+    let sthira = MySthirayama::default();
+    println!("Sthirayama listening on {}", addr);
+    Server::builder()
+        .add_service(SthirayamaServer::new(sthira))
+        .serve(addr)
+        .await?;
     Ok(())
 }

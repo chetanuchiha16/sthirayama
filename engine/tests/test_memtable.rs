@@ -1,4 +1,4 @@
-use crate::memtable::{Memtable, Value};
+use engine::memtable::{Memtable, Value};
 
 #[test]
 fn test_new_memtable() {
