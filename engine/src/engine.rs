@@ -32,6 +32,7 @@ use crate::{
 // }
 
 ///Database Engine
+#[derive(Debug)]
 pub struct Engine {
     memtable: Memtable,
     // immutable_memtable: Option<Memtable>,

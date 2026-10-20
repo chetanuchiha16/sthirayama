@@ -1,8 +1,10 @@
 #![allow(unused)]
 use std::{
+    env,
     error::{self, Error},
     fs::OpenOptions,
     io::{Write, stdin, stdout},
+    sync::{Arc, RwLock},
     time::Instant,
 };
 
@@ -18,8 +20,15 @@ use crate::sthirayama::{
 pub mod sthirayama {
     tonic::include_proto!("sthirayama");
 }
-#[derive(Default, Debug)]
-pub struct MySthirayama {}
+#[derive(Debug)]
+pub struct MySthirayama {
+    engine: Arc<RwLock<Engine>>,
+}
+impl MySthirayama {
+    pub fn new(engine: Arc<RwLock<Engine>>) -> Self {
+        Self { engine }
+    }
+}
 #[tonic::async_trait]
 impl Sthirayama for MySthirayama {
     async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetResponse>, Status> {
@@ -42,8 +51,17 @@ impl Sthirayama for MySthirayama {
 }
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        println!("No path provided");
+        return Ok(());
+    }
+    let path = args[1];
+
+    let engine = Engine::new(path)?;
+    let shared_engine = Arc::new(RwLock::new(engine));
     let addr = "127.0.0.1:50051".parse()?;
-    let sthira = MySthirayama::default();
+    let sthira = MySthirayama::new(shared_engine);
     println!("Sthirayama listening on {}", addr);
     Server::builder()
         .add_service(SthirayamaServer::new(sthira))
