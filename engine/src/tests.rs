@@ -4,12 +4,12 @@ use std::{
 };
 
 use crate::{
+    engine::Engine,
     engine_error,
     memtable::{Memtable, Value},
     skiplist::{SkipList, SkipListKV, SkipListNode},
     skiplist_error,
-    sstable::{reader::SstableReader, writer::SstableWriter},
-    // wal::Wal,
+    sstable::{reader::SstableReader, writer::SstableWriter}, // wal::Wal,
 };
 
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
@@ -145,7 +145,56 @@ pub fn test_block_split() -> Result<(), engine_error::EngineError> {
     // s.read();
     Ok(())
 }
+pub fn test_write_read_compact() -> Result<(), engine_error::EngineError> {
+    // pring_skiplist_details()?;
+    // try_new_skiplist()?;
+    // try_wal()?;
+    // test_block_split()?;
+    // test_sstable_read()?;
+    // cli(skiplist)
 
+    let mut engine = Engine::new("main")?;
+    let key = format!("{:04}", 0).into_bytes();
+    let value = format!("{:04}", 0 * 2).into_bytes();
+    engine.set(&key, &value)?;
+    for i in 1..5000 {
+        let key = format!("{:04}", i).into_bytes();
+        let value = format!("{:04}", i * 2).into_bytes();
+        engine.set(&key, &value)?;
+    }
+
+    let key = format!("{:04}", 0).into_bytes();
+    engine.del(&key)?;
+
+    for i in 5000..10000 {
+        let key = format!("{:04}", i).into_bytes();
+        let value = format!("{:04}", i * 2).into_bytes();
+        engine.set(&key, &value)?;
+    }
+
+    for i in 0..10000 {
+        let key = format!("{:04}", i).into_bytes(); // to make sure lex sort == num sort
+        let val = engine.get(&key)?;
+
+        println!(
+            "finding {}, {:?} from main",
+            String::from_utf8(key.to_vec())?,
+            val.map(|x| { String::from_utf8(x.to_vec()) })
+        );
+    }
+    let key = format!("{:04}", 0).into_bytes();
+    engine.del(&key)?;
+    let val = engine.get(&key)?;
+    match val {
+        Some(val) => {
+            println!("{:?}", str::from_utf8(&val)?);
+        }
+        None => println!("Not found"),
+    }
+
+    // engine.run()?;
+    Ok(())
+}
 pub fn test_sstable_read() -> Result<(), engine_error::EngineError> {
     let sstable_path = crate::config::get_sstable_path()?;
     let mut sstable_reader = SstableReader::new(sstable_path, 0)?;

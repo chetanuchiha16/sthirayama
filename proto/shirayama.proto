@@ -14,11 +14,11 @@ message SetRequest {
 }
 
 message GetRequest {
-  string val = 1;
+  string key = 1;
 }
 
 message DelRequest {
-  string val = 1;
+  string key = 1;
 }
 
 message SetResponse {
