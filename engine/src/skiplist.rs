@@ -57,7 +57,8 @@ where
         }));
         node
     }
-
+}
+impl<K, V> SkipListNode<K, V> {
     pub fn get_data<'a>(node: *const Self) -> &'a SkipListKV<K, V> {
         unsafe { &(*node).data }
     }
@@ -88,6 +89,25 @@ where
 
     pub fn store_forward(node: *const Self, level: usize, next: *mut Self) {
         unsafe { (*node).forward[level].store(next, Ordering::Release) }
+    }
+
+    pub fn get_sequence(node: *const Self) -> u64 {
+        unsafe { u64::from_le_bytes((*node).data.sequence) }
+    }
+
+    pub fn compare(node: *const Self, target_key: &K, target_seq: u64) -> std::cmp::Ordering
+    where
+        K: PartialOrd,
+    {
+        let node_key = Self::get_key(node);
+        match node_key.partial_cmp(target_key) {
+            Some(std::cmp::Ordering::Equal) => {
+                let node_seq = Self::get_sequence(node);
+                node_seq.cmp(&target_seq)
+            }
+            Some(ord) => ord,
+            None => std::cmp::Ordering::Equal,
+        }
     }
 }
 
@@ -159,7 +179,7 @@ where
                 if next.is_null() {
                     break;
                 }
-                if SkipListNode::get_key(next) <= key {
+                if SkipListNode::compare(next, key, u64::MAX).is_le() {
                     current = next;
                 } else {
                     break;
@@ -178,6 +198,7 @@ where
     /// Insert requires &mut self (single-writer model).
     /// Readers can execute search() concurrently without blocking.
     pub fn insert(&mut self, key: K, value: V, sequence: [u8; 8]) {
+        let target_seq = u64::from_le_bytes(sequence);
         let mut update: Vec<*mut SkipListNode<K, V>> = vec![self.head; self.max_level];
         let mut current = self.head;
 
@@ -187,7 +208,7 @@ where
                 if next.is_null() {
                     break;
                 }
-                if SkipListNode::get_key(next) < &key {
+                if SkipListNode::compare(next, &key, target_seq).is_le() {
                     current = next;
                 } else {
                     break;
@@ -196,12 +217,8 @@ where
             update[level] = current;
         }
 
-        let next_at_l0 = SkipListNode::load_forward(current, 0);
-        if !next_at_l0.is_null() && SkipListNode::get_key(next_at_l0) == &key {
-            // In concurrent LSM designs, avoid mutating existing node values in-place
-            // to eliminate reader-writer data races. Replace the node or track versions.
-            return;
-        }
+        // In concurrent LSM designs, avoid mutating existing node values in-place
+        // to eliminate reader-writer data races. Replace the node or track versions.
 
         let new_node_level = self.random_level();
         let new_node = SkipListNode::new(new_node_level, key, value, sequence);
@@ -218,6 +235,19 @@ where
         // Step 2: Publish new node to readers from level 0 upwards using Release ordering.
         for level in 0..new_node_level {
             SkipListNode::store_forward(update[level], level, new_node);
+        }
+    }
+}
+
+impl<K, V> Drop for SkipList<K, V> {
+    fn drop(&mut self) {
+        let mut curr = self.head;
+        while !curr.is_null() {
+            let next = SkipListNode::load_forward(curr, 0);
+            unsafe {
+                drop(Box::from_raw(curr));
+            }
+            curr = next;
         }
     }
 }
