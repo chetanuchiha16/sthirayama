@@ -197,7 +197,7 @@ where
 
     /// Insert requires &mut self (single-writer model).
     /// Readers can execute search() concurrently without blocking.
-    pub fn insert(&mut self, key: K, value: V, sequence: [u8; 8]) {
+    pub fn insert(&self, key: K, value: V, sequence: [u8; 8]) {
         let target_seq = u64::from_le_bytes(sequence);
         let mut update: Vec<*mut SkipListNode<K, V>> = vec![self.head; self.max_level];
         let mut current = self.head;

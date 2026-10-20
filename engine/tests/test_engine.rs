@@ -17,7 +17,7 @@ fn test_set_and_get_from_memtable() {
 #[test]
 fn test_get_missing_key() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let engine = Engine::new(dir.path()).unwrap();
 
     let key = b"9999".to_vec();
 
@@ -299,7 +299,7 @@ async fn test_engine_reopen_persistence() {
     }
 
     // Re-open Engine at the same directory.
-    let mut reopened_engine = Engine::new(db_path).unwrap();
+    let reopened_engine = Engine::new(db_path).unwrap();
     assert_eq!(reopened_engine.get(&key).unwrap(), Some(value));
 }
 

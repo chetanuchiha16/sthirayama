@@ -32,20 +32,36 @@ impl MySthirayama {
 #[tonic::async_trait]
 impl Sthirayama for MySthirayama {
     async fn set(&self, request: Request<SetRequest>) -> Result<Response<SetResponse>, Status> {
-        let key = request.into_inner().key;
-        let reply = SetResponse { ok: true };
+        let mut response = false;
+        let SetRequest { key, val } = request.into_inner();
+        if let Ok(mut e) = self.engine.write() {
+            e.set(&key.into_bytes(), &val.into_bytes());
+            response = true;
+        }
+        let reply = SetResponse { ok: response };
         Ok(Response::new(reply))
     }
     async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetResponse>, Status> {
-        let key = request.into_inner().key;
-        let reply = GetResponse {
-            val: "val".to_string(),
-        };
+        let GetRequest { key } = request.into_inner();
+        let mut value = "Error".to_string();
+        if let Ok(e) = self.engine.read() {
+            if let Ok(x) = e.get(&key.into_bytes()) {
+                if let Some(val) = x {
+                    value = str::from_utf8(&val).unwrap().to_string();
+                }
+            }
+        }
+        let reply = GetResponse { val: value };
         Ok(Response::new(reply))
     }
     async fn del(&self, request: Request<DelRequest>) -> Result<Response<DelResponse>, Status> {
         let key = request.into_inner().key;
-        let reply = DelResponse { ok: true };
+        let mut response = false;
+        if let Ok(mut e) = self.engine.write() {
+            e.del(&key.into_bytes());
+            response = true;
+        }
+        let reply = DelResponse { ok: response };
         Ok(Response::new(reply))
     }
 }

@@ -33,7 +33,7 @@ fn test_new_skiplist() -> Result<(), SkipListError> {
 
 #[test]
 fn test_insert_and_search() -> Result<(), SkipListError> {
-    let mut skiplist = SkipList::new(5, -1, -1);
+    let skiplist = SkipList::new(5, -1, -1);
     skiplist.insert(6, 7, 0usize.to_le_bytes());
     assert_eq!(skiplist.search(&6), Some(7));
     assert_eq!(skiplist.search(&7), None);
@@ -42,7 +42,7 @@ fn test_insert_and_search() -> Result<(), SkipListError> {
 
 #[test]
 fn test_insert_and_update() -> Result<(), SkipListError> {
-    let mut skiplist = SkipList::new(5, -1, -1);
+    let skiplist = SkipList::new(5, -1, -1);
 
     skiplist.insert(6, 7, 0usize.to_le_bytes());
     assert_eq!(skiplist.search(&6), Some(7));
@@ -57,7 +57,7 @@ fn test_insert_and_update() -> Result<(), SkipListError> {
 
 #[test]
 fn test_skiplist_iteration() {
-    let mut skiplist = SkipList::new(5, -1, -1);
+    let skiplist = SkipList::new(5, -1, -1);
     skiplist.insert(10, 100, 0usize.to_le_bytes());
     skiplist.insert(5, 50, 0usize.to_le_bytes());
     skiplist.insert(20, 200, 0usize.to_le_bytes());
@@ -81,7 +81,7 @@ fn test_concurrent_search() {
     use std::sync::Arc;
     use std::thread;
 
-    let mut skiplist = SkipList::new(8, -1, -1);
+    let skiplist = SkipList::new(8, -1, -1);
     for i in 0..100 {
         skiplist.insert(i, i * 10, 0usize.to_le_bytes());
     }
@@ -106,7 +106,7 @@ fn test_concurrent_search() {
 
 #[test]
 fn test_skiplist_display() {
-    let mut skiplist = SkipList::new(4, -1, -1);
+    let skiplist = SkipList::new(4, -1, -1);
     skiplist.insert(1, 10, 0usize.to_le_bytes());
     skiplist.insert(2, 20, 0usize.to_le_bytes());
     let display_str = format!("{}", skiplist);
@@ -126,7 +126,7 @@ fn test_concurrent_read_write_stress() {
     let writer_sl = Arc::clone(&skiplist);
     let writer = thread::spawn(move || {
         for i in 0..10_000 {
-            let mut sl = writer_sl.write().unwrap();
+            let sl = writer_sl.write().unwrap();
             sl.insert(i % 100, i * 2, (i as usize).to_le_bytes());
         }
     });
