@@ -1,4 +1,4 @@
-use std::{io, num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
+use std::{io, net::AddrParseError, num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
 
 use crate::{
     skiplist_error::{self, SkipListError},
@@ -14,8 +14,19 @@ pub enum EngineError {
     IoError(io::Error),
     BitcodeError(bitcode::Error),
     ParseIntError(ParseIntError),
+    AddrParseError(AddrParseError),
+    TransportError(tonic::transport::Error),
 }
-
+impl From<tonic::transport::Error> for EngineError {
+    fn from(value: tonic::transport::Error) -> Self {
+        EngineError::TransportError(value)
+    }
+}
+impl From<AddrParseError> for EngineError {
+    fn from(value: AddrParseError) -> Self {
+        EngineError::AddrParseError(value)
+    }
+}
 impl From<ParseIntError> for EngineError {
     fn from(value: ParseIntError) -> Self {
         EngineError::ParseIntError(value)

@@ -32,6 +32,7 @@ use crate::{
 // }
 
 ///Database Engine
+#[derive(Debug)]
 pub struct Engine {
     memtable: Memtable,
     // immutable_memtable: Option<Memtable>,
@@ -255,7 +256,7 @@ impl Engine {
     //     }
     // }
 
-    pub fn get(&mut self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
+    pub fn get(&self, key: &Vec<u8>) -> Result<Option<Vec<u8>>, EngineError> {
         match self.memtable.extract(key)? {
             Value::Data(data) => {
                 // println!("from memtable");

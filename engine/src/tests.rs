@@ -14,7 +14,7 @@ use crate::{
 
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
     println!("creating new skiplist...");
-    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
+    let skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
     skip_list.insert(10, 100, 0usize.to_le_bytes());
     skip_list.insert(20, 200, 0usize.to_le_bytes());
     skip_list.insert(5, 50, 0usize.to_le_bytes());
@@ -51,14 +51,14 @@ pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
 // }
 
 pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
-    let mut skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
+    let skip_list: SkipList<i32, i32> = SkipList::new(5, -1, -1);
     skip_list.insert(6, 6, 0usize.to_le_bytes());
     let skip_list_node = unsafe { SkipListNode::new(5, 5, 5, 0usize.to_le_bytes()).as_ref() };
     println!("{:?}", skip_list);
     println!("{:?}", skip_list.random_level());
     println!("{:?}", skip_list.max_level);
     println!("{:?}", skip_list_node);
-    let head = unsafe { skip_list.head.as_mut() };
+    let head = unsafe { skip_list.head.as_mut().unwrap() };
     println!("{:?}", head);
     println!("{:?}", head.forward);
     println!("{:?}", head.data.key);
@@ -69,7 +69,7 @@ pub fn pring_skiplist_details() -> Result<(), skiplist_error::SkipListError> {
     Ok(())
 }
 
-pub fn cli(mut skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error::EngineError> {
+pub fn cli(skiplist: SkipList<Vec<u8>, Vec<u8>>) -> Result<(), engine_error::EngineError> {
     loop {
         print!("sthirayama> ");
         stdout().flush()?;

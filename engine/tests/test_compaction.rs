@@ -217,7 +217,7 @@ async fn test_compaction_reopen_persistence() -> Result<(), EngineError> {
     }
 
     // Reopen the engine from disk
-    let mut reopened = Engine::new(db_path)?;
+    let reopened = Engine::new(db_path)?;
     for i in 0..6000 {
         let k = format!("{:04}", i).into_bytes();
         let expected = format!("v_{:04}", i).into_bytes();

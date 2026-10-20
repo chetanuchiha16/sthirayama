@@ -17,7 +17,7 @@ impl Value {
         bitcode::decode(bytes)
     }
 }
-
+#[derive(Debug)]
 pub struct Memtable {
     pub skiplist: SkipList<Vec<u8>, Vec<u8>>,
     pub size: usize,
