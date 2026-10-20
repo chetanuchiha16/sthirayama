@@ -443,5 +443,3 @@ async fn test_sequence_recovery_mixed_sstable_and_wal() {
         new_seq
     );
 }
-
-

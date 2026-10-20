@@ -50,13 +50,13 @@ impl Sthirayama for MySthirayama {
     }
 }
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), EngineError> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         println!("No path provided");
         return Ok(());
     }
-    let path = args[1];
+    let path = &args[1];
 
     let engine = Engine::new(path)?;
     let shared_engine = Arc::new(RwLock::new(engine));

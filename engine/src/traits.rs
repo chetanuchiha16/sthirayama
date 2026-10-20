@@ -1,4 +1,4 @@
-use std::{fmt::Debug, marker::PhantomData, ptr::NonNull};
+use std::{fmt::Debug, marker::PhantomData};
 
 use bitcode::{DecodeOwned, Encode};
 
@@ -11,9 +11,9 @@ pub trait TypeSkipListValue: Encode + DecodeOwned + Debug + Clone {}
 
 impl<V: Encode + DecodeOwned + Debug + Clone> TypeSkipListValue for V {}
 
-pub struct SkipListIterator<'a, K, V> {
+pub struct SkipListIterator<'a, K: 'a, V: 'a> {
     // skiplist : SkipList<K, V>,
-    pub next_node: Option<NonNull<SkipListNode<K, V>>>,
+    pub next_node: *mut SkipListNode<K, V>,
     pub marker: PhantomData<&'a SkipListNode<K, V>>, // pub kv : SkipListKV<K, V>
 }
 
@@ -33,10 +33,23 @@ impl<'a, K: TypeSkipListKey, V: TypeSkipListValue> Iterator for SkipListIterator
         //     None
         // }
 
-        self.next_node.map(|cur_node| {
-            self.next_node = SkipListNode::get_forward(&cur_node)[0];
-            SkipListNode::get_data(&cur_node) // lifetime tells data doesnt necessarily live only till cur_node
-        })
+        let cur = self.next_node;
+
+        if cur.is_null() {
+            return None;
+        }
+
+        // 1. Advance self.next_node using Acquire ordering to ensure memory visibility
+        self.next_node = SkipListNode::load_forward(cur, 0);
+
+        // 2. Safely borrow the node's data tied to lifetime 'a
+        Some(SkipListNode::get_data(cur))
+
+        // self.next_node.map(|cur_node| {
+        //     let next = SkipListNode::load_forward(cur_node.as_ptr(), 0);
+        //     self.next_node = NonNull::new(next);
+        //     SkipListNode::get_data(cur_node.as_ptr()) // lifetime tells data doesnt necessarily live only till cur_node
+        // })
 
         // if let Some(cur_node) = self.next_node {
         //     self.next_node = SkipListNode::get_forward(&cur_node)[0];
