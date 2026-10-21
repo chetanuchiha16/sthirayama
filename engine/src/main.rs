@@ -68,15 +68,16 @@ impl Sthirayama for MySthirayama {
 #[tokio::main]
 async fn main() -> Result<(), EngineError> {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
+    if args.len() < 3 {
         println!("No path provided");
         return Ok(());
     }
     let path = &args[1];
+    let port = &args[2];
 
     let engine = Engine::new(path)?;
     let shared_engine = Arc::new(RwLock::new(engine));
-    let addr = "127.0.0.1:50051".parse()?;
+    let addr = format!("127.0.0.1:{}", port).parse()?;
     let sthira = MySthirayama::new(shared_engine);
     println!("Sthirayama listening on {}", addr);
     Server::builder()

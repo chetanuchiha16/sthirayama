@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"go-client/pb"
 	"log"
+	"os"
 	"time"
 
 	"google.golang.org/grpc"
@@ -11,7 +13,14 @@ import (
 )
 
 func main() {
-	conn, err := grpc.NewClient("127.0.0.1:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	args := os.Args
+	if len(args) < 2 {
+		log.Fatal("port is missing")
+		return
+	}
+	port := args[1]
+	addr := fmt.Sprintf("127.0.0.1:%v", port)
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
