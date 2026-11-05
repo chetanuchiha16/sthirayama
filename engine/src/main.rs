@@ -35,7 +35,7 @@ impl Sthirayama for MySthirayama {
         let mut response = false;
         let SetRequest { key, val } = request.into_inner();
         if let Ok(mut e) = self.engine.write() {
-            e.set(&key.into_bytes(), &val.into_bytes());
+            e.set(&key, &val);
             response = true;
         }
         let reply = SetResponse { ok: response };
@@ -43,11 +43,11 @@ impl Sthirayama for MySthirayama {
     }
     async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetResponse>, Status> {
         let GetRequest { key } = request.into_inner();
-        let mut value = "Error".to_string();
+        let mut value = "Error".as_bytes().to_vec();
         if let Ok(e) = self.engine.read() {
-            if let Ok(x) = e.get(&key.into_bytes()) {
+            if let Ok(x) = e.get(&key) {
                 if let Some(val) = x {
-                    value = str::from_utf8(&val).unwrap().to_string();
+                    value = val.clone();
                 }
             }
         }
@@ -58,7 +58,7 @@ impl Sthirayama for MySthirayama {
         let key = request.into_inner().key;
         let mut response = false;
         if let Ok(mut e) = self.engine.write() {
-            e.del(&key.into_bytes());
+            e.del(&key);
             response = true;
         }
         let reply = DelResponse { ok: response };
