@@ -2,6 +2,7 @@ pub mod compaction;
 pub mod config;
 pub mod engine;
 pub mod engine_error;
+pub mod engine_iterator;
 pub mod memtable;
 pub mod skiplist;
 pub mod skiplist_error;

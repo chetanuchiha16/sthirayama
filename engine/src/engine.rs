@@ -9,10 +9,12 @@ use crate::{
     compaction::Compaction,
     config::get_sstable_path,
     engine_error::EngineError,
+    engine_iterator::EngineIterator,
     memtable::{
         Memtable,
         Value::{self, Data, Tombstone},
     },
+    skiplist::SkipListKV,
     sstable::{iterator::SstableIterator, reader::SstableReader, writer::SstableWriter},
     wal::Wal,
 };
@@ -100,6 +102,15 @@ impl Engine {
             // sstable_meta_list: Vec::new(),
             sequence,
         })
+    }
+    pub fn iter<'a>(
+        &self,
+    ) -> Result<EngineIterator<'a, impl Iterator<Item = SkipListKV<Vec<u8>, Vec<u8>>>>, EngineError>
+    {
+        let iter_vec = self.get_sst_iters(&self.active_sstables)?;
+        let merged_sstable_iterater = Compaction::merge_iterators(iter_vec);
+        let e_iter = EngineIterator::new(merged_sstable_iterater, self.memtable.skiplist.iter());
+        return Ok(e_iter);
     }
 
     pub fn run(&self) -> Result<(), EngineError> {

@@ -8,7 +8,10 @@ use std::{
     time::Instant,
 };
 
-use engine::{engine::Engine, engine_error::EngineError, sstable::iterator::SstableIterator};
+use engine::{
+    engine::Engine, engine_error::EngineError, sstable::iterator::SstableIterator,
+    tests::test_write_read_compact,
+};
 use tonic::{Request, Response, Status, transport::Server};
 
 use crate::sthirayama::{
@@ -65,8 +68,7 @@ impl Sthirayama for MySthirayama {
         Ok(Response::new(reply))
     }
 }
-#[tokio::main]
-async fn main() -> Result<(), EngineError> {
+async fn run_grpc() -> Result<(), EngineError> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         println!("No path provided");
@@ -84,5 +86,18 @@ async fn main() -> Result<(), EngineError> {
         .add_service(SthirayamaServer::new(sthira))
         .serve(addr)
         .await?;
+    Ok(())
+}
+fn run_engine_iter() -> Result<(), EngineError> {
+    let engine = Engine::new("./main")?;
+    for i in engine.iter()? {
+        println!("{}", i);
+    }
+    Ok(())
+}
+#[tokio::main]
+async fn main() -> Result<(), EngineError> {
+    test_write_read_compact()?;
+    run_engine_iter()?;
     Ok(())
 }
