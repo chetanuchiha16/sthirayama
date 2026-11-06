@@ -117,7 +117,9 @@ impl Engine {
         }
         Ok(())
     }
-
+    pub fn freeze(&mut self) -> Memtable {
+        mem::replace(&mut self.memtable, Memtable::new())
+    }
     pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
         // let start = Instant::now();
         self.sequence += 1;
@@ -127,7 +129,7 @@ impl Engine {
 
         if self.memtable.size > limit {
             // println!("memtable size reached 4kb");
-            let frozen = mem::replace(&mut self.memtable, Memtable::new());
+            let frozen = self.freeze();
             //because you need new sstable for a new frozen memtable anyway
             let sstable_no = self.sstable_count;
             self.active_sstables.push(sstable_no);
