@@ -328,6 +328,7 @@ dependencies = [
  "prost",
  "tempfile",
  "tokio",
+ "tokio-stream",
  "tonic",
  "tonic-build",
 ]
