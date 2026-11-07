@@ -210,7 +210,7 @@ where
 
     /// Insert requires &mut self (single-writer model).
     /// Readers can execute search() concurrently without blocking.
-    pub fn insert(&self, key: K, value: V, sequence: [u8; 8]) {
+    pub fn insert(&mut self, key: K, value: V, sequence: [u8; 8]) {
         let target_seq = u64::from_le_bytes(sequence);
         let mut update: Vec<*mut SkipListNode<K, V>> = vec![self.head; self.max_level];
         let mut current = self.head;
@@ -246,7 +246,7 @@ where
         }
 
         // Step 2: Publish new node to readers from level 0 upwards using Release ordering.
-        for level in 0..new_node_level {
+        for level in (0..new_node_level).rev() {
             SkipListNode::store_forward(update[level], level, new_node);
         }
     }
