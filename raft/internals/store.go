@@ -30,6 +30,7 @@ func NewStore(nodeId string, raftAddr, dataDir string, fsm *FSM) *Store {
 
 func (self *Store) Open(bootstrap bool) error {
 	config := raft.DefaultConfig()
+	config.LocalID = raft.ServerID(self.nodeId)
 	adv, err := net.ResolveTCPAddr("tcp", self.raftAddr)
 	transport, err := raft.NewTCPTransport(self.raftAddr, adv, 3, 10*time.Second, os.Stderr)
 	if err != nil {

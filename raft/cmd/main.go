@@ -20,7 +20,7 @@ import (
 
 func main() {
 	nodeId := flag.String("id", "node1", "Unique Raft Node ID")
-	engineAddr := flag.String("engine", "127.0.0.1.50051", "Rust gRPC Engine address")
+	engineAddr := flag.String("engine", "127.0.0.1:50051", "Rust gRPC Engine address")
 	raftAddr := flag.String("raft", "127.0.0.1:7000", "Raft peer communication address")
 	httpAddr := flag.String("http", "127.0.0.1:8000", "HTTP client API address")
 	dataDir := flag.String("data", "./data-node1", "Raft snapshot data directory")
