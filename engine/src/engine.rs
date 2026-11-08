@@ -165,6 +165,30 @@ impl Engine {
         // );
         Ok(())
     }
+    pub fn set_with_sequence(
+        &mut self,
+        key: &Vec<u8>,
+        value: &Vec<u8>,
+        sequence: usize,
+    ) -> Result<(), EngineError> {
+        self.sequence = self.sequence.max(sequence);
+        self.memtable.insert(key, value.clone(), sequence)?;
+        let limit = 4 * 1024;
+
+        if self.memtable.size > limit {
+            // println!("memtable size reached 4kb");
+            let frozen = self.freeze();
+            //because you need new sstable for a new frozen memtable anyway
+            let sstable_no = self.sstable_count;
+            self.active_sstables.push(sstable_no);
+            self.sstable_count += 1;
+            Self::flush(frozen, self.path.clone(), sstable_no)?;
+            if self.active_sstables.len() > 4 {
+                self.compact()?;
+            }
+        }
+        Ok(())
+    }
 
     fn flush(frozen: Memtable, path: PathBuf, file_no: usize) -> Result<(), EngineError> {
         // tokio::task::spawn(async move {
