@@ -9,7 +9,7 @@ import (
 )
 
 type FSM struct {
-	engine Engine
+	engine MyEngine
 }
 
 var _ raft.FSM = (*FSM)(nil)
@@ -33,10 +33,12 @@ func (fsm *FSM) Apply(log *raft.Log) any {
 }
 
 func (fsm *FSM) Snapshot() (raft.FSMSnapshot, error) {
-	return nil, nil
+	return &MyFSMSnapshot{
+		engine: fsm.engine,
+	}, nil
 }
 
-func (fsm *FSM) Restore(snapshot io.ReadCloser) error {
-
+func (fsm *FSM) Restore(rc io.ReadCloser) error {
+	defer rc.Close()
 	return nil
 }

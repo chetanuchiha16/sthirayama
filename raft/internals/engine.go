@@ -11,7 +11,10 @@ type Engine interface {
 	Get(key []byte) ([]byte, error)
 	Set(key, value []byte) bool
 	Del(key []byte) bool
+	Snapshot()
 }
+
+var _ Engine = (*MyEngine)(nil)
 
 type MyEngine struct {
 	ctx         context.Context
@@ -46,4 +49,7 @@ func (engine *MyEngine) Del(key []byte) bool {
 		log.Fatalf("Error Del %v", err)
 	}
 	return delResponse.Ok
+}
+
+func (self *MyEngine) Snapshot() {
 }
