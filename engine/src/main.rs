@@ -123,7 +123,7 @@ impl Sthirayama for MySthirayama {
                         break;
                     }
                 }
-                if iter_chunk.len() > 1000 {
+                if iter_chunk.len() < 1000 {
                     break;
                 }
             }
@@ -183,7 +183,8 @@ fn run_engine_iter() -> Result<(), EngineError> {
 }
 #[tokio::main]
 async fn main() -> Result<(), EngineError> {
-    test_write_read_compact()?;
-    run_engine_iter()?;
+    // test_write_read_compact()?;
+    // run_engine_iter()?;
+    run_grpc().await?;
     Ok(())
 }
