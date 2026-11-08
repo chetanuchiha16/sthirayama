@@ -61,7 +61,7 @@ type SnapshotResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           []byte                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Value         []byte                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	Sequence      []byte                 `protobuf:"bytes,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	Sequence      uint64                 `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -110,11 +110,11 @@ func (x *SnapshotResponse) GetValue() []byte {
 	return nil
 }
 
-func (x *SnapshotResponse) GetSequence() []byte {
+func (x *SnapshotResponse) GetSequence() uint64 {
 	if x != nil {
 		return x.Sequence
 	}
-	return nil
+	return 0
 }
 
 type RestoreRequest struct {
@@ -503,7 +503,7 @@ const file_sthirayama_proto_rawDesc = "" +
 	"\x10SnapshotResponse\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\fR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\x12\x1a\n" +
-	"\bsequence\x18\x03 \x01(\fR\bsequence\"T\n" +
+	"\bsequence\x18\x03 \x01(\x04R\bsequence\"T\n" +
 	"\x0eRestoreRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\fR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\x12\x1a\n" +

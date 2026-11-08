@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/raft"
@@ -22,6 +26,10 @@ type Store struct {
 	dataDir  string
 	raft     *raft.Raft
 	fsm      *FSM
+}
+
+func (self *Store) Raft() *raft.Raft {
+	return self.raft
 }
 
 func NewStore(nodeId string, raftAddr, dataDir string, fsm *FSM) *Store {
@@ -58,9 +66,37 @@ func (self *Store) Open(bootstrap bool) error {
 	}
 	return nil
 }
+func (self *Store) LeaderHTTP() (string, error) {
+	leaderRaftAddr := string(self.raft.Leader()) // 700x
+	if leaderRaftAddr == "" {
+		return "", fmt.Errorf("no leader elected yet")
+	}
+	host, portStr, err := net.SplitHostPort(leaderRaftAddr)
+	if err != nil {
+		return "", err
+	}
+	port, _ := strconv.Atoi(portStr)
+	httpPort := port + 1000
+
+	return fmt.Sprintf("%s:%d", host, httpPort), nil
+}
+
+func (self *Store) ForwartToLeader(w http.ResponseWriter, r *http.Request) {
+	leaderHTTPAddr, err := self.LeaderHTTP()
+	if err != nil {
+		http.Error(w, "no leader currently available", http.StatusServiceUnavailable)
+		return
+	}
+	targetURL, _ := url.Parse("http://" + leaderHTTPAddr)
+	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+	log.Printf("Forwarding %s request to leader at %s", r.URL.Path, leaderHTTPAddr)
+	proxy.ServeHTTP(w, r)
+
+}
 
 func (self *Store) Set(key, value []byte) error {
 	if self.raft.State() != raft.Leader {
+
 		return fmt.Errorf("not a leader %v\n", self.raft.State())
 	}
 	comm := &command{Op: "set", Key: key, Value: value}

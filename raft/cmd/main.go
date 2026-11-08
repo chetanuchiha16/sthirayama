@@ -14,6 +14,7 @@ import (
 	"raft/pb"
 	"syscall"
 
+	"github.com/hashicorp/raft"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -50,6 +51,9 @@ func main() {
 	}
 
 	http.HandleFunc("/set", func(w http.ResponseWriter, r *http.Request) {
+		if store.Raft().State() != raft.Leader {
+			store.ForwartToLeader(w, r)
+		}
 		var req struct {
 			Key   string `json:"key"`
 			Value string `json:"value"`
@@ -66,6 +70,9 @@ func main() {
 	})
 
 	http.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
+		if store.Raft().State() != raft.Leader {
+			store.ForwartToLeader(w, r)
+		}
 		key := r.URL.Query().Get("key")
 		val, err := engine.Get([]byte(key))
 		if err != nil {
@@ -76,6 +83,10 @@ func main() {
 	})
 
 	http.HandleFunc("/del", func(w http.ResponseWriter, r *http.Request) {
+
+		if store.Raft().State() != raft.Leader {
+			store.ForwartToLeader(w, r)
+		}
 		key := r.URL.Query().Get("key")
 		if err := store.Del([]byte(key)); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -85,6 +96,10 @@ func main() {
 	})
 
 	http.HandleFunc("/join", func(w http.ResponseWriter, r *http.Request) {
+
+		if store.Raft().State() != raft.Leader {
+			store.ForwartToLeader(w, r)
+		}
 		var req struct {
 			NodeID   string `json:"node_id"`
 			RaftAddr string `json:"raft_addr"`
