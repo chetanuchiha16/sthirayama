@@ -9,10 +9,12 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/raft"
+	raftboltdb "github.com/hashicorp/raft-boltdb/v2"
 )
 
 type command struct {
@@ -46,8 +48,13 @@ func (self *Store) Open(bootstrap bool) error {
 		return err
 	}
 	snapStore, err := raft.NewFileSnapshotStore(self.dataDir, 2, os.Stderr)
-	logStore := raft.NewInmemStore()
-	stableStore := logStore
+	boltDB, err := raftboltdb.NewBoltStore(filepath.Join(self.dataDir, "raft.db"))
+	if err != nil {
+		return err
+	}
+	defer boltDB.Close()
+	logStore := boltDB
+	stableStore := boltDB
 	ra, err := raft.NewRaft(config, self.fsm, logStore, stableStore, snapStore, transport)
 	if err != nil {
 		return err
