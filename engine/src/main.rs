@@ -20,6 +20,7 @@ use tonic::{
     server::{ServerStreamingService, StreamingService},
     transport::Server,
 };
+use tracing_subscriber::EnvFilter;
 
 use crate::sthirayama::{
     DelRequest, DelResponse, GetRequest, GetResponse, RestoreRequest, RestoreResponse, SetRequest,
@@ -126,7 +127,7 @@ impl Sthirayama for MySthirayama {
                         }))
                         .await
                     {
-                        println!("client disconnected");
+                        tracing::info!("client disconnected");
                         break;
                     }
                 }
@@ -154,7 +155,7 @@ impl Sthirayama for MySthirayama {
         //         }))
         //         .await
         //     {
-        //         println!("client disconnected");
+        //         tracing::info!("client disconnected");
         //         break;
         //     }
         // }
@@ -183,7 +184,7 @@ impl Sthirayama for MySthirayama {
 async fn run_grpc() -> Result<(), EngineError> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
-        println!("No path provided");
+        tracing::error!("No path or port provided. Usage: <path> <port>");
         return Ok(());
     }
     let path = &args[1];
@@ -193,7 +194,7 @@ async fn run_grpc() -> Result<(), EngineError> {
     let shared_engine = Arc::new(RwLock::new(engine));
     let addr = format!("127.0.0.1:{}", port).parse()?;
     let sthira = MySthirayama::new(shared_engine);
-    println!("Sthirayama listening on {}", addr);
+    tracing::info!("Sthirayama listening on {}", addr);
     Server::builder()
         .add_service(SthirayamaServer::new(sthira))
         .serve(addr)
@@ -209,6 +210,9 @@ fn run_engine_iter() -> Result<(), EngineError> {
 }
 #[tokio::main]
 async fn main() -> Result<(), EngineError> {
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
     // test_write_read_compact()?;
     // run_engine_iter()?;
     run_grpc().await?;

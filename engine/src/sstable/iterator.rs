@@ -54,7 +54,7 @@ impl<'a> Iterator for SstableIterator {
             // println!("data block size : {}", data_block.len());
             // if self.current_entry > block_len {
             if self.current_entry >= data_block.len() {
-                println!("Block {}", self.current_block);
+                tracing::debug!("Advancing to block {}", self.current_block);
                 self.current_block += 1;
                 // self.data_block =
                 self.current_entry = 0;

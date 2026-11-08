@@ -25,8 +25,8 @@ impl Manifest {
         self.file.seek(std::io::SeekFrom::End(-8))?;
         let mut buf = [0u8; 8];
         self.file.read_exact(&mut buf)?;
-        println!(
-            "{}, {}",
+        tracing::debug!(
+            "Manifest read count: {}, global: {}",
             usize::from_le_bytes(buf),
             GLOBAL_COUNT.load(Ordering::SeqCst)
         );
@@ -42,8 +42,8 @@ impl Manifest {
         let path = format!("sstable/{:06}.sst", GLOBAL_COUNT.load(Ordering::SeqCst));
 
         let buf = GLOBAL_COUNT.load(Ordering::SeqCst).to_le_bytes();
-        println!(
-            "{}, {}",
+        tracing::debug!(
+            "Manifest read count: {}, global: {}",
             usize::from_le_bytes(buf),
             GLOBAL_COUNT.load(Ordering::SeqCst)
         );

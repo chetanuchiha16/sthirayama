@@ -5,6 +5,8 @@ use std::{
     str::from_utf8,
 };
 
+use tracing::{debug, info};
+
 use crate::{
     compaction::Compaction,
     config::get_sstable_path,
@@ -119,12 +121,12 @@ impl Engine {
             let key = kv.key;
             let value = Value::from_bytes(&kv.value).unwrap();
             let seq = usize::from_le_bytes(kv.sequence.try_into().unwrap());
-            println!(
+            debug!(
                 "{} -> {:?} sequence {}",
                 from_utf8(&key).unwrap(),
                 value,
                 seq
-            )
+            );
         }
         Ok(())
     }
@@ -148,7 +150,9 @@ impl Engine {
             let (old_wal, archived_path) = self.wal.rotate()?;
             // tokio::task::spawn_blocking(move || {
             Self::flush(frozen, self.path.clone(), sstable_no)?;
+            info!("Flushed memtable to SSTable {:06}", sstable_no);
             if self.active_sstables.len() > 4 {
+                info!("Triggered compaction for active SSTables: {:?}", self.active_sstables);
                 self.compact()?;
             }
             // println!("flushed");
@@ -183,7 +187,9 @@ impl Engine {
             self.active_sstables.push(sstable_no);
             self.sstable_count += 1;
             Self::flush(frozen, self.path.clone(), sstable_no)?;
+            info!("Flushed memtable to SSTable {:06}", sstable_no);
             if self.active_sstables.len() > 4 {
+                info!("Triggered compaction for active SSTables: {:?}", self.active_sstables);
                 self.compact()?;
             }
         }
@@ -353,7 +359,7 @@ impl Engine {
     pub fn del(&mut self, key: &Vec<u8>) -> Result<(), EngineError> {
         self.sequence += 1;
         self.wal.append(key, Tombstone, self.sequence)?;
-        println!("delete {}", str::from_utf8(key).unwrap());
+        debug!("Delete key: {:?}", from_utf8(key).unwrap_or(""));
         self.memtable.delete(key, self.sequence);
         Ok(())
     }

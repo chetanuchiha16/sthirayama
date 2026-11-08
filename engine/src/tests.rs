@@ -13,7 +13,7 @@ use crate::{
 };
 
 pub fn try_new_skiplist() -> Result<(), skiplist_error::SkipListError> {
-    println!("creating new skiplist...");
+    tracing::info!("creating new skiplist...");
     let mut skip_list: SkipList<i32, i32> = SkipList::new(5, i32::MIN, -1);
     skip_list.insert(10, 100, 0usize.to_le_bytes());
     skip_list.insert(20, 200, 0usize.to_le_bytes());

@@ -169,7 +169,7 @@ impl SstableReader {
             //     "left: {}, key to find: {}, right: {}",
             //     left_val, key_val, right_val
             // );
-            println!("{key_val} Not Found")
+            tracing::debug!("{key_val} not found in sstable index");
         }
 
         Ok(ans_idx)
