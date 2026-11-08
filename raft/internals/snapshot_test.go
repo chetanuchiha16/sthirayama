@@ -43,7 +43,7 @@ func TestSnapshotAndRestore(t *testing.T) {
 	defer conn.Close()
 
 	client := pb.NewSthirayamaClient(conn)
-	ctx := context.Background()
+	Ctx := context.Background()
 
 	// 1. Populate test data in Rust engine
 	testKVs := map[string]string{
@@ -54,14 +54,14 @@ func TestSnapshotAndRestore(t *testing.T) {
 	}
 
 	for k, v := range testKVs {
-		resp, err := client.Set(ctx, &pb.SetRequest{Key: []byte(k), Val: []byte(v)})
+		resp, err := client.Set(Ctx, &pb.SetRequest{Key: []byte(k), Val: []byte(v)})
 		if err != nil || !resp.Ok {
 			t.Fatalf("Failed to set key %s: %v", k, err)
 		}
 	}
 
 	// 2. Persist snapshot using MyFSMSnapshot into buffer sink
-	engine := MyEngine{ctx: ctx, grpc_client: client}
+	engine := MyEngine{Ctx: Ctx, GrpcClient: client}
 	fsmSnap := &MyFSMSnapshot{engine: engine}
 	sink := newBufferSnapshotSink()
 

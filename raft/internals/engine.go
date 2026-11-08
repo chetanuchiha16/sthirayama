@@ -17,13 +17,13 @@ type Engine interface {
 var _ Engine = (*MyEngine)(nil)
 
 type MyEngine struct {
-	ctx         context.Context
-	grpc_client pb.SthirayamaClient
+	Ctx        context.Context
+	GrpcClient pb.SthirayamaClient
 }
 
 func (engine *MyEngine) Get(key []byte) ([]byte, error) {
 
-	getResponse, err := engine.grpc_client.Get(engine.ctx, &pb.GetRequest{Key: key})
+	getResponse, err := engine.GrpcClient.Get(engine.Ctx, &pb.GetRequest{Key: key})
 	if err != nil {
 		log.Fatalf("Error Get %v", err)
 	}
@@ -32,7 +32,7 @@ func (engine *MyEngine) Get(key []byte) ([]byte, error) {
 
 func (engine *MyEngine) Set(key, value []byte) bool {
 
-	resp, err := engine.grpc_client.Set(engine.ctx, &pb.SetRequest{Key: key, Val: value})
+	resp, err := engine.GrpcClient.Set(engine.Ctx, &pb.SetRequest{Key: key, Val: value})
 	if err != nil {
 		fmt.Println("error grpc set")
 
@@ -44,7 +44,7 @@ func (engine *MyEngine) Set(key, value []byte) bool {
 
 func (engine *MyEngine) Del(key []byte) bool {
 
-	delResponse, err := engine.grpc_client.Del(engine.ctx, &pb.DelRequest{Key: key})
+	delResponse, err := engine.GrpcClient.Del(engine.Ctx, &pb.DelRequest{Key: key})
 	if err != nil {
 		log.Fatalf("Error Del %v", err)
 	}

@@ -16,6 +16,10 @@ type FSM struct {
 	engine MyEngine
 }
 
+func NewFSM(engine MyEngine) *FSM {
+	return &FSM{engine: engine}
+}
+
 var _ raft.FSM = (*FSM)(nil)
 
 func (fsm *FSM) Apply(log *raft.Log) any {
@@ -44,7 +48,7 @@ func (fsm *FSM) Snapshot() (raft.FSMSnapshot, error) {
 
 func (fsm *FSM) Restore(rc io.ReadCloser) error {
 	defer rc.Close()
-	stream, err := fsm.engine.grpc_client.Restore(fsm.engine.ctx)
+	stream, err := fsm.engine.GrpcClient.Restore(fsm.engine.Ctx)
 	if err != nil {
 		fmt.Printf("error restore %v", err)
 		return err

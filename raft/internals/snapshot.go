@@ -17,7 +17,7 @@ type MyFSMSnapshot struct {
 var _ raft.FSMSnapshot = (*MyFSMSnapshot)(nil)
 
 func (self *MyFSMSnapshot) Persist(sink raft.SnapshotSink) error {
-	stream, err := self.engine.grpc_client.Snapshot(self.engine.ctx, &pb.SnapshotRequest{})
+	stream, err := self.engine.GrpcClient.Snapshot(self.engine.Ctx, &pb.SnapshotRequest{})
 	if err != nil {
 		log.Printf("error snapshot %v", err)
 	}
