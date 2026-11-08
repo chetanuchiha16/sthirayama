@@ -12,7 +12,9 @@ type FSM struct {
 	engine Engine
 }
 
-func (fsm *FSM) Apply(log raft.Log) interface{} {
+var _ raft.FSM = (*FSM)(nil)
+
+func (fsm *FSM) Apply(log *raft.Log) any {
 	var comm command
 	err := json.Unmarshal(log.Data, &comm)
 	if err != nil {
@@ -30,7 +32,7 @@ func (fsm *FSM) Apply(log raft.Log) interface{} {
 	return nil
 }
 
-func (fsm *FSM) SnapShot() (raft.FSMSnapshot, error) {
+func (fsm *FSM) Snapshot() (raft.FSMSnapshot, error) {
 	return nil, nil
 }
 
