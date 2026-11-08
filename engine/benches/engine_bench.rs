@@ -7,7 +7,7 @@ fn benchmark_set(c: &mut Criterion) {
     c.bench_function("set", |b| {
         b.iter_batched(
             || {
-                let engine = Engine::new("bench_set").unwrap();
+                let engine = Engine::new("bench_set", None).unwrap();
                 let key = b"0001".to_vec();
                 let value = b"value".to_vec();
 
@@ -22,7 +22,7 @@ fn benchmark_set(c: &mut Criterion) {
 }
 
 fn benchmark_get_memtable(c: &mut Criterion) {
-    let mut engine = Engine::new("bench_get_memtable").unwrap();
+    let mut engine = Engine::new("bench_get_memtable", None).unwrap();
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -41,7 +41,7 @@ fn benchmark_get_memtable(c: &mut Criterion) {
 }
 
 fn benchmark_get_sstable(c: &mut Criterion) {
-    let mut engine = Engine::new("bench_get_sstable").unwrap();
+    let mut engine = Engine::new("bench_get_sstable", None).unwrap();
 
     // Force data into SSTables.
     for i in 0..1000 {
@@ -61,7 +61,7 @@ fn benchmark_get_sstable(c: &mut Criterion) {
 }
 
 fn benchmark_get_missing(c: &mut Criterion) {
-    let mut engine = Engine::new("bench_get_missing").unwrap();
+    let mut engine = Engine::new("bench_get_missing", None).unwrap();
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -82,7 +82,7 @@ fn benchmark_get_missing(c: &mut Criterion) {
 fn benchmark_flush(c: &mut Criterion) {
     c.bench_function("set_with_flush", |b| {
         b.iter_batched(
-            || Engine::new("bench_flush").unwrap(),
+            || Engine::new("bench_flush", None).unwrap(),
             |mut engine| {
                 for i in 0..1000 {
                     let key = format!("{:04}", i).into_bytes();

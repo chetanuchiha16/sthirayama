@@ -76,7 +76,7 @@ fn test_merge_iterators_deduplication_and_order() -> Result<(), EngineError> {
 #[tokio::test]
 async fn test_compaction_guard_less_than_threshold() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let mut engine = Engine::new(dir.path())?;
+    let mut engine = Engine::new(dir.path(), None)?;
 
     // Calling compact with fewer than 5 tables should be a harmless no-op
     engine.compact()?;
@@ -104,7 +104,7 @@ async fn test_compaction_guard_less_than_threshold() -> Result<(), EngineError> 
 async fn test_engine_compaction_deletes_old_files_and_preserves_data() -> Result<(), EngineError> {
     let dir = tempdir()?;
     let db_path = dir.path();
-    let mut engine = Engine::new(db_path)?;
+    let mut engine = Engine::new(db_path, None)?;
 
     // Insert enough data to trigger multiple flushes and compaction (> 4 SSTables)
     for i in 0..6000 {
@@ -149,7 +149,7 @@ async fn test_engine_compaction_deletes_old_files_and_preserves_data() -> Result
 #[tokio::test]
 async fn test_engine_compaction_with_updates() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let mut engine = Engine::new(dir.path())?;
+    let mut engine = Engine::new(dir.path(), None)?;
 
     let target_key = b"target_key".to_vec();
 
@@ -176,7 +176,7 @@ async fn test_engine_compaction_with_updates() -> Result<(), EngineError> {
 #[tokio::test]
 async fn test_engine_compaction_with_delete() -> Result<(), EngineError> {
     let dir = tempdir()?;
-    let mut engine = Engine::new(dir.path())?;
+    let mut engine = Engine::new(dir.path(), None)?;
 
     let target_key = b"delete_target".to_vec();
 
@@ -208,7 +208,7 @@ async fn test_compaction_reopen_persistence() -> Result<(), EngineError> {
     let db_path = dir.path();
 
     {
-        let mut engine = Engine::new(db_path)?;
+        let mut engine = Engine::new(db_path, None)?;
         for i in 0..6000 {
             let k = format!("{:04}", i).into_bytes();
             let v = format!("v_{:04}", i).into_bytes();
@@ -217,7 +217,7 @@ async fn test_compaction_reopen_persistence() -> Result<(), EngineError> {
     }
 
     // Reopen the engine from disk
-    let reopened = Engine::new(db_path)?;
+    let reopened = Engine::new(db_path, None)?;
     for i in 0..6000 {
         let k = format!("{:04}", i).into_bytes();
         let expected = format!("v_{:04}", i).into_bytes();

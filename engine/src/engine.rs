@@ -43,6 +43,7 @@ pub struct Engine {
     wal: Wal,
     sstable_count: usize,
     active_sstables: Vec<usize>,
+    memtable_limit: usize,
     // ssts: File,
     // sstable : SstableWriter
     path: PathBuf,
@@ -51,7 +52,10 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new<T: AsRef<Path>>(path: T) -> Result<Self, EngineError> {
+    pub fn new<T: AsRef<Path>>(
+        path: T,
+        memtable_limit: Option<usize>,
+    ) -> Result<Self, EngineError> {
         let path = get_sstable_path()?.join(&path); //sstable/main
         create_dir_all(&path)?;
         // let path = path.as_ref().join(".sst");
@@ -93,6 +97,10 @@ impl Engine {
                 sequence = sequence.max(usize::from_le_bytes(m.sequence));
             }
         }
+        let mut memtable_lim = 4 * 1024;
+        if let Some(mem_table_limit) = memtable_limit {
+            memtable_lim = mem_table_limit
+        }
         Ok(Self {
             memtable,
             // immutable_memtable: None,
@@ -103,6 +111,7 @@ impl Engine {
             path: path,
             // sstable_meta_list: Vec::new(),
             sequence,
+            memtable_limit: memtable_lim,
         })
     }
     pub fn iter<'a>(
@@ -138,9 +147,8 @@ impl Engine {
         self.sequence += 1;
         self.wal.append(key, Data(value.to_vec()), self.sequence)?;
         self.memtable.insert(key, value.clone(), self.sequence)?;
-        let limit = 4 * 1024 * 1024;
 
-        if self.memtable.size > limit {
+        if self.memtable.size > self.memtable_limit {
             // println!("memtable size reached 4kb");
             let frozen = self.freeze();
             //because you need new sstable for a new frozen memtable anyway
@@ -152,7 +160,10 @@ impl Engine {
             Self::flush(frozen, self.path.clone(), sstable_no)?;
             info!("Flushed memtable to SSTable {:06}", sstable_no);
             if self.active_sstables.len() > 4 {
-                info!("Triggered compaction for active SSTables: {:?}", self.active_sstables);
+                info!(
+                    "Triggered compaction for active SSTables: {:?}",
+                    self.active_sstables
+                );
                 self.compact()?;
             }
             // println!("flushed");
@@ -189,7 +200,10 @@ impl Engine {
             Self::flush(frozen, self.path.clone(), sstable_no)?;
             info!("Flushed memtable to SSTable {:06}", sstable_no);
             if self.active_sstables.len() > 4 {
-                info!("Triggered compaction for active SSTables: {:?}", self.active_sstables);
+                info!(
+                    "Triggered compaction for active SSTables: {:?}",
+                    self.active_sstables
+                );
                 self.compact()?;
             }
         }

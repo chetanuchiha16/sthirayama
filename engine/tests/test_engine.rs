@@ -4,7 +4,7 @@ use tempfile::tempdir;
 #[test]
 fn test_set_and_get_from_memtable() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"0001".to_vec();
     let value = b"value1".to_vec();
@@ -17,7 +17,7 @@ fn test_set_and_get_from_memtable() {
 #[test]
 fn test_get_missing_key() {
     let dir = tempdir().unwrap();
-    let engine = Engine::new(dir.path()).unwrap();
+    let engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"9999".to_vec();
 
@@ -27,7 +27,7 @@ fn test_get_missing_key() {
 #[tokio::test]
 async fn test_flush_and_get_from_sstable() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     // Make the memtable exceed 4 KB.
     for i in 0..1000 {
@@ -51,7 +51,7 @@ async fn test_flush_and_get_from_sstable() {
 #[tokio::test]
 async fn test_flush_multiple_sstables() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     // Enough data to create multiple SSTables.
     for i in 0..5000 {
@@ -83,7 +83,7 @@ async fn test_flush_multiple_sstables() {
 #[tokio::test]
 async fn test_key_not_found_after_flush() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     for i in 0..1000 {
         let key = format!("{:04}", i).into_bytes();
@@ -98,7 +98,7 @@ async fn test_key_not_found_after_flush() {
 #[tokio::test]
 async fn test_keys_across_multiple_flushes() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     for i in 0..10000 {
         let key = format!("{:04}", i).into_bytes();
@@ -123,7 +123,7 @@ async fn test_keys_across_multiple_flushes() {
 #[test]
 fn test_set_overwrites_value() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -139,7 +139,7 @@ fn test_set_overwrites_value() {
 #[tokio::test]
 async fn test_update_after_flush() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -163,7 +163,7 @@ async fn test_update_after_flush() {
 #[tokio::test]
 async fn test_delete_from_memtable() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -179,7 +179,7 @@ async fn test_delete_from_memtable() {
 #[tokio::test]
 async fn test_delete_after_flush() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -204,7 +204,7 @@ async fn test_delete_after_flush() {
 #[tokio::test]
 async fn test_delete_survives_flush() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -237,7 +237,7 @@ async fn test_delete_survives_flush() {
 #[test]
 fn test_delete_missing_key() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"9999".to_vec();
 
@@ -251,7 +251,7 @@ fn test_delete_missing_key() {
 #[tokio::test]
 async fn test_overwrite_across_multiple_flushes() {
     let dir = tempdir().unwrap();
-    let mut engine = Engine::new(dir.path()).unwrap();
+    let mut engine = Engine::new(dir.path(), None).unwrap();
 
     let key = b"0001".to_vec();
 
@@ -286,7 +286,7 @@ async fn test_engine_reopen_persistence() {
     let value = b"persistent_value".to_vec();
 
     {
-        let mut engine = Engine::new(db_path).unwrap();
+        let mut engine = Engine::new(db_path, None).unwrap();
         engine.set(&key, &value).unwrap();
 
         // Flush to SSTable.
@@ -299,7 +299,7 @@ async fn test_engine_reopen_persistence() {
     }
 
     // Re-open Engine at the same directory.
-    let reopened_engine = Engine::new(db_path).unwrap();
+    let reopened_engine = Engine::new(db_path, None).unwrap();
     assert_eq!(reopened_engine.get(&key).unwrap(), Some(value));
 }
 
@@ -309,7 +309,7 @@ async fn test_sequence_recovery_unflushed_wal() {
     let db_path = dir.path();
 
     {
-        let mut engine = Engine::new(db_path).unwrap();
+        let mut engine = Engine::new(db_path, None).unwrap();
         // Insert key with alphabetically high name first (sequence = 1)
         engine.set(&b"z_key".to_vec(), &b"val1".to_vec()).unwrap();
         // Insert key with alphabetically lower name second (sequence = 2)
@@ -318,7 +318,7 @@ async fn test_sequence_recovery_unflushed_wal() {
     }
 
     // Reopen engine from the same path
-    let mut reopened = Engine::new(db_path).unwrap();
+    let mut reopened = Engine::new(db_path, None).unwrap();
 
     // Now insert a new key after recovery and flush to SSTable
     reopened
@@ -355,7 +355,7 @@ async fn test_sequence_recovery_after_sstable_flush() {
     let db_path = dir.path();
 
     {
-        let mut engine = Engine::new(db_path).unwrap();
+        let mut engine = Engine::new(db_path, None).unwrap();
         // Insert 350 items (~4.5KB) to trigger a single flush into SSTable 0 (sequences 1..=350)
         for i in 0..350 {
             let k = format!("{:04}", i).into_bytes();
@@ -366,7 +366,7 @@ async fn test_sequence_recovery_after_sstable_flush() {
     }
 
     // Reopen engine
-    let mut reopened = Engine::new(db_path).unwrap();
+    let mut reopened = Engine::new(db_path, None).unwrap();
 
     // Insert key after reopen and another 350 items to trigger flush into SSTable 1
     reopened
@@ -402,7 +402,7 @@ async fn test_sequence_recovery_mixed_sstable_and_wal() {
     let db_path = dir.path();
 
     {
-        let mut engine = Engine::new(db_path).unwrap();
+        let mut engine = Engine::new(db_path, None).unwrap();
         // 1. Insert 350 items to flush to SSTable 0 (seqs 1..=350)
         for i in 0..350 {
             let k = format!("{:04}", i).into_bytes();
@@ -415,7 +415,7 @@ async fn test_sequence_recovery_mixed_sstable_and_wal() {
     }
 
     // 3. Reopen engine: must recover both SSTable seq (up to 350) and WAL seq (up to 352)
-    let mut reopened = Engine::new(db_path).unwrap();
+    let mut reopened = Engine::new(db_path, None).unwrap();
 
     // 4. Write new key and flush to SSTable 1
     reopened

@@ -190,7 +190,7 @@ async fn run_grpc() -> Result<(), EngineError> {
     let path = &args[1];
     let port = &args[2];
 
-    let engine = Engine::new(path)?;
+    let engine = Engine::new(path, None)?;
     let shared_engine = Arc::new(RwLock::new(engine));
     let addr = format!("127.0.0.1:{}", port).parse()?;
     let sthira = MySthirayama::new(shared_engine);
@@ -202,7 +202,7 @@ async fn run_grpc() -> Result<(), EngineError> {
     Ok(())
 }
 fn run_engine_iter() -> Result<(), EngineError> {
-    let engine = Engine::new("./main")?;
+    let engine = Engine::new("./main", None)?;
     for i in engine.iter()? {
         println!("{}", i);
     }

@@ -153,7 +153,7 @@ pub fn test_write_read_compact() -> Result<(), engine_error::EngineError> {
     // test_sstable_read()?;
     // cli(skiplist)
 
-    let mut engine = Engine::new("main")?;
+    let mut engine = Engine::new("main", None)?;
     let key = format!("{:04}", 0).into_bytes();
     let value = format!("{:04}", 0 * 2).into_bytes();
     engine.set(&key, &value)?;
