@@ -9,10 +9,12 @@ use crate::{
     compaction::Compaction,
     config::get_sstable_path,
     engine_error::EngineError,
+    engine_iterator::EngineIterator,
     memtable::{
         Memtable,
         Value::{self, Data, Tombstone},
     },
+    skiplist::SkipListKV,
     sstable::{iterator::SstableIterator, reader::SstableReader, writer::SstableWriter},
     wal::Wal,
 };
@@ -101,6 +103,15 @@ impl Engine {
             sequence,
         })
     }
+    pub fn iter<'a>(
+        &self,
+    ) -> Result<EngineIterator<'a, impl Iterator<Item = SkipListKV<Vec<u8>, Vec<u8>>>>, EngineError>
+    {
+        let iter_vec = self.get_sst_iters(&self.active_sstables)?;
+        let merged_sstable_iterater = Compaction::merge_iterators(iter_vec);
+        let e_iter = EngineIterator::new(merged_sstable_iterater, self.memtable.skiplist.iter());
+        return Ok(e_iter);
+    }
 
     pub fn run(&self) -> Result<(), EngineError> {
         let sstable = SstableReader::new(self.path.clone(), 11)?;
@@ -117,7 +128,9 @@ impl Engine {
         }
         Ok(())
     }
-
+    pub fn freeze(&mut self) -> Memtable {
+        mem::replace(&mut self.memtable, Memtable::new())
+    }
     pub fn set(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Result<(), EngineError> {
         // let start = Instant::now();
         self.sequence += 1;
@@ -127,7 +140,7 @@ impl Engine {
 
         if self.memtable.size > limit {
             // println!("memtable size reached 4kb");
-            let frozen = mem::replace(&mut self.memtable, Memtable::new());
+            let frozen = self.freeze();
             //because you need new sstable for a new frozen memtable anyway
             let sstable_no = self.sstable_count;
             self.active_sstables.push(sstable_no);
@@ -150,6 +163,30 @@ impl Engine {
         //     str::from_utf8(&key)?,
         //     Instant::now() - start
         // );
+        Ok(())
+    }
+    pub fn set_with_sequence(
+        &mut self,
+        key: &Vec<u8>,
+        value: &Vec<u8>,
+        sequence: usize,
+    ) -> Result<(), EngineError> {
+        self.sequence = self.sequence.max(sequence);
+        self.memtable.insert(key, value.clone(), sequence)?;
+        let limit = 4 * 1024;
+
+        if self.memtable.size > limit {
+            // println!("memtable size reached 4kb");
+            let frozen = self.freeze();
+            //because you need new sstable for a new frozen memtable anyway
+            let sstable_no = self.sstable_count;
+            self.active_sstables.push(sstable_no);
+            self.sstable_count += 1;
+            Self::flush(frozen, self.path.clone(), sstable_no)?;
+            if self.active_sstables.len() > 4 {
+                self.compact()?;
+            }
+        }
         Ok(())
     }
 

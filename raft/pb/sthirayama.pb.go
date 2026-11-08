@@ -21,6 +21,206 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SnapshotRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SnapshotRequest) Reset() {
+	*x = SnapshotRequest{}
+	mi := &file_sthirayama_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SnapshotRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SnapshotRequest) ProtoMessage() {}
+
+func (x *SnapshotRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sthirayama_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SnapshotRequest.ProtoReflect.Descriptor instead.
+func (*SnapshotRequest) Descriptor() ([]byte, []int) {
+	return file_sthirayama_proto_rawDescGZIP(), []int{0}
+}
+
+type SnapshotResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           []byte                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         []byte                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Sequence      []byte                 `protobuf:"bytes,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SnapshotResponse) Reset() {
+	*x = SnapshotResponse{}
+	mi := &file_sthirayama_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SnapshotResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SnapshotResponse) ProtoMessage() {}
+
+func (x *SnapshotResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sthirayama_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SnapshotResponse.ProtoReflect.Descriptor instead.
+func (*SnapshotResponse) Descriptor() ([]byte, []int) {
+	return file_sthirayama_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SnapshotResponse) GetKey() []byte {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+func (x *SnapshotResponse) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *SnapshotResponse) GetSequence() []byte {
+	if x != nil {
+		return x.Sequence
+	}
+	return nil
+}
+
+type RestoreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           []byte                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         []byte                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Sequence      uint64                 `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreRequest) Reset() {
+	*x = RestoreRequest{}
+	mi := &file_sthirayama_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreRequest) ProtoMessage() {}
+
+func (x *RestoreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sthirayama_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreRequest.ProtoReflect.Descriptor instead.
+func (*RestoreRequest) Descriptor() ([]byte, []int) {
+	return file_sthirayama_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RestoreRequest) GetKey() []byte {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+func (x *RestoreRequest) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *RestoreRequest) GetSequence() uint64 {
+	if x != nil {
+		return x.Sequence
+	}
+	return 0
+}
+
+type RestoreResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreResponse) Reset() {
+	*x = RestoreResponse{}
+	mi := &file_sthirayama_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreResponse) ProtoMessage() {}
+
+func (x *RestoreResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sthirayama_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreResponse.ProtoReflect.Descriptor instead.
+func (*RestoreResponse) Descriptor() ([]byte, []int) {
+	return file_sthirayama_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RestoreResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 type SetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           []byte                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -31,7 +231,7 @@ type SetRequest struct {
 
 func (x *SetRequest) Reset() {
 	*x = SetRequest{}
-	mi := &file_sthirayama_proto_msgTypes[0]
+	mi := &file_sthirayama_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +243,7 @@ func (x *SetRequest) String() string {
 func (*SetRequest) ProtoMessage() {}
 
 func (x *SetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_sthirayama_proto_msgTypes[0]
+	mi := &file_sthirayama_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +256,7 @@ func (x *SetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetRequest.ProtoReflect.Descriptor instead.
 func (*SetRequest) Descriptor() ([]byte, []int) {
-	return file_sthirayama_proto_rawDescGZIP(), []int{0}
+	return file_sthirayama_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SetRequest) GetKey() []byte {
@@ -82,7 +282,7 @@ type GetRequest struct {
 
 func (x *GetRequest) Reset() {
 	*x = GetRequest{}
-	mi := &file_sthirayama_proto_msgTypes[1]
+	mi := &file_sthirayama_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +294,7 @@ func (x *GetRequest) String() string {
 func (*GetRequest) ProtoMessage() {}
 
 func (x *GetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_sthirayama_proto_msgTypes[1]
+	mi := &file_sthirayama_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +307,7 @@ func (x *GetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
 func (*GetRequest) Descriptor() ([]byte, []int) {
-	return file_sthirayama_proto_rawDescGZIP(), []int{1}
+	return file_sthirayama_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetRequest) GetKey() []byte {
@@ -126,7 +326,7 @@ type DelRequest struct {
 
 func (x *DelRequest) Reset() {
 	*x = DelRequest{}
-	mi := &file_sthirayama_proto_msgTypes[2]
+	mi := &file_sthirayama_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -138,7 +338,7 @@ func (x *DelRequest) String() string {
 func (*DelRequest) ProtoMessage() {}
 
 func (x *DelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_sthirayama_proto_msgTypes[2]
+	mi := &file_sthirayama_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -151,7 +351,7 @@ func (x *DelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelRequest.ProtoReflect.Descriptor instead.
 func (*DelRequest) Descriptor() ([]byte, []int) {
-	return file_sthirayama_proto_rawDescGZIP(), []int{2}
+	return file_sthirayama_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DelRequest) GetKey() []byte {
@@ -170,7 +370,7 @@ type SetResponse struct {
 
 func (x *SetResponse) Reset() {
 	*x = SetResponse{}
-	mi := &file_sthirayama_proto_msgTypes[3]
+	mi := &file_sthirayama_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -182,7 +382,7 @@ func (x *SetResponse) String() string {
 func (*SetResponse) ProtoMessage() {}
 
 func (x *SetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_sthirayama_proto_msgTypes[3]
+	mi := &file_sthirayama_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -195,7 +395,7 @@ func (x *SetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetResponse.ProtoReflect.Descriptor instead.
 func (*SetResponse) Descriptor() ([]byte, []int) {
-	return file_sthirayama_proto_rawDescGZIP(), []int{3}
+	return file_sthirayama_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SetResponse) GetOk() bool {
@@ -214,7 +414,7 @@ type GetResponse struct {
 
 func (x *GetResponse) Reset() {
 	*x = GetResponse{}
-	mi := &file_sthirayama_proto_msgTypes[4]
+	mi := &file_sthirayama_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -226,7 +426,7 @@ func (x *GetResponse) String() string {
 func (*GetResponse) ProtoMessage() {}
 
 func (x *GetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_sthirayama_proto_msgTypes[4]
+	mi := &file_sthirayama_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -239,7 +439,7 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
 func (*GetResponse) Descriptor() ([]byte, []int) {
-	return file_sthirayama_proto_rawDescGZIP(), []int{4}
+	return file_sthirayama_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetResponse) GetVal() []byte {
@@ -258,7 +458,7 @@ type DelResponse struct {
 
 func (x *DelResponse) Reset() {
 	*x = DelResponse{}
-	mi := &file_sthirayama_proto_msgTypes[5]
+	mi := &file_sthirayama_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +470,7 @@ func (x *DelResponse) String() string {
 func (*DelResponse) ProtoMessage() {}
 
 func (x *DelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_sthirayama_proto_msgTypes[5]
+	mi := &file_sthirayama_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +483,7 @@ func (x *DelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelResponse.ProtoReflect.Descriptor instead.
 func (*DelResponse) Descriptor() ([]byte, []int) {
-	return file_sthirayama_proto_rawDescGZIP(), []int{5}
+	return file_sthirayama_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DelResponse) GetOk() bool {
@@ -298,7 +498,18 @@ var File_sthirayama_proto protoreflect.FileDescriptor
 const file_sthirayama_proto_rawDesc = "" +
 	"\n" +
 	"\x10sthirayama.proto\x12\n" +
-	"sthirayama\"0\n" +
+	"sthirayama\"\x11\n" +
+	"\x0fSnapshotRequest\"V\n" +
+	"\x10SnapshotResponse\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\fR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\fR\x05value\x12\x1a\n" +
+	"\bsequence\x18\x03 \x01(\fR\bsequence\"T\n" +
+	"\x0eRestoreRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\fR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\fR\x05value\x12\x1a\n" +
+	"\bsequence\x18\x03 \x01(\x04R\bsequence\"+\n" +
+	"\x0fRestoreResponse\x12\x18\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"0\n" +
 	"\n" +
 	"SetRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\fR\x03key\x12\x10\n" +
@@ -314,12 +525,14 @@ const file_sthirayama_proto_rawDesc = "" +
 	"\vGetResponse\x12\x10\n" +
 	"\x03val\x18\x01 \x01(\fR\x03val\"\x1d\n" +
 	"\vDelResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok2\xb4\x01\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok2\xc3\x02\n" +
 	"\n" +
 	"Sthirayama\x126\n" +
 	"\x03Set\x12\x16.sthirayama.SetRequest\x1a\x17.sthirayama.SetResponse\x126\n" +
 	"\x03Get\x12\x16.sthirayama.GetRequest\x1a\x17.sthirayama.GetResponse\x126\n" +
-	"\x03Del\x12\x16.sthirayama.DelRequest\x1a\x17.sthirayama.DelResponseB\x06Z\x04./pbb\x06proto3"
+	"\x03Del\x12\x16.sthirayama.DelRequest\x1a\x17.sthirayama.DelResponse\x12G\n" +
+	"\bSnapshot\x12\x1b.sthirayama.SnapshotRequest\x1a\x1c.sthirayama.SnapshotResponse0\x01\x12D\n" +
+	"\aRestore\x12\x1a.sthirayama.RestoreRequest\x1a\x1b.sthirayama.RestoreResponse(\x01B\x06Z\x04./pbb\x06proto3"
 
 var (
 	file_sthirayama_proto_rawDescOnce sync.Once
@@ -333,24 +546,32 @@ func file_sthirayama_proto_rawDescGZIP() []byte {
 	return file_sthirayama_proto_rawDescData
 }
 
-var file_sthirayama_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_sthirayama_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_sthirayama_proto_goTypes = []any{
-	(*SetRequest)(nil),  // 0: sthirayama.SetRequest
-	(*GetRequest)(nil),  // 1: sthirayama.GetRequest
-	(*DelRequest)(nil),  // 2: sthirayama.DelRequest
-	(*SetResponse)(nil), // 3: sthirayama.SetResponse
-	(*GetResponse)(nil), // 4: sthirayama.GetResponse
-	(*DelResponse)(nil), // 5: sthirayama.DelResponse
+	(*SnapshotRequest)(nil),  // 0: sthirayama.SnapshotRequest
+	(*SnapshotResponse)(nil), // 1: sthirayama.SnapshotResponse
+	(*RestoreRequest)(nil),   // 2: sthirayama.RestoreRequest
+	(*RestoreResponse)(nil),  // 3: sthirayama.RestoreResponse
+	(*SetRequest)(nil),       // 4: sthirayama.SetRequest
+	(*GetRequest)(nil),       // 5: sthirayama.GetRequest
+	(*DelRequest)(nil),       // 6: sthirayama.DelRequest
+	(*SetResponse)(nil),      // 7: sthirayama.SetResponse
+	(*GetResponse)(nil),      // 8: sthirayama.GetResponse
+	(*DelResponse)(nil),      // 9: sthirayama.DelResponse
 }
 var file_sthirayama_proto_depIdxs = []int32{
-	0, // 0: sthirayama.Sthirayama.Set:input_type -> sthirayama.SetRequest
-	1, // 1: sthirayama.Sthirayama.Get:input_type -> sthirayama.GetRequest
-	2, // 2: sthirayama.Sthirayama.Del:input_type -> sthirayama.DelRequest
-	3, // 3: sthirayama.Sthirayama.Set:output_type -> sthirayama.SetResponse
-	4, // 4: sthirayama.Sthirayama.Get:output_type -> sthirayama.GetResponse
-	5, // 5: sthirayama.Sthirayama.Del:output_type -> sthirayama.DelResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	4, // 0: sthirayama.Sthirayama.Set:input_type -> sthirayama.SetRequest
+	5, // 1: sthirayama.Sthirayama.Get:input_type -> sthirayama.GetRequest
+	6, // 2: sthirayama.Sthirayama.Del:input_type -> sthirayama.DelRequest
+	0, // 3: sthirayama.Sthirayama.Snapshot:input_type -> sthirayama.SnapshotRequest
+	2, // 4: sthirayama.Sthirayama.Restore:input_type -> sthirayama.RestoreRequest
+	7, // 5: sthirayama.Sthirayama.Set:output_type -> sthirayama.SetResponse
+	8, // 6: sthirayama.Sthirayama.Get:output_type -> sthirayama.GetResponse
+	9, // 7: sthirayama.Sthirayama.Del:output_type -> sthirayama.DelResponse
+	1, // 8: sthirayama.Sthirayama.Snapshot:output_type -> sthirayama.SnapshotResponse
+	3, // 9: sthirayama.Sthirayama.Restore:output_type -> sthirayama.RestoreResponse
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -367,7 +588,7 @@ func file_sthirayama_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sthirayama_proto_rawDesc), len(file_sthirayama_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

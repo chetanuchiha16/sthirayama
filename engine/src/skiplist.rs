@@ -13,6 +13,19 @@ pub struct SkipListKV<K, V> {
     pub value: V,
     pub sequence: [u8; 8],
 }
+impl Display for SkipListKV<Vec<u8>, Vec<u8>> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let key = &self.key;
+        let val = &self.value;
+        let seq = self.sequence;
+
+        let k = str::from_utf8(&key).unwrap();
+        let v = str::from_utf8(&val).unwrap();
+        let s = usize::from_le_bytes(seq);
+        writeln!(f, "key {}: value: {}, sequence {}", k, v, s)?;
+        Ok(())
+    }
+}
 
 impl<K: TypeSkipListKey, V: TypeSkipListValue> SkipListKV<K, V> {
     pub fn new(key: K, value: V, sequence: [u8; 8]) -> Self {
@@ -197,7 +210,7 @@ where
 
     /// Insert requires &mut self (single-writer model).
     /// Readers can execute search() concurrently without blocking.
-    pub fn insert(&self, key: K, value: V, sequence: [u8; 8]) {
+    pub fn insert(&mut self, key: K, value: V, sequence: [u8; 8]) {
         let target_seq = u64::from_le_bytes(sequence);
         let mut update: Vec<*mut SkipListNode<K, V>> = vec![self.head; self.max_level];
         let mut current = self.head;
@@ -233,7 +246,7 @@ where
         }
 
         // Step 2: Publish new node to readers from level 0 upwards using Release ordering.
-        for level in 0..new_node_level {
+        for level in (0..new_node_level).rev() {
             SkipListNode::store_forward(update[level], level, new_node);
         }
     }
