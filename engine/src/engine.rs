@@ -136,7 +136,7 @@ impl Engine {
         self.sequence += 1;
         self.wal.append(key, Data(value.to_vec()), self.sequence)?;
         self.memtable.insert(key, value.clone(), self.sequence)?;
-        let limit = 4 * 1024;
+        let limit = 4 * 1024 * 1024;
 
         if self.memtable.size > limit {
             // println!("memtable size reached 4kb");
