@@ -23,6 +23,7 @@ const (
 	Sthirayama_Get_FullMethodName      = "/sthirayama.Sthirayama/Get"
 	Sthirayama_Del_FullMethodName      = "/sthirayama.Sthirayama/Del"
 	Sthirayama_Snapshot_FullMethodName = "/sthirayama.Sthirayama/Snapshot"
+	Sthirayama_Restore_FullMethodName  = "/sthirayama.Sthirayama/Restore"
 )
 
 // SthirayamaClient is the client API for Sthirayama service.
@@ -33,6 +34,7 @@ type SthirayamaClient interface {
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	Del(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*DelResponse, error)
 	Snapshot(ctx context.Context, in *SnapshotRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SnapshotResponse], error)
+	Restore(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[RestoreRequest, RestoreResponse], error)
 }
 
 type sthirayamaClient struct {
@@ -92,6 +94,19 @@ func (c *sthirayamaClient) Snapshot(ctx context.Context, in *SnapshotRequest, op
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Sthirayama_SnapshotClient = grpc.ServerStreamingClient[SnapshotResponse]
 
+func (c *sthirayamaClient) Restore(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[RestoreRequest, RestoreResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Sthirayama_ServiceDesc.Streams[1], Sthirayama_Restore_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[RestoreRequest, RestoreResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Sthirayama_RestoreClient = grpc.ClientStreamingClient[RestoreRequest, RestoreResponse]
+
 // SthirayamaServer is the server API for Sthirayama service.
 // All implementations must embed UnimplementedSthirayamaServer
 // for forward compatibility.
@@ -100,6 +115,7 @@ type SthirayamaServer interface {
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	Del(context.Context, *DelRequest) (*DelResponse, error)
 	Snapshot(*SnapshotRequest, grpc.ServerStreamingServer[SnapshotResponse]) error
+	Restore(grpc.ClientStreamingServer[RestoreRequest, RestoreResponse]) error
 	mustEmbedUnimplementedSthirayamaServer()
 }
 
@@ -121,6 +137,9 @@ func (UnimplementedSthirayamaServer) Del(context.Context, *DelRequest) (*DelResp
 }
 func (UnimplementedSthirayamaServer) Snapshot(*SnapshotRequest, grpc.ServerStreamingServer[SnapshotResponse]) error {
 	return status.Error(codes.Unimplemented, "method Snapshot not implemented")
+}
+func (UnimplementedSthirayamaServer) Restore(grpc.ClientStreamingServer[RestoreRequest, RestoreResponse]) error {
+	return status.Error(codes.Unimplemented, "method Restore not implemented")
 }
 func (UnimplementedSthirayamaServer) mustEmbedUnimplementedSthirayamaServer() {}
 func (UnimplementedSthirayamaServer) testEmbeddedByValue()                    {}
@@ -208,6 +227,13 @@ func _Sthirayama_Snapshot_Handler(srv interface{}, stream grpc.ServerStream) err
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Sthirayama_SnapshotServer = grpc.ServerStreamingServer[SnapshotResponse]
 
+func _Sthirayama_Restore_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SthirayamaServer).Restore(&grpc.GenericServerStream[RestoreRequest, RestoreResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Sthirayama_RestoreServer = grpc.ClientStreamingServer[RestoreRequest, RestoreResponse]
+
 // Sthirayama_ServiceDesc is the grpc.ServiceDesc for Sthirayama service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -233,6 +259,11 @@ var Sthirayama_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "Snapshot",
 			Handler:       _Sthirayama_Snapshot_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "Restore",
+			Handler:       _Sthirayama_Restore_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "sthirayama.proto",

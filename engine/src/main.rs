@@ -16,14 +16,14 @@ use engine::{
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{
-    Request, Response, Status,
+    Request, Response, Status, Streaming,
     server::{ServerStreamingService, StreamingService},
     transport::Server,
 };
 
 use crate::sthirayama::{
-    DelRequest, DelResponse, GetRequest, GetResponse, SetRequest, SetResponse, SnapshotRequest,
-    SnapshotResponse,
+    DelRequest, DelResponse, GetRequest, GetResponse, RestoreRequest, RestoreResponse, SetRequest,
+    SetResponse, SnapshotRequest, SnapshotResponse,
     sthirayama_server::{Sthirayama, SthirayamaServer},
 };
 // use sthirayama::
@@ -103,6 +103,9 @@ impl Sthirayama for MySthirayama {
                     .take(1000)
                     .collect()
                 };
+                if iter_chunk.is_empty() {
+                    break;
+                }
                 let last_index = iter_chunk.len() - 1;
                 cursor = Some(iter_chunk[last_index].clone());
                 for SkipListKV {
@@ -114,8 +117,8 @@ impl Sthirayama for MySthirayama {
                     if let Err(_) = tx
                         .send(Ok(SnapshotResponse {
                             key: key.clone(),
-                            value: key.clone(),
-                            sequence: sequence.to_vec(),
+                            value: value.clone(),
+                            sequence: u64::from_le_bytes(sequence.clone()),
                         }))
                         .await
                     {
@@ -152,6 +155,25 @@ impl Sthirayama for MySthirayama {
         //     }
         // }
         Ok(Response::new(ReceiverStream::new(rx)))
+    }
+    async fn restore(
+        &self,
+        request: Request<Streaming<RestoreRequest>>,
+    ) -> Result<Response<RestoreResponse>, Status> {
+        let mut stream = request.into_inner();
+        while let Some(chunk) = stream.message().await? {
+            let RestoreRequest {
+                key,
+                value,
+                sequence,
+            } = chunk;
+            if let Ok(mut engine) = self.engine.write() {
+                engine.set_with_sequence(&key, &value, sequence as usize);
+            }
+        }
+        Ok(Response::new(RestoreResponse {
+            message: "restored".to_string(),
+        }))
     }
 }
 async fn run_grpc() -> Result<(), EngineError> {

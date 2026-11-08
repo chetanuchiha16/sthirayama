@@ -9,6 +9,7 @@ service Sthirayama {
   rpc Del(DelRequest) returns (DelResponse);
   
   rpc Snapshot(SnapshotRequest) returns (stream SnapshotResponse);
+  rpc Restore(stream RestoreRequest) returns (RestoreResponse);
 }
 
 message SnapshotRequest {}
@@ -16,9 +17,19 @@ message SnapshotRequest {}
 message SnapshotResponse {
   bytes key = 1;
   bytes value = 2;
-  bytes sequence = 3;
+  uint64 sequence = 3;
 }
 
+message RestoreRequest {
+  bytes key = 1;
+  bytes value = 2;
+  uint64 sequence = 3;
+}
+
+message RestoreResponse {
+  string message = 1;
+}
+ 
 message SetRequest {
   bytes key = 1;
   bytes val = 2;
