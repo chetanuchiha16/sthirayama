@@ -10,7 +10,7 @@ use std::{
 };
 
 use engine::{
-    engine::Engine, engine_error::EngineError, skiplist::SkipListKV,
+    engine::Engine, engine_error::EngineError, memtable::Value, skiplist::SkipListKV,
     sstable::iterator::SstableIterator, tests::test_write_read_compact,
 };
 use tokio::sync::mpsc;
@@ -114,10 +114,14 @@ impl Sthirayama for MySthirayama {
                     sequence,
                 } in &iter_chunk
                 {
+                    let raw_value = match Value::from_bytes(value) {
+                        Ok(Value::Data(val)) => val,
+                        _ => value.clone(),
+                    };
                     if let Err(_) = tx
                         .send(Ok(SnapshotResponse {
                             key: key.clone(),
-                            value: value.clone(),
+                            value: raw_value,
                             sequence: u64::from_le_bytes(sequence.clone()),
                         }))
                         .await
