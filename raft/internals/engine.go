@@ -35,6 +35,7 @@ func (engine *MyEngine) Set(key, value []byte) bool {
 	resp, err := engine.GrpcClient.Set(engine.Ctx, &pb.SetRequest{Key: key, Val: value})
 	if err != nil {
 		fmt.Println("error grpc set")
+		return false
 
 	}
 
@@ -47,6 +48,7 @@ func (engine *MyEngine) Del(key []byte) bool {
 	delResponse, err := engine.GrpcClient.Del(engine.Ctx, &pb.DelRequest{Key: key})
 	if err != nil {
 		log.Fatalf("Error Del %v", err)
+		return false
 	}
 	return delResponse.Ok
 }
