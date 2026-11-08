@@ -25,9 +25,10 @@ func (engine *MyEngine) Get(key []byte) ([]byte, error) {
 
 	getResponse, err := engine.GrpcClient.Get(engine.Ctx, &pb.GetRequest{Key: key})
 	if err != nil {
-		log.Fatalf("Error Get %v", err)
+		log.Printf("Error Get %v", err)
+		return nil, err
 	}
-	return []byte(getResponse.Val), nil
+	return getResponse.Val, nil
 }
 
 func (engine *MyEngine) Set(key, value []byte) bool {
@@ -47,7 +48,7 @@ func (engine *MyEngine) Del(key []byte) bool {
 
 	delResponse, err := engine.GrpcClient.Del(engine.Ctx, &pb.DelRequest{Key: key})
 	if err != nil {
-		log.Fatalf("Error Del %v", err)
+		log.Printf("Error Del %v", err)
 		return false
 	}
 	return delResponse.Ok

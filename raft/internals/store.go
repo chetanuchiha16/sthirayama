@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb/v2"
 )
@@ -41,6 +42,12 @@ func NewStore(nodeId string, raftAddr, dataDir string, fsm *FSM) *Store {
 func (self *Store) Open(bootstrap bool) error {
 	config := raft.DefaultConfig()
 	config.LocalID = raft.ServerID(self.nodeId)
+	logger := hclog.New(&hclog.LoggerOptions{
+		Name:   "sthirayama-raft",
+		Level:  hclog.Debug,
+		Output: os.Stderr,
+	})
+	config.Logger = logger
 	adv, err := net.ResolveTCPAddr("tcp", self.raftAddr)
 	transport, err := raft.NewTCPTransport(self.raftAddr, adv, 3, 10*time.Second, os.Stderr)
 	if err != nil {
@@ -52,7 +59,6 @@ func (self *Store) Open(bootstrap bool) error {
 	if err != nil {
 		return err
 	}
-	defer boltDB.Close()
 	logStore := boltDB
 	stableStore := boltDB
 	ra, err := raft.NewRaft(config, self.fsm, logStore, stableStore, snapStore, transport)

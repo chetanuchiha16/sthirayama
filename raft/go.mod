@@ -3,6 +3,7 @@ module raft
 go 1.26.10
 
 require (
+	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/raft v1.8.0
 	github.com/hashicorp/raft-boltdb/v2 v2.4.2
 	google.golang.org/grpc v1.85.0
@@ -12,7 +13,6 @@ require (
 require (
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/fatih/color v1.19.0 // indirect
-	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-metrics v0.7.0 // indirect
 	github.com/hashicorp/go-msgpack/v2 v2.1.5 // indirect
