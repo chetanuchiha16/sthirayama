@@ -53,6 +53,7 @@ func main() {
 	http.HandleFunc("/set", func(w http.ResponseWriter, r *http.Request) {
 		if store.Raft().State() != raft.Leader {
 			store.ForwartToLeader(w, r)
+			return
 		}
 		var req struct {
 			Key   string `json:"key"`
@@ -72,6 +73,7 @@ func main() {
 	http.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
 		if store.Raft().State() != raft.Leader {
 			store.ForwartToLeader(w, r)
+			return
 		}
 		key := r.URL.Query().Get("key")
 		val, err := engine.Get([]byte(key))
@@ -86,6 +88,7 @@ func main() {
 
 		if store.Raft().State() != raft.Leader {
 			store.ForwartToLeader(w, r)
+			return
 		}
 		key := r.URL.Query().Get("key")
 		if err := store.Del([]byte(key)); err != nil {
@@ -99,6 +102,7 @@ func main() {
 
 		if store.Raft().State() != raft.Leader {
 			store.ForwartToLeader(w, r)
+			return
 		}
 		var req struct {
 			NodeID   string `json:"node_id"`
