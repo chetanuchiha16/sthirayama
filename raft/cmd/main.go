@@ -37,7 +37,7 @@ func main() {
 	client := pb.NewSthirayamaClient(conn)
 
 	engine := internals.MyEngine{Ctx: context.Background(), GrpcClient: client}
-	fsm := internals.NewFSM(engine)
+	fsm := internals.NewFSM(&engine)
 	store := internals.NewStore(*nodeId, *raftAddr, *dataDir, fsm)
 	if err := store.Open(*bootstrap); err != nil {
 		log.Fatalf("Failed to open store: %v", err)
